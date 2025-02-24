@@ -11,6 +11,7 @@ export default defineConfig({
             "activeTab",
             "storage",
             "contextMenus",
+            "notifications"
         ],
     },
 });
