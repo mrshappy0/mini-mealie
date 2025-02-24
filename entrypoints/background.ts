@@ -1,4 +1,4 @@
-import { checkStorageAndUpdateBadge, createNotification, scrapeRecipe } from "../helpers";
+import { checkStorageAndUpdateBadge, createNotification, scrapeRecipe } from "@/utils";
 
 export default defineBackground(() => {
     // Check storage and update badge on startup

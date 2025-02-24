@@ -13,5 +13,6 @@ export default defineConfig({
             "contextMenus",
             "notifications"
         ],
+        description: "Scrape recipes and save them to a Mealie instance.",
     },
 });
