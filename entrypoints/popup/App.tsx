@@ -1,33 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import reactLogo from "@/assets/react.svg";
 import wxtLogo from "/wxt.svg";
 import "./App.css";
 
 function App() {
+    const [mealieServer, setMealieServer] = useState("");
+    const [inputServer, setInputServer] = useState("");
     const [mealieApiToken, setMealieApiToken] = useState("");
     const [inputToken, setInputToken] = useState("");
+    const [isSaveDisabled, setIsSaveDisabled] = useState(true);
 
-    // Load the token when the component mounts
     useEffect(() => {
-        chrome.storage.sync.get("mealieApiToken", (data) => {
+        chrome.storage.sync.get(["mealieServer", "mealieApiToken"], (data) => {
+            if (data.mealieServer) {
+                setMealieServer(data.mealieServer);
+            }
             if (data.mealieApiToken) {
                 setMealieApiToken(data.mealieApiToken);
             }
         });
     }, []);
 
-    const saveToken = () => {
-        chrome.storage.sync.set({ mealieApiToken: inputToken }, () => {
-            setMealieApiToken(inputToken); // Only update after saving
-            alert("Mealie API Token saved!");
-        });
+    useEffect(() => {
+        const isDisabled =
+            inputServer.trim() === "" || inputToken.trim() === "";
+        setIsSaveDisabled(isDisabled);
+    }, [inputServer, inputToken]);
+
+    const saveSettings = () => {
+        if (inputServer.trim() === "" || inputToken.trim() === "") {
+            return;
+        }
+        chrome.storage.sync.set(
+            { mealieServer: inputServer, mealieApiToken: inputToken },
+            () => {
+                setMealieServer(inputServer);
+                setMealieApiToken(inputToken);
+            }
+        );
     };
 
-    const clearToken = () => {
-        chrome.storage.sync.remove("mealieApiToken", () => {
+    const clearSettings = () => {
+        chrome.storage.sync.remove(["mealieServer", "mealieApiToken"], () => {
+            setMealieServer("");
+            setInputServer("");
             setMealieApiToken("");
-            setInputToken(""); // Clear input state too
-            alert("Mealie API Token removed!");
+            setInputToken("");
         });
     };
 
@@ -47,21 +65,33 @@ function App() {
             </div>
             <h2 className="header">Mini Mealie</h2>
             <div className="card">
-                {mealieApiToken === "" ? (
+                {mealieServer === "" || mealieApiToken === "" ? (
                     <>
+                        <input
+                            type="text"
+                            placeholder="Enter Mealie Server URL"
+                            value={inputServer}
+                            onChange={(e) => setInputServer(e.target.value)}
+                        />
                         <input
                             type="text"
                             placeholder="Enter Mealie API Token"
                             value={inputToken}
                             onChange={(e) => setInputToken(e.target.value)}
                         />
-                        <button onClick={saveToken}>Save Token</button>
+                                                <button
+                            onClick={saveSettings}
+                            disabled={isSaveDisabled}
+                        >
+                            Connect Mealie
+                        </button>
                     </>
                 ) : (
-                    // If mealieApiToken is set, show success message and option to clear
                     <>
-                        <p>✅ Token saved successfully!</p>
-                        <button onClick={clearToken}>Remove Token</button>
+                        <h3>Settings saved successfully!</h3>
+                        <button onClick={clearSettings}>
+                            Disconnect Server
+                        </button>
                     </>
                 )}
             </div>
