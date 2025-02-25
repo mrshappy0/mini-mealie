@@ -1,5 +1,3 @@
-import { checkStorageAndUpdateBadge, createNotification, scrapeRecipe } from "@/utils";
-
 export default defineBackground(() => {
     // Check storage and update badge on startup
     chrome.runtime.onStartup.addListener(() => {
@@ -22,21 +20,10 @@ export default defineBackground(() => {
     });
 
     chrome.contextMenus.onClicked.addListener((info, tab) => {
-        if (info.menuItemId === "scrapeRecipe" && tab?.id) {
-            chrome.tabs.sendMessage(
-                tab.id,
-                { action: "getCurrentUrl" },
-                (response) => {
-                    if (response?.url) {
-                        scrapeRecipe(response.url);
-                    } else {
-                        createNotification(
-                            "Failed to retrieve URL from the page."
-                        );
-                    }
-                }
-            );
+        if (tab?.url && tab.id) {
+            scrapeRecipe(tab.url, tab.id);
+        } else {
+            createNotification("Failed to retrieve URL from the page.");
         }
     });
 });
-

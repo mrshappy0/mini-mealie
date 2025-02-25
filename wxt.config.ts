@@ -9,10 +9,15 @@ export default defineConfig({
             "storage",
             "tabs",
             "activeTab",
-            "storage",
             "contextMenus",
-            "notifications"
+            "notifications",
+            "scripting"
         ],
         description: "Scrape recipes and save them to a Mealie instance.",
+        name: "Mini Mealie",
     },
+    // https://wxt.dev/guide/essentials/config/auto-imports.html
+    // imports: {
+    //     // ...
+    //   },
 });
