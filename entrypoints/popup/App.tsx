@@ -141,8 +141,20 @@ function App() {
                 )}
             </div>
             <p className="read-the-docs">
-                Click on the WXT and React logos to learn more
+                Built to extend the functionality of{" "}
+                <a
+                    href="https://mealie.io/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Mealie
+                </a>
+                . Visit their website to learn more about this self-hosted
+                recipe manager.
             </p>
+            <div className="buy-me-a-coffee-container">
+                <BuyMeACoffeeButton />
+            </div>
         </>
     );
 }

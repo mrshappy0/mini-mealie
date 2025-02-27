@@ -1,5 +1,5 @@
 :root {
-    --mealie-orange: #EC7E19;
+    --mealie-orange: #ec7e19;
     --mealie-black: #1c1c1c;
     --mealie-white: #ffffff;
     --mealie-grey: #2d2d2d;
@@ -24,7 +24,6 @@
 .logo:hover {
     filter: drop-shadow(0 0 2em var(--mealie-orange));
 }
-
 
 .logo.active {
     filter: drop-shadow(0 0 2em var(--mealie-orange));
@@ -95,4 +94,49 @@
 
 .read-the-docs {
     color: #888;
+}
+
+.buy-me-a-coffee-button:hover {
+    background-color: #d26e16;
+}
+
+.buy-me-a-coffee-button .coffee-icon {
+    margin-right: 0.3em;
+    font-size: 1em;
+}
+
+.buy-me-a-coffee-container {
+    text-align: center;
+    margin-top: 3em;
+}
+
+.buy-me-a-coffee-button img.coffee-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.3em;
+    display: inline-block;
+    vertical-align: middle;
+}
+/* --------- */
+.coffee-button-wrapper {
+    position: fixed;
+    bottom: 1em;
+    right: 1em;
+    z-index: 10;
+}
+
+.buy-me-a-coffee-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4em 0.8em;
+    background-color: var(--mealie-orange);
+    color: #000000;
+    text-decoration: none;
+    font-family: "Poppins", sans-serif;
+    font-weight: bold;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    font-size: 0.875em;
 }
