@@ -7,11 +7,9 @@ export default defineConfig({
     manifest: {
         permissions: [
             "storage",
-            "tabs",
             "activeTab",
             "contextMenus",
-            "notifications",
-            "scripting"
+            "scripting",
         ],
         description: "Scrape recipes and save them to a Mealie instance.",
         name: "Mini Mealie",

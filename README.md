@@ -62,12 +62,11 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 -   Ensure the following permissions are set in `wxt.config.ts`:
     ```json
     "permissions": [
-        "contextMenus",
-        "scripting",
-        "activeTab",
-        "storage",
-        "notifications"
-    ]
+            "storage",
+            "activeTab",
+            "contextMenus",
+            "scripting",
+        ],
     ```
 
 ---
