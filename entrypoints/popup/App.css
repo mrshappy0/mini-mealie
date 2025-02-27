@@ -1,30 +1,38 @@
+:root {
+    --mealie-orange: #EC7E19;
+    --mealie-black: #1c1c1c;
+    --mealie-white: #ffffff;
+    --mealie-grey: #2d2d2d;
+    --mealie-hover: #f59849;
+}
+
 #root {
     max-width: 1280px;
     margin: 0 auto;
     padding: 2rem;
     text-align: center;
+    background-color: var(--mealie-black);
+    color: var(--mealie-white);
 }
 
 .logo {
     height: 6em;
     padding: 1.5em;
     will-change: filter;
-    transition: filter 300ms;
+    transition: filter 150ms ease-in-out;
 }
 .logo:hover {
-    filter: drop-shadow(0 0 2em #54bc4ae0);
-}
-.logo.react:hover {
-    filter: drop-shadow(0 0 2em #61dafbaa);
+    filter: drop-shadow(0 0 2em var(--mealie-orange));
 }
 
-@keyframes logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+
+.logo.active {
+    filter: drop-shadow(0 0 2em var(--mealie-orange));
+    cursor: pointer;
+}
+
+.logo.react:hover {
+    filter: drop-shadow(0 0 2em var(--mealie-hover));
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -37,15 +45,17 @@
     padding: 20px;
     width: 250px;
     font-family: Arial, sans-serif;
-    background-color: #1e1e1e;
-    color: white;
+    background-color: var(--mealie-grey);
+    color: var(--mealie-white);
     border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
 }
 
 .header {
     font-size: 18px;
     margin-bottom: 10px;
-    color: #61dafb;
+    color: var(--mealie-orange);
 }
 
 .card input {
@@ -56,33 +66,30 @@
     border-radius: 4px;
     border: 1px solid #444;
     background-color: #2c2c2c;
-    color: white;
+    color: var(--mealie-white);
 }
 
 .card button {
     width: 100%;
     padding: 0.8em;
-    background-color: #4caf50;
-    color: white;
+    background-color: var(--mealie-orange);
+    color: var(--mealie-white);
     border: none;
     cursor: pointer;
     border-radius: 0.4em;
     transition: background-color 0.2s ease;
 }
-
 .card button:hover {
-    background-color: #45a049;
+    background-color: var(--mealie-hover);
 }
-
 .card button:disabled {
-    background-color: #3a8e42;
+    background-color: #a65726;
     color: rgba(255, 255, 255, 0.8);
     cursor: not-allowed;
     opacity: 0.7;
 }
-
 .card button:disabled:hover {
-    background-color: #3a8e42;
+    background-color: #a65726;
     cursor: not-allowed;
 }
 

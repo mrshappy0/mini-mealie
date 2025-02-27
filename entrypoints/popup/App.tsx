@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import reactLogo from "@/assets/react.svg";
-import wxtLogo from "/wxt.svg";
+import { useState, useEffect, ChangeEvent } from "react";
+import miniMealieLogo from "/mini-mealie.svg";
 import "./App.css";
 
 function App() {
+    const urlPrefix = "http://";
     const [mealieServer, setMealieServer] = useState("");
-    const [inputServer, setInputServer] = useState("");
+    const [inputServer, setInputServer] = useState(urlPrefix);
     const [mealieApiToken, setMealieApiToken] = useState("");
     const [inputToken, setInputToken] = useState("");
     const [isSaveDisabled, setIsSaveDisabled] = useState(true);
@@ -14,7 +14,10 @@ function App() {
         chrome.storage.sync.get(["mealieServer", "mealieApiToken"], (data) => {
             if (data.mealieServer) {
                 setMealieServer(data.mealieServer);
+            } else {
+                setInputServer(urlPrefix);
             }
+
             if (data.mealieApiToken) {
                 setMealieApiToken(data.mealieApiToken);
             }
@@ -28,7 +31,7 @@ function App() {
     }, [inputServer, inputToken]);
 
     const saveSettings = () => {
-        if (inputServer.trim() === "" || inputToken.trim() === "") {
+        if (inputServer.trim() === urlPrefix || inputToken.trim() === "") {
             return;
         }
         chrome.storage.sync.set(
@@ -40,26 +43,57 @@ function App() {
         );
     };
 
+    const handleServerChange = (e: ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
+        if (!value.startsWith(urlPrefix)) {
+            setInputServer(urlPrefix);
+        } else {
+            setInputServer(value);
+        }
+    };
+
+    const handleServerFocus = (e: ChangeEvent<HTMLInputElement>) => {
+        // Place cursor at the end of the text
+        const length = e.target.value.length;
+        e.target.setSelectionRange(length, length);
+    };
+
     const clearSettings = () => {
         chrome.storage.sync.remove(["mealieServer", "mealieApiToken"], () => {
             setMealieServer("");
             setInputServer("");
             setMealieApiToken("");
             setInputToken("");
+            setInputServer(urlPrefix);
         });
     };
 
     return (
         <>
             <div>
-                <a href="https://wxt.dev" target="_blank">
-                    <img src={wxtLogo} className="logo" alt="WXT logo" />
-                </a>
-                <a href="https://react.dev" target="_blank">
+                <a
+                    href={mealieServer ? mealieServer : "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`logo ${
+                        mealieServer && mealieApiToken ? "active" : ""
+                    }`}
+                    title={
+                        mealieServer && mealieApiToken
+                            ? "Visit Mealie server"
+                            : "Connect to a Mealie server"
+                    }
+                    onClick={(e) => {
+                        if (!mealieServer || !mealieApiToken) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
                     <img
-                        src={reactLogo}
-                        className="logo react"
-                        alt="React logo"
+                        src={miniMealieLogo}
+                        className="logo"
+                        alt="Mini Mealie Logo"
                     />
                 </a>
             </div>
@@ -71,15 +105,26 @@ function App() {
                             type="text"
                             placeholder="Enter Mealie Server URL"
                             value={inputServer}
-                            onChange={(e) => setInputServer(e.target.value)}
+                            onChange={handleServerChange}
+                            onFocus={handleServerFocus}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !isSaveDisabled) {
+                                    saveSettings();
+                                }
+                            }}
                         />
                         <input
                             type="text"
                             placeholder="Enter Mealie API Token"
                             value={inputToken}
                             onChange={(e) => setInputToken(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !isSaveDisabled) {
+                                    saveSettings();
+                                }
+                            }}
                         />
-                                                <button
+                        <button
                             onClick={saveSettings}
                             disabled={isSaveDisabled}
                         >
