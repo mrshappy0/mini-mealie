@@ -19,11 +19,9 @@ export default defineBackground(() => {
         }
     });
 
-    chrome.contextMenus.onClicked.addListener((info, tab) => {
+    chrome.contextMenus.onClicked.addListener((_, tab) => {
         if (tab?.url && tab.id) {
             scrapeRecipe(tab.url, tab.id);
-        } else {
-            createNotification("Failed to retrieve URL from the page.");
         }
     });
 });

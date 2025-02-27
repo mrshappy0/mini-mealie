@@ -3,15 +3,11 @@ export const scrapeRecipe = (url: string, tabId: number) => {
         ["mealieServer", "mealieApiToken"],
         ({ mealieServer, mealieApiToken }) => {
             if (!mealieServer) {
-                createNotification(
-                    "Please enter your Mealie server URL first."
-                );
                 showBadge("❌", 4);
                 return;
             }
 
             if (!mealieApiToken) {
-                createNotification("Please save your Mealie API token first.");
                 showBadge("❌", 4);
                 return;
             }
@@ -47,10 +43,8 @@ export const scrapeRecipe = (url: string, tabId: number) => {
                 (result) => {
                     const status = result[0].result;
                     if (status === "success") {
-                        createNotification("Recipe successfully scraped!");
                         showBadge("✅", 4);
                     } else {
-                        createNotification("Failed to scrape recipe.");
                         showBadge("❌", 4);
                     }
                 }
