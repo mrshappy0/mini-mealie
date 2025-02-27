@@ -1,4 +1,4 @@
 export default defineContentScript({
-    matches: [],
+    matches: ["https://*/*", "http://*/*"],
     main(ctx) {},
 });
