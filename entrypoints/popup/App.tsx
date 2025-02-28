@@ -3,7 +3,7 @@ import miniMealieLogo from "/mini-mealie.svg";
 import "./App.css";
 
 function App() {
-    const urlPrefix = "http://";
+    const urlPrefix = "https://";
     const [mealieServer, setMealieServer] = useState("");
     const [inputServer, setInputServer] = useState(urlPrefix);
     const [mealieApiToken, setMealieApiToken] = useState("");

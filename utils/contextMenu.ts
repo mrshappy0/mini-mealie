@@ -2,7 +2,7 @@ export const addContextMenu = () => {
     chrome.contextMenus.removeAll(() => {
         chrome.contextMenus.create({
             id: "scrapeRecipe",
-            title: "Scrape Recipe with Mealie",
+            title: "Import recipe to Mealie",
             contexts: ["page"],
         });
     });
