@@ -2,10 +2,16 @@ import { useState, useEffect, ChangeEvent } from "react";
 import miniMealieLogo from "/mini-mealie.svg";
 import "./App.css";
 
+enum Protocol {
+    HTTP = "http://",
+    HTTPS = "https://",
+}
+
 function App() {
-    const urlPrefix = "https://";
+    // const urlPrefix = "https://";
+    const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState("");
-    const [inputServer, setInputServer] = useState(urlPrefix);
+    const [inputServer, setInputServer] = useState<string>(Protocol.HTTPS);
     const [mealieApiToken, setMealieApiToken] = useState("");
     const [inputToken, setInputToken] = useState("");
     const [isSaveDisabled, setIsSaveDisabled] = useState(true);
@@ -15,14 +21,14 @@ function App() {
             if (data.mealieServer) {
                 setMealieServer(data.mealieServer);
             } else {
-                setInputServer(urlPrefix);
+                setInputServer(protocol);
             }
 
             if (data.mealieApiToken) {
                 setMealieApiToken(data.mealieApiToken);
             }
         });
-    }, []);
+    }, [protocol]);
 
     useEffect(() => {
         const isDisabled =
@@ -31,7 +37,7 @@ function App() {
     }, [inputServer, inputToken]);
 
     const saveSettings = () => {
-        if (inputServer.trim() === urlPrefix || inputToken.trim() === "") {
+        if (inputServer.trim() === protocol || inputToken.trim() === "") {
             return;
         }
         chrome.storage.sync.set(
@@ -44,10 +50,10 @@ function App() {
     };
 
     const handleServerChange = (e: ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
+        const value = e.target.value;
 
-        if (!value.startsWith(urlPrefix)) {
-            setInputServer(urlPrefix);
+        if (!value.startsWith(protocol)) {
+            setInputServer(protocol);
         } else {
             setInputServer(value);
         }
@@ -59,13 +65,26 @@ function App() {
         e.target.setSelectionRange(length, length);
     };
 
+    const handleToggle = () => {
+        setProtocol((prev) =>
+            prev === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS
+        );
+        setInputServer((prev) =>
+            prev.replace(
+                /^https?:\/\//,
+                protocol === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS
+            )
+        );
+    };
+
     const clearSettings = () => {
         chrome.storage.sync.remove(["mealieServer", "mealieApiToken"], () => {
             setMealieServer("");
             setInputServer("");
             setMealieApiToken("");
             setInputToken("");
-            setInputServer(urlPrefix);
+            setInputServer(Protocol.HTTPS);
+            setProtocol(Protocol.HTTPS);
         });
     };
 
@@ -101,18 +120,40 @@ function App() {
             <div className="card">
                 {mealieServer === "" || mealieApiToken === "" ? (
                     <>
-                        <input
-                            type="text"
-                            placeholder="Enter Mealie Server URL"
-                            value={inputServer}
-                            onChange={handleServerChange}
-                            onFocus={handleServerFocus}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && !isSaveDisabled) {
-                                    saveSettings();
-                                }
-                            }}
-                        />
+                        <div className="protocol-toggle-container">
+                            <div className="toggle-container">
+                                <label className="toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={protocol === Protocol.HTTPS}
+                                        onChange={handleToggle}
+                                    />
+                                    <span
+                                        className={`slider ${
+                                            protocol === Protocol.HTTPS
+                                                ? "locked"
+                                                : "unlocked"
+                                        }`}
+                                    >
+                                        {protocol === Protocol.HTTPS
+                                            ? "🔒"
+                                            : ""}
+                                    </span>
+                                </label>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Enter Mealie Server URL"
+                                value={inputServer}
+                                onChange={handleServerChange}
+                                onFocus={handleServerFocus}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !isSaveDisabled) {
+                                        saveSettings();
+                                    }
+                                }}
+                            />
+                        </div>
                         <input
                             type="text"
                             placeholder="Enter Mealie API Token"
