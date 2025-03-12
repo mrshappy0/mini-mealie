@@ -146,5 +146,5 @@ Distributed under the AGPL License. See LICENSE for more information.
 
 [issues-shield]: https://img.shields.io/github/issues/mrshappy0/mini-mealie.svg?style=for-the-badge
 [issues-url]: https://github.com/mrshappy0/mini-mealie/issues
-[license-shield]: https://img.shields.io/github/license/mrshappy0/mini-mealie.svg?style=flat-square
+[license-shield]: https://img.shields.io/github/license/mrshappy0/mini-mealie.svg?style=for-the-badge
 [license-url]: https://github.com/mrshappy0/mini-mealie/blob/main/LICENSE
