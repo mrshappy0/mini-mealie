@@ -1,6 +1,9 @@
-# Mini Mealie
+[![Contributors][contributors-shield]][contributors-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![AGPL License][license-shield]][license-url]
 
-## 📖 Description
+# Mini Mealie
 
 Mini Mealie is a Chrome extension built using WXT and React, designed to speed up recipe scraping. This extension integrates with Mealie to scrape recipes and import into Mealie.
 
@@ -128,3 +131,20 @@ For questions or collaboration requests, contact:
 
 -   **Adam Shappy** - atom@shaplabs.net
 -   **GitHub** - https://github.com/mrshappy0
+
+---
+
+## License
+Distributed under the AGPL License. See LICENSE for more information.
+
+
+[contributors-shield]: https://img.shields.io/github/contributors/mrshappy0/mini-mealie.svg?style=for-the-badge
+[contributors-url]: https://github.com/mrshappy0/mini-mealie/graphs/contributors
+
+[stars-shield]: https://img.shields.io/github/stars/mrshappy0/mini-mealie.svg?style=for-the-badge
+[stars-url]: https://github.com/mrshappy0/mini-mealie/stargazers
+
+[issues-shield]: https://img.shields.io/github/issues/mrshappy0/mini-mealie.svg?style=for-the-badge
+[issues-url]: https://github.com/mrshappy0/mini-mealie/issues
+[license-shield]: https://img.shields.io/github/license/mrshappy0/mini-mealie.svg?style=flat-square
+[license-url]: https://github.com/mrshappy0/mini-mealie/blob/main/LICENSE
