@@ -31,4 +31,7 @@ export default [
     pluginSecurity.configs.recommended,
     eslintPluginPrettierRecommended,
     autoImports,
+    {
+        ignores: ['node_modules', '.wxt', '.output'],
+    },
 ];
