@@ -7,6 +7,6 @@ describe('isLoggedIn', () => {
     });
 
     it('first test', async () => {
-        expect(true).toBe(true);
+        expect(true).toBe(true); // TODO: add meaninful test. Battle with setting up render methods
     });
 });

@@ -15,7 +15,10 @@
         "postinstall": "wxt prepare",
         "test": "vitest",
         "lint": "eslint",
-        "lint-compact": "eslint -f compact"
+        "lint-compact": "eslint -f compact",
+        "coverage": "vitest run --coverage",
+        "vitest-ui": "vitest run --ui",
+        "html-coverage": "pnpm vitest --ui --coverage.enabled=true"
     },
     "dependencies": {
         "react": "^19.0.0",
@@ -28,6 +31,8 @@
         "@types/eslint-plugin-security": "^3.0.0",
         "@types/react": "^19.0.1",
         "@types/react-dom": "^19.0.2",
+        "@vitest/coverage-v8": "^3.0.8",
+        "@vitest/ui": "^3.0.8",
         "@wxt-dev/module-react": "^1.1.2",
         "eslint": "^9.22.0",
         "eslint-config-prettier": "^10.1.1",

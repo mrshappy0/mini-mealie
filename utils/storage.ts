@@ -1,6 +1,3 @@
-import { showBadge, clearBadge } from './badge';
-import { addContextMenu, removeContextMenu } from './contextMenu';
-
 export const checkStorageAndUpdateBadge = () => {
     chrome.storage.sync.get(
         ['mealieServer', 'mealieApiToken'],

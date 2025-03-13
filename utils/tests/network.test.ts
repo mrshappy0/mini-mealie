@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { scrapeRecipe } from "../network";
-import { showBadge } from "../badge";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock("../badge", () => ({
+vi.mock('../badge', () => ({
     showBadge: vi.fn(),
 }));
 
@@ -22,47 +20,43 @@ beforeEach(() => {
     vi.clearAllMocks();
 });
 
-describe("scrapeRecipe", () => {
+describe('scrapeRecipe', () => {
     const mockTabId = 123;
-    const mockUrl = "https://example.com/recipe";
-    const mockServer = "https://mealie.local";
-    const mockToken = "mock-api-token";
+    const mockUrl = 'https://example.com/recipe';
+    const mockServer = 'https://mealie.local';
+    const mockToken = 'mock-api-token';
 
-    it("should show ❌ badge if mealieServer is missing", () => {
+    it('should show ❌ badge if mealieServer is missing', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (
-                _keys,
-                callback: (items: Record<string, string | undefined>) => void
-            ) => callback({ mealieApiToken: mockToken }) // Missing mealieServer
+            (_keys, callback: (items: Record<string, string | undefined>) => void) =>
+                callback({ mealieApiToken: mockToken }), // Missing mealieServer
         );
 
         scrapeRecipe(mockUrl, mockTabId);
 
-        expect(showBadge).toHaveBeenCalledWith("❌", 4);
+        expect(showBadge).toHaveBeenCalledWith('❌', 4);
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
     });
 
-    it("should show ❌ badge if mealieApiToken is missing", () => {
+    it('should show ❌ badge if mealieApiToken is missing', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (
-                _keys,
-                callback: (items: Record<string, string | undefined>) => void
-            ) => callback({ mealieServer: mockServer }) // Missing mealieApiToken
+            (_keys, callback: (items: Record<string, string | undefined>) => void) =>
+                callback({ mealieServer: mockServer }), // Missing mealieApiToken
         );
 
         scrapeRecipe(mockUrl, mockTabId);
 
-        expect(showBadge).toHaveBeenCalledWith("❌", 4);
+        expect(showBadge).toHaveBeenCalledWith('❌', 4);
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
     });
 
-    it("should execute script when both mealieServer and mealieApiToken are present", () => {
+    it('should execute script when both mealieServer and mealieApiToken are present', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
             (_keys, callback: (items: Record<string, string>) => void) =>
                 callback({
                     mealieServer: mockServer,
                     mealieApiToken: mockToken,
-                })
+                }),
         );
 
         scrapeRecipe(mockUrl, mockTabId);
@@ -73,17 +67,17 @@ describe("scrapeRecipe", () => {
                 func: expect.any(Function),
                 args: [mockUrl, mockServer, mockToken],
             },
-            expect.any(Function)
+            expect.any(Function),
         );
     });
 
-    it("should show ✅ badge if the script execution result is success", () => {
+    it('should show ✅ badge if the script execution result is success', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
             (_keys, callback: (items: Record<string, string>) => void) =>
                 callback({
                     mealieServer: mockServer,
                     mealieApiToken: mockToken,
-                })
+                }),
         );
 
         vi.mocked(chrome.scripting.executeScript).mockImplementation(
@@ -94,27 +88,25 @@ describe("scrapeRecipe", () => {
                         result: string;
                         frameId: number;
                         documentId: string;
-                    }>
-                ) => void
+                    }>,
+                ) => void,
             ) => {
-                callback([
-                    { result: "success", frameId: 0, documentId: "1234" },
-                ]);
-            }
+                callback([{ result: 'success', frameId: 0, documentId: '1234' }]);
+            },
         );
 
         scrapeRecipe(mockUrl, mockTabId);
 
-        expect(showBadge).toHaveBeenCalledWith("✅", 4);
+        expect(showBadge).toHaveBeenCalledWith('✅', 4);
     });
 
-    it("should show ❌ badge if the script execution result is failure", () => {
+    it('should show ❌ badge if the script execution result is failure', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
             (_keys, callback: (items: Record<string, string>) => void) =>
                 callback({
                     mealieServer: mockServer,
                     mealieApiToken: mockToken,
-                })
+                }),
         );
 
         vi.mocked(chrome.scripting.executeScript).mockImplementation(
@@ -125,17 +117,15 @@ describe("scrapeRecipe", () => {
                         result: string;
                         frameId: number;
                         documentId: string;
-                    }>
-                ) => void
+                    }>,
+                ) => void,
             ) => {
-                callback([
-                    { result: "failure", frameId: 0, documentId: "5678" },
-                ]);
-            }
+                callback([{ result: 'failure', frameId: 0, documentId: '5678' }]);
+            },
         );
 
         scrapeRecipe(mockUrl, mockTabId);
 
-        expect(showBadge).toHaveBeenCalledWith("❌", 4);
+        expect(showBadge).toHaveBeenCalledWith('❌', 4);
     });
 });
