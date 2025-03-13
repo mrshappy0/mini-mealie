@@ -1,22 +1,22 @@
-import { useState, useEffect, ChangeEvent } from "react";
-import miniMealieLogo from "/mini-mealie.svg";
-import "./App.css";
+import { useState, useEffect, ChangeEvent } from 'react';
+import miniMealieLogo from '/mini-mealie.svg';
+import './App.css';
 
 enum Protocol {
-    HTTP = "http://",
-    HTTPS = "https://",
+    HTTP = 'http://',
+    HTTPS = 'https://',
 }
 
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
-    const [mealieServer, setMealieServer] = useState("");
+    const [mealieServer, setMealieServer] = useState('');
     const [inputServer, setInputServer] = useState<string>(Protocol.HTTPS);
-    const [mealieApiToken, setMealieApiToken] = useState("");
-    const [inputToken, setInputToken] = useState("");
+    const [mealieApiToken, setMealieApiToken] = useState('');
+    const [inputToken, setInputToken] = useState('');
     const [isSaveDisabled, setIsSaveDisabled] = useState(true);
 
     useEffect(() => {
-        chrome.storage.sync.get(["mealieServer", "mealieApiToken"], (data) => {
+        chrome.storage.sync.get(['mealieServer', 'mealieApiToken'], (data) => {
             if (data.mealieServer) {
                 setMealieServer(data.mealieServer);
             } else {
@@ -30,22 +30,18 @@ function App() {
     }, [protocol]);
 
     useEffect(() => {
-        const isDisabled =
-            inputServer.trim() === "" || inputToken.trim() === "";
+        const isDisabled = inputServer.trim() === '' || inputToken.trim() === '';
         setIsSaveDisabled(isDisabled);
     }, [inputServer, inputToken]);
 
     const saveSettings = () => {
-        if (inputServer.trim() === protocol || inputToken.trim() === "") {
+        if (inputServer.trim() === protocol || inputToken.trim() === '') {
             return;
         }
-        chrome.storage.sync.set(
-            { mealieServer: inputServer, mealieApiToken: inputToken },
-            () => {
-                setMealieServer(inputServer);
-                setMealieApiToken(inputToken);
-            }
-        );
+        chrome.storage.sync.set({ mealieServer: inputServer, mealieApiToken: inputToken }, () => {
+            setMealieServer(inputServer);
+            setMealieApiToken(inputToken);
+        });
     };
 
     const handleServerChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -65,23 +61,21 @@ function App() {
     };
 
     const handleToggle = () => {
-        setProtocol((prev) =>
-            prev === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS
-        );
+        setProtocol((prev) => (prev === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS));
         setInputServer((prev) =>
             prev.replace(
                 /^https?:\/\//,
-                protocol === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS
-            )
+                protocol === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS,
+            ),
         );
     };
 
     const clearSettings = () => {
-        chrome.storage.sync.remove(["mealieServer", "mealieApiToken"], () => {
-            setMealieServer("");
-            setInputServer("");
-            setMealieApiToken("");
-            setInputToken("");
+        chrome.storage.sync.remove(['mealieServer', 'mealieApiToken'], () => {
+            setMealieServer('');
+            setInputServer('');
+            setMealieApiToken('');
+            setInputToken('');
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
         });
@@ -91,16 +85,14 @@ function App() {
         <>
             <div>
                 <a
-                    href={mealieServer ? mealieServer : "#"}
+                    href={mealieServer ? mealieServer : '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`logo ${
-                        mealieServer && mealieApiToken ? "active" : ""
-                    }`}
+                    className={`logo ${mealieServer && mealieApiToken ? 'active' : ''}`}
                     title={
                         mealieServer && mealieApiToken
-                            ? "Visit Mealie server"
-                            : "Connect to a Mealie server"
+                            ? 'Visit Mealie server'
+                            : 'Connect to a Mealie server'
                     }
                     onClick={(e) => {
                         if (!mealieServer || !mealieApiToken) {
@@ -108,16 +100,12 @@ function App() {
                         }
                     }}
                 >
-                    <img
-                        src={miniMealieLogo}
-                        className="logo"
-                        alt="Mini Mealie Logo"
-                    />
+                    <img src={miniMealieLogo} className="logo" alt="Mini Mealie Logo" />
                 </a>
             </div>
             <h2 className="header">Mini Mealie</h2>
             <div className="card">
-                {mealieServer === "" || mealieApiToken === "" ? (
+                {mealieServer === '' || mealieApiToken === '' ? (
                     <>
                         <div className="protocol-toggle-container">
                             <div className="toggle-container">
@@ -129,14 +117,10 @@ function App() {
                                     />
                                     <span
                                         className={`slider ${
-                                            protocol === Protocol.HTTPS
-                                                ? "locked"
-                                                : "unlocked"
+                                            protocol === Protocol.HTTPS ? 'locked' : 'unlocked'
                                         }`}
                                     >
-                                        {protocol === Protocol.HTTPS
-                                            ? "🔒"
-                                            : ""}
+                                        {protocol === Protocol.HTTPS ? '🔒' : ''}
                                     </span>
                                 </label>
                             </div>
@@ -147,7 +131,7 @@ function App() {
                                 onChange={handleServerChange}
                                 onFocus={handleServerFocus}
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter" && !isSaveDisabled) {
+                                    if (e.key === 'Enter' && !isSaveDisabled) {
                                         saveSettings();
                                     }
                                 }}
@@ -159,38 +143,28 @@ function App() {
                             value={inputToken}
                             onChange={(e) => setInputToken(e.target.value)}
                             onKeyDown={(e) => {
-                                if (e.key === "Enter" && !isSaveDisabled) {
+                                if (e.key === 'Enter' && !isSaveDisabled) {
                                     saveSettings();
                                 }
                             }}
                         />
-                        <button
-                            onClick={saveSettings}
-                            disabled={isSaveDisabled}
-                        >
+                        <button onClick={saveSettings} disabled={isSaveDisabled}>
                             Connect Mealie
                         </button>
                     </>
                 ) : (
                     <>
                         <h3>Settings saved successfully!</h3>
-                        <button onClick={clearSettings}>
-                            Disconnect Server
-                        </button>
+                        <button onClick={clearSettings}>Disconnect Server</button>
                     </>
                 )}
             </div>
             <p className="read-the-docs">
-                Built to extend the functionality of{" "}
-                <a
-                    href="https://mealie.io/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
+                Built to extend the functionality of{' '}
+                <a href="https://mealie.io/" target="_blank" rel="noopener noreferrer">
                     Mealie
                 </a>
-                . Visit their website to learn more about this self-hosted
-                recipe manager.
+                . Visit their website to learn more about this self-hosted recipe manager.
             </p>
             <div className="buy-me-a-coffee-container">
                 <BuyMeACoffeeButton />
