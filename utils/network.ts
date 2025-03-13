@@ -27,8 +27,9 @@ export const scrapeRecipe = (url: string, tabId: number) => {
                             if (!response.ok) {
                                 throw new Error(`HTTP error! status: ${response.status}`);
                             }
-                            const data = await response.json();
+                            await response.json();
                             return 'success';
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         } catch (error) {
                             return 'failure';
                         }
