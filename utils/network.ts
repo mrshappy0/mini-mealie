@@ -1,14 +1,14 @@
 export const scrapeRecipe = (url: string, tabId: number) => {
     chrome.storage.sync.get(
-        ["mealieServer", "mealieApiToken"],
+        ['mealieServer', 'mealieApiToken'],
         ({ mealieServer, mealieApiToken }) => {
             if (!mealieServer) {
-                showBadge("❌", 4);
+                showBadge('❌', 4);
                 return;
             }
 
             if (!mealieApiToken) {
-                showBadge("❌", 4);
+                showBadge('❌', 4);
                 return;
             }
             chrome.scripting.executeScript(
@@ -16,39 +16,34 @@ export const scrapeRecipe = (url: string, tabId: number) => {
                     target: { tabId },
                     func: async (url, server, token) => {
                         try {
-                            const response = await fetch(
-                                `${server}/api/recipes/create/url`,
-                                {
-                                    method: "POST",
-                                    headers: {
-                                        Authorization: `Bearer ${token}`,
-                                        "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({ url }),
-                                }
-                            );
+                            const response = await fetch(`${server}/api/recipes/create/url`, {
+                                method: 'POST',
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ url }),
+                            });
                             if (!response.ok) {
-                                throw new Error(
-                                    `HTTP error! status: ${response.status}`
-                                );
+                                throw new Error(`HTTP error! status: ${response.status}`);
                             }
                             const data = await response.json();
-                            return "success";
+                            return 'success';
                         } catch (error) {
-                            return "failure";
+                            return 'failure';
                         }
                     },
                     args: [url, mealieServer, mealieApiToken],
                 },
                 (result) => {
                     const status = result[0].result;
-                    if (status === "success") {
-                        showBadge("✅", 4);
+                    if (status === 'success') {
+                        showBadge('✅', 4);
                     } else {
-                        showBadge("❌", 4);
+                        showBadge('❌', 4);
                     }
-                }
+                },
             );
-        }
+        },
     );
 };

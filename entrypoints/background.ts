@@ -11,10 +11,7 @@ export default defineBackground(() => {
 
     // Watch for changes in storage to update badge and context menu
     chrome.storage.onChanged.addListener((changes, area) => {
-        if (
-            area === "sync" &&
-            (changes.mealieServer || changes.mealieApiToken)
-        ) {
+        if (area === 'sync' && (changes.mealieServer || changes.mealieApiToken)) {
             checkStorageAndUpdateBadge();
         }
     });

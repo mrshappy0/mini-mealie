@@ -15,5 +15,5 @@ export const showBadge = (text: string, duration?: number) => {
 };
 
 export const clearBadge = () => {
-    chrome.action.setBadgeText({ text: "" });
+    chrome.action.setBadgeText({ text: '' });
 };
