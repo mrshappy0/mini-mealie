@@ -8,7 +8,6 @@ enum Protocol {
 }
 
 function App() {
-    // const urlPrefix = "https://";
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState("");
     const [inputServer, setInputServer] = useState<string>(Protocol.HTTPS);
