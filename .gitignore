@@ -17,6 +17,7 @@ web-ext.config.ts
 # coverage
 coverage
 html
+coverage-report
 
 
 # Editor directories and files
