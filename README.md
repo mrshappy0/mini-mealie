@@ -10,21 +10,22 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 ---
 
 ## 🚀 Features
--   Scrape recipes from any webpage using Mealie API
--   Store Mealie API token securely using `chrome.storage.sync`.
--   Supports selecting any Mealie server you want to import too
+
+- Scrape recipes from any webpage using Mealie API
+- Store Mealie API token securely using `chrome.storage.sync`.
+- Supports selecting any Mealie server you want to import too
 
 ---
 
 ## ⚙️ Requirements and Dependencies
 
--   **Node.js** v22.x or later
--   **pnpm** (Package Manager)
--   **Chrome** (for testing and development)
--   Dependencies:
-    -   **WXT** (Web Extension Toolkit)
-    -   **React** v19.x
-    -   **TypeScript** 5.7.3
+- **Node.js** v22.x or later
+- **pnpm** (Package Manager)
+- **Chrome** (for testing and development)
+- Dependencies:
+    - **WXT** (Web Extension Toolkit)
+    - **React** v19.x
+    - **TypeScript** 5.7.3
 
 ---
 
@@ -59,9 +60,9 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ## 🔑 Configuration
 
--   To use the Mealie integration, you will need to **generate an API token** in your Mealie instance.
--   Save the token securely within the extension popup.
--   Ensure the following permissions are set in `wxt.config.ts`:
+- To use the Mealie integration, you will need to **generate an API token** in your Mealie instance.
+- Save the token securely within the extension popup.
+- Ensure the following permissions are set in `wxt.config.ts`:
     ```json
     "permissions": [
             "storage",
@@ -84,10 +85,10 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ## 👨‍💻 Development and Contribution
 
--   This is a private repository. Only authorized contributors have access.
--   Branching strategy:
-    -   `main`: Stable production build
-    -   `dev`: Active development branch
+- This is a private repository. Only authorized contributors have access.
+- Branching strategy:
+    - `main`: Stable production build
+    - `dev`: Active development branch
 
 ### Setting Up Local Development
 
@@ -103,12 +104,12 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ### Pull Requests and Code Reviews
 
--   Create a feature branch from `dev`:
+- Create a feature branch from `dev`:
     ```bash
     git checkout -b feature/[feature-name]
     ```
--   Push your changes and create a pull request against `dev`.
--   Ensure all tests and lint checks pass before requesting a review.
+- Push your changes and create a pull request against `dev`.
+- Ensure all tests and lint checks pass before requesting a review.
 
 ---
 
@@ -128,8 +129,8 @@ If you find this project useful, consider [buying me a coffee](https://www.buyme
 
 For questions or collaboration requests, contact:
 
--   **Adam Shappy** - atom@shaplabs.net
--   **GitHub** - https://github.com/mrshappy0
+- **Adam Shappy** - atom@shaplabs.net
+- **GitHub** - https://github.com/mrshappy0
 
 ---
 

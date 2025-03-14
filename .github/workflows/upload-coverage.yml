@@ -34,10 +34,15 @@ jobs:
       - name: Run Tests and Generate Coverage
         run: pnpm test --coverage --run
 
-      - name: Move JSON to Public Directory
+      - name: Generate Coverage JSON badge
         run: |
-          mkdir -p coverage-report
+          chmod +x scripts/generate-coverage-badge.sh
+          scripts/generate-coverage-badge.sh
+
+      - name: Move JSON & HTML to Public Directory
+        run: |
           cp coverage/coverage-summary.json coverage-report/coverage.json
+          cp coverage/index.html coverage-report/index.html
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4

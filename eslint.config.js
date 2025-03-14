@@ -32,6 +32,6 @@ export default [
     eslintPluginPrettierRecommended,
     autoImports,
     {
-        ignores: ['node_modules', '.wxt', '.output', 'coverage', 'html'],
+        ignores: ['node_modules', '.wxt', '.output', 'coverage', 'html', 'coverage-report'],
     },
 ];
