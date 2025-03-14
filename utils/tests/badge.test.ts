@@ -33,8 +33,4 @@ describe('Badge Utility', () => {
 
         vi.useRealTimers();
     });
-
-    it('fail test', () => {
-        expect(true).toBe(false);
-    });
 });
