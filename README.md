@@ -10,7 +10,6 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 ---
 
 ## 🚀 Features
-
 -   Scrape recipes from any webpage using Mealie API
 -   Store Mealie API token securely using `chrome.storage.sync`.
 -   Supports selecting any Mealie server you want to import too
