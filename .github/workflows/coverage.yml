@@ -30,7 +30,7 @@ jobs:
         run: pnpm install
 
       - name: Run Tests with Coverage
-        run: pnpm test --coverage
+        run: pnpm test --run --coverage
 
       - name: Enforce Coverage Threshold
         run: |
