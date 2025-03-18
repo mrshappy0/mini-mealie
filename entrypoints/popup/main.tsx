@@ -1,7 +1,9 @@
+import './style.css';
+
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
+
 import App from './App.tsx';
-import './style.css';
 
 function addGoogleAnalytics() {
     if (!document.getElementById('gtag-script')) {

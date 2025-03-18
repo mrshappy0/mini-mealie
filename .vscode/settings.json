@@ -4,7 +4,7 @@
     "editor.formatOnPaste": true,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit",
-        "source.fixAll": "explicit"
+        "source.fixAll": "explicit",
     },
     "eslint.validate": [
         "javascript",
@@ -12,7 +12,7 @@
         "typescript",
         "typescriptreact",
         "json",
-        "jsonc"
+        "jsonc",
     ],
     "prettier.requireConfig": true,
     "[typescriptreact]": {

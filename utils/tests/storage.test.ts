@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { checkStorageAndUpdateBadge } from '../storage';
-import { showBadge, clearBadge } from '../badge';
-import { addContextMenu, removeContextMenu } from '../contextMenu';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WxtVitest } from 'wxt/testing';
+
+import { clearBadge, showBadge } from '../badge';
+import { addContextMenu, removeContextMenu } from '../contextMenu';
+import { checkStorageAndUpdateBadge } from '../storage';
 
 // Enable WxtVitest for Web Extension APIs
 WxtVitest();
