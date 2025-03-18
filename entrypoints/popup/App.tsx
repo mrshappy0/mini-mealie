@@ -1,6 +1,8 @@
-import { useState, useEffect, ChangeEvent } from 'react';
-import miniMealieLogo from '/mini-mealie.svg';
 import './App.css';
+
+import { ChangeEvent, useEffect, useState } from 'react';
+
+import miniMealieLogo from '/mini-mealie.svg';
 
 enum Protocol {
     HTTP = 'http://',
