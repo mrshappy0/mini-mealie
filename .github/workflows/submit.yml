@@ -1,0 +1,52 @@
+name: Submit to Chrome Store (Automate Deployment)
+
+on:
+    # workflow_dispatch:
+    # Below correct or should I match example with workflow_dispatch.
+    push:
+        branches:
+            - main
+
+jobs:
+    submit:
+        name: Check Submit to Store(Automate Deployment)
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: 'pnpm'
+                  cache-dependency-path: |
+                      package.json
+                      pnpm-lock.yaml
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Zip extensions
+              run: |
+                  pnpm zip
+
+            - name: Submit to Chrome Store (Automate Deployment)
+              #The workflow builds the extension using WXT
+
+              run: |
+                  pnpm wxt submit \
+                    --chrome-zip .output/*-chrome.zip \
+              #The workflow fails if there are errors, preventing deployment. (This always happens and does not need to be explicitly coded)
+              #The workflow logs success/failure for debugging (This always happens and does not need to be explicitly coded)
+
+              #Secrets file needs to be create? If it is already created need to reference naming for this file. If not the values of below are needed to create it.
+              env:
+                  CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+                  CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+                  CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+                  CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
