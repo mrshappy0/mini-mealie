@@ -40,10 +40,6 @@ jobs:
               run: |
                   pnpm wxt submit \
                     --chrome-zip .output/*-chrome.zip \
-              #The workflow fails if there are errors, preventing deployment. (This always happens and does not need to be explicitly coded)
-              #The workflow logs success/failure for debugging (This always happens and does not need to be explicitly coded)
-
-              #Secrets file needs to be create? If it is already created need to reference naming for this file. If not the values of below are needed to create it.
               env:
                   CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
                   CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
