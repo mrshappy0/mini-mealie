@@ -1,7 +1,9 @@
 {
-  "extends": "./.wxt/tsconfig.json",
-  "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "jsx": "react-jsx"
-  }
+    "extends": "./.wxt/tsconfig.json",
+    "compilerOptions": {
+        "allowImportingTsExtensions": true,
+        "jsx": "react-jsx"
+    },
+    "typescript.preferences.importModuleSpecifier": "shortest",
+    "typescript.preferences.autoImportFileExcludePatterns": ["node_modules"]
 }
