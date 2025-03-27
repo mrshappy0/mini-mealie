@@ -1,8 +1,7 @@
 name: Submit to Chrome Store (Automate Deployment)
 
 on:
-    # workflow_dispatch:
-    # Below correct or should I match example with workflow_dispatch.
+    workflow_dispatch:
     push:
         branches:
             - main
