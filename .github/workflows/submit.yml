@@ -34,7 +34,7 @@ jobs:
               run: |
                   pnpm zip
 
-            - name: Submit to Chrome Store (Automate Deployment)
+            - name: Submit to Chrome Store
               #The workflow builds the extension using WXT
 
               run: |
