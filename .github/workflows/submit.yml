@@ -35,7 +35,6 @@ jobs:
                   pnpm zip
 
             - name: Submit to Chrome Store
-
               run: |
                   pnpm wxt submit \
                     --chrome-zip .output/*-chrome.zip \
