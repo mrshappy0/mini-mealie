@@ -1,4 +1,4 @@
-name: Submit to Chrome Store (Automate Deployment)
+name: Upload Extension
 
 on:
     workflow_dispatch:
@@ -8,7 +8,7 @@ on:
 
 jobs:
     submit:
-        name: Check Submit to Store(Automate Deployment)
+        name: Submit to Store(s)
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code
