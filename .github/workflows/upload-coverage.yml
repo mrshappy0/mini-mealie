@@ -1,50 +1,50 @@
 name: Upload Code Coverage
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 permissions:
-  contents: write
+    contents: write
 
 jobs:
-  test-coverage:
-    runs-on: ubuntu-latest
+    test-coverage:
+        name: Upload Coverage
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: 'pnpm'
+                  cache-dependency-path: |
+                      package.json
+                      pnpm-lock.yaml
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: |
-            package.json
-            pnpm-lock.yaml
+            - name: Install dependencies
+              run: pnpm install
 
-      - name: Install dependencies
-        run: pnpm install
+            - name: Run Tests and Generate Coverage
+              run: pnpm test --coverage --run
 
-      - name: Run Tests and Generate Coverage
-        run: pnpm test --coverage --run
+            - name: Generate Coverage JSON badge
+              run: |
+                  chmod +x scripts/generate-coverage-badge.sh
+                  scripts/generate-coverage-badge.sh
 
-      - name: Generate Coverage JSON badge
-        run: |
-          chmod +x scripts/generate-coverage-badge.sh
-          scripts/generate-coverage-badge.sh
+            - name: Move JSON & HTML to Public Directory
+              run: |
+                  cp coverage/coverage-summary.json coverage-report/coverage.json
+                  cp coverage/index.html coverage-report/index.html
 
-      - name: Move JSON & HTML to Public Directory
-        run: |
-          cp coverage/coverage-summary.json coverage-report/coverage.json
-          cp coverage/index.html coverage-report/index.html
-
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: coverage-report
+            - name: Deploy 🚀
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                  folder: coverage-report
