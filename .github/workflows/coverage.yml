@@ -1,38 +1,37 @@
 name: Enforce Code Coverage
 
 on:
-  pull_request:
-    branches:
-      - main
+    pull_request:
+        branches:
+            - main
 
 jobs:
-  coverage:
-    name: Check Code Coverage
-    runs-on: ubuntu-latest
+    coverage:
+        name: Check Code Coverage
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: 'pnpm'
+                  cache-dependency-path: |
+                      package.json
+                      pnpm-lock.yaml
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: |
-            package.json
-            pnpm-lock.yaml
+            - name: Install dependencies
+              run: pnpm install
 
-      - name: Install dependencies
-        run: pnpm install
+            - name: Run Tests with Coverage
+              run: pnpm test --run --coverage
 
-      - name: Run Tests with Coverage
-        run: pnpm test --run --coverage
-
-      - name: Enforce Coverage Threshold
-        run: |
-          chmod +x scripts/check-coverage.sh
-          scripts/check-coverage.sh
+            - name: Enforce Coverage Threshold
+              run: |
+                  chmod +x scripts/check-coverage.sh
+                  scripts/check-coverage.sh
