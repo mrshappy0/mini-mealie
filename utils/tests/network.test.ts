@@ -134,7 +134,7 @@ describe('getUser', () => {
     const mockUrl = 'https://example.com';
     const mockToken = 'mock-api-token';
     const mockUser = { username: 'testUser' };
-    
+
     it('should return the username if the API call is successful', async () => {
         global.fetch = vi.fn().mockResolvedValueOnce({
             ok: true,
