@@ -129,3 +129,54 @@ describe('scrapeRecipe', () => {
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
     });
 });
+
+describe('getUser', () => {
+    const mockUrl = 'https://example.com';
+    const mockToken = 'mock-api-token';
+    const mockUser = { username: 'testUser' };
+    
+    it('should return the username if the API call is successful', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockUser,
+        });
+
+        const result = await getUser(mockUrl, mockToken);
+
+        expect(result).toEqual(mockUser);
+    });
+
+    it('should calls fetch with correct url and headers', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockUser,
+        });
+
+        await getUser(mockUrl, mockToken);
+
+        expect(fetch).toHaveBeenCalledWith(
+            `${mockUrl}/api/users/self`,
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: `Bearer ${mockToken}`,
+                    'Content-Type': 'application/json',
+                }),
+            }),
+        );
+    });
+
+    it('should return an error message if the API returns a non-OK status', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 401,
+            json: async () => {
+                return;
+            },
+        });
+
+        const result = await getUser(mockUrl, mockToken);
+
+        expect(result).toEqual({ errorMessage: 'Verification failed! status: 401' });
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+});

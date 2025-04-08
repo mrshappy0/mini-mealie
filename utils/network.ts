@@ -56,11 +56,9 @@ export const getUser = async (url: string, token: string) => {
             throw new Error(`Verification failed! status: ${verificationResponse.status}`);
         }
         const { username } = await verificationResponse.json();
-
         return { username: username };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         return { errorMessage: error.message };
     }
 };
-

@@ -1,9 +1,9 @@
 import './App.css';
-import { getUser } from '@/utils';
 
 import { ChangeEvent, useEffect, useState } from 'react';
 
 import miniMealieLogo from '/mini-mealie.svg';
+import { getUser } from '@/utils';
 
 enum Protocol {
     HTTP = 'http://',
@@ -106,7 +106,6 @@ function App() {
             setUser(undefined);
         });
     };
-    console.log(error, user);
     return (
         <>
             <div>
