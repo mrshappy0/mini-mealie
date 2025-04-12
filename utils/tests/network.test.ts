@@ -176,7 +176,7 @@ describe('getUser', () => {
 
         const result = await getUser(mockUrl, mockToken);
 
-        expect(result).toEqual({ errorMessage: 'Verification failed! status: 401' });
+        expect(result).toEqual({ errorMessage: 'Get User Failed - status: 401' });
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 });
