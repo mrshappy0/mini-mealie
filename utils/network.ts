@@ -56,8 +56,10 @@ export const getUser = async (url: string, token: string) => {
         }
         const { username } = await verificationResponse.json();
         return { username: username };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        return { errorMessage: error.message };
+    } catch (error) {
+        if (error instanceof Error) {
+            return { errorMessage: error.message };
+        }
+        return { errorMessage: 'Unknown error occurred' };
     }
 };
