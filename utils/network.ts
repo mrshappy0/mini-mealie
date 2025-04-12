@@ -1,4 +1,4 @@
-export const scrapeRecipe = (url: string, tabId: number) => {
+export const runCreateRecipe = (url: string, tabId: number) => {
     chrome.storage.sync.get(
         ['mealieServer', 'mealieApiToken'],
         ({ mealieServer, mealieApiToken }: StorageData) => {
@@ -9,7 +9,7 @@ export const scrapeRecipe = (url: string, tabId: number) => {
 
             const scriptParams = {
                 target: { tabId },
-                func: scrapeRecipeFromUrl,
+                func: createRecipe,
                 args: [url, mealieServer, mealieApiToken] as [string, string, string],
             };
 
@@ -20,7 +20,7 @@ export const scrapeRecipe = (url: string, tabId: number) => {
     );
 };
 
-async function scrapeRecipeFromUrl(url: string, server: string, token: string): Promise<string> {
+async function createRecipe(url: string, server: string, token: string): Promise<string> {
     try {
         const response = await fetch(`${server}/api/recipes/create/url`, {
             method: 'POST',
@@ -35,7 +35,6 @@ async function scrapeRecipeFromUrl(url: string, server: string, token: string): 
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Process the response if necessary
         await response.json();
         return 'success';
     } catch (error) {

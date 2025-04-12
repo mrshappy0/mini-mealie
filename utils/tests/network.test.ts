@@ -20,7 +20,7 @@ beforeEach(() => {
     vi.clearAllMocks();
 });
 
-describe('scrapeRecipe', () => {
+describe('runCreateRecipe', () => {
     const mockTabId = 123;
     const mockUrl = 'https://example.com/recipe';
     const mockServer = 'https://mealie.local';
@@ -32,7 +32,7 @@ describe('scrapeRecipe', () => {
                 callback({ mealieApiToken: mockToken }), // Missing mealieServer
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
@@ -44,7 +44,7 @@ describe('scrapeRecipe', () => {
                 callback({ mealieServer: mockServer }), // Missing mealieApiToken
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe('scrapeRecipe', () => {
                 }),
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(chrome.scripting.executeScript).toHaveBeenCalledWith(
             {
@@ -95,7 +95,7 @@ describe('scrapeRecipe', () => {
             },
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('✅', 4);
     });
@@ -124,7 +124,7 @@ describe('scrapeRecipe', () => {
             },
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
     });

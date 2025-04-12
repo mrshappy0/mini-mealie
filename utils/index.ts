@@ -1,5 +1,5 @@
 export * from './badge';
 export * from './contextMenu';
-export * from './network';
+export { getUser, runCreateRecipe } from './network';
 export * from './storage';
 export * from './types/storageTypes';
