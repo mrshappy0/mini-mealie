@@ -16,9 +16,9 @@ function App() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        chrome.storage.sync.get(
-            ['mealieServer', 'mealieApiToken', 'mealieUsername'],
-            ({ mealieServer, mealieApiToken, mealieUsername }) => {
+        chrome.storage.sync.get<StorageData>(
+            [...storageKeys],
+            ({ mealieServer, mealieApiToken, mealieUsername }: StorageData) => {
                 if (mealieServer) {
                     setMealieServer(mealieServer);
                 }
@@ -48,7 +48,7 @@ function App() {
             clearSettings();
             return;
         }
-        chrome.storage.sync.set(
+        chrome.storage.sync.set<StorageData>(
             {
                 mealieServer: inputServer,
                 mealieApiToken: inputToken,
@@ -58,17 +58,13 @@ function App() {
                 setMealieServer(inputServer);
                 setMealieApiToken(inputToken);
                 setUsername(result.username);
+                setLoading(false);
+                setIsSaveDisabled(false);
             },
         );
-
-        setUsername(result.username);
-        setLoading(false);
-        setIsSaveDisabled(false);
     };
 
-    const handleServerChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-
+    const handleServerChange = ({ target: { value } }: ChangeEvent<HTMLInputElement>) => {
         if (!value.startsWith(protocol)) {
             setInputServer(protocol);
         } else {
@@ -93,14 +89,13 @@ function App() {
     };
 
     const clearSettings = () => {
-        chrome.storage.sync.remove(['mealieServer', 'mealieApiToken'], () => {
+        chrome.storage.sync.remove<StorageData>([...storageKeys], () => {
             setMealieServer('');
-            setInputServer('');
             setMealieApiToken('');
             setInputToken('');
+            setUsername(undefined);
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
-            setUsername(undefined);
         });
     };
     return (

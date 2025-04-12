@@ -1,6 +1,6 @@
 export const runCreateRecipe = (url: string, tabId: number) => {
-    chrome.storage.sync.get(
-        ['mealieServer', 'mealieApiToken'],
+    chrome.storage.sync.get<StorageData>(
+        [...storageKeys],
         ({ mealieServer, mealieApiToken }: StorageData) => {
             if (!mealieServer || !mealieApiToken) {
                 showBadge('❌', 4);
