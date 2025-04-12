@@ -4,19 +4,6 @@ import { ChangeEvent, useEffect, useState } from 'react';
 
 import miniMealieLogo from '/mini-mealie.svg';
 
-enum Protocol {
-    HTTP = 'http://',
-    HTTPS = 'https://',
-}
-interface User {
-    admin: 'false';
-    email: 'Changeme@example.com';
-    fullName: 'Change Me';
-    group: 'foodies';
-    household: 'Family';
-    username: 'ChangeMe';
-}
-
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState('');
@@ -24,22 +11,23 @@ function App() {
     const [mealieApiToken, setMealieApiToken] = useState('');
     const [inputToken, setInputToken] = useState('');
     const [isSaveDisabled, setIsSaveDisabled] = useState(true);
-    const [user, setUser] = useState<User | undefined>();
+    const [username, setUsername] = useState<string | undefined>();
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        chrome.storage.sync.get(['mealieServer', 'mealieApiToken'], (data) => {
-            if (data.mealieServer) {
-                setMealieServer(data.mealieServer);
-            } else {
+        chrome.storage.sync.get(
+            ['mealieServer', 'mealieApiToken', 'mealieUsername'],
+            ({ mealieServer, mealieApiToken, mealieUsername }) => {
+                if (mealieServer) {
+                    setMealieServer(mealieServer);
+                }
                 setInputServer(protocol);
-            }
 
-            if (data.mealieApiToken) {
-                setMealieApiToken(data.mealieApiToken);
-            }
-        });
+                if (mealieApiToken) setMealieApiToken(mealieApiToken);
+                if (mealieUsername) setUsername(mealieUsername);
+            },
+        );
     }, [protocol]);
 
     useEffect(() => {
@@ -48,22 +36,32 @@ function App() {
     }, [inputServer, inputToken]);
 
     const saveSettings = async () => {
+        if (inputServer.trim() === protocol || inputToken.trim() === '') return;
+
         setLoading(true);
         setIsSaveDisabled(true);
-        if (inputServer.trim() === protocol || inputToken.trim() === '') {
+        const result = await getUser(inputServer, inputToken);
+
+        if (!('username' in result)) {
+            setError(true);
+            setLoading(false);
+            clearSettings();
             return;
         }
-        chrome.storage.sync.set({ mealieServer: inputServer, mealieApiToken: inputToken }, () => {
-            setMealieServer(inputServer);
-            setMealieApiToken(inputToken);
-        });
-        const getUserResponse = await getUser(inputServer, inputToken);
-        if (getUserResponse.username) {
-            setUser(getUserResponse.username);
-            setError(false);
-        } else {
-            setError(true);
-        }
+        chrome.storage.sync.set(
+            {
+                mealieServer: inputServer,
+                mealieApiToken: inputToken,
+                mealieUsername: result.username,
+            },
+            () => {
+                setMealieServer(inputServer);
+                setMealieApiToken(inputToken);
+                setUsername(result.username);
+            },
+        );
+
+        setUsername(result.username);
         setLoading(false);
         setIsSaveDisabled(false);
     };
@@ -102,7 +100,7 @@ function App() {
             setInputToken('');
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
-            setUser(undefined);
+            setUsername(undefined);
         });
     };
     return (
@@ -129,7 +127,7 @@ function App() {
             </div>
             <h2 className="header">Mini Mealie</h2>
             <div className="card">
-                {mealieServer === '' || mealieApiToken === '' || !user ? (
+                {mealieServer === '' || mealieApiToken === '' || !username ? (
                     <>
                         <div className="protocol-toggle-container">
                             <div className="toggle-container">
@@ -180,7 +178,11 @@ function App() {
                     </>
                 ) : (
                     <>
-                        <h3>{`Settings saved successfully for ${user}`}</h3>
+                        <div className="connected-message">
+                            <p className="greeting">
+                                Hi <strong>{username}</strong> — your server is connected!
+                            </p>
+                        </div>
                         <button onClick={clearSettings}>Disconnect Server</button>
                     </>
                 )}
