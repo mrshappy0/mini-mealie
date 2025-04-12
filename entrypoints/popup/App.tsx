@@ -3,7 +3,6 @@ import './App.css';
 import { ChangeEvent, useEffect, useState } from 'react';
 
 import miniMealieLogo from '/mini-mealie.svg';
-import { getUser } from '@/utils';
 
 enum Protocol {
     HTTP = 'http://',
