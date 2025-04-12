@@ -43,19 +43,21 @@ async function createRecipe(url: string, server: string, token: string): Promise
     }
 }
 
-export const getUser = async (url: string, token: string) => {
+export const getUser = async (
+    url: string,
+    token: string,
+): Promise<User | { errorMessage: string }> => {
     try {
-        const verificationResponse = await fetch(`${url}/api/users/self`, {
+        const res = await fetch(`${url}/api/users/self`, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
         });
-        if (!verificationResponse.ok) {
-            throw new Error(`Verification failed! status: ${verificationResponse.status}`);
+        if (!res.ok) {
+            throw new Error(`Get User Failed - status: ${res.status}`);
         }
-        const { username } = await verificationResponse.json();
-        return { username: username };
+        return await res.json();
     } catch (error) {
         if (error instanceof Error) {
             return { errorMessage: error.message };
