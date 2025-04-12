@@ -1,7 +1,7 @@
 export const addContextMenu = () => {
     chrome.contextMenus.removeAll(() => {
         chrome.contextMenus.create({
-            id: 'scrapeRecipe',
+            id: 'runCreateRecipe',
             title: 'Import recipe to Mealie',
             contexts: ['page'],
         });

@@ -18,7 +18,7 @@ export default defineBackground(() => {
 
     chrome.contextMenus.onClicked.addListener((_, tab) => {
         if (tab?.url && tab.id) {
-            scrapeRecipe(tab.url, tab.id);
+            runCreateRecipe(tab.url, tab.id);
         }
     });
 });

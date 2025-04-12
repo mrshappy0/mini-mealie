@@ -1,6 +1,6 @@
-export const scrapeRecipe = (url: string, tabId: number) => {
-    chrome.storage.sync.get(
-        ['mealieServer', 'mealieApiToken'],
+export const runCreateRecipe = (url: string, tabId: number) => {
+    chrome.storage.sync.get<StorageData>(
+        [...storageKeys],
         ({ mealieServer, mealieApiToken }: StorageData) => {
             if (!mealieServer || !mealieApiToken) {
                 showBadge('❌', 4);
@@ -9,7 +9,7 @@ export const scrapeRecipe = (url: string, tabId: number) => {
 
             const scriptParams = {
                 target: { tabId },
-                func: scrapeRecipeFromUrl,
+                func: createRecipe,
                 args: [url, mealieServer, mealieApiToken] as [string, string, string],
             };
 
@@ -20,7 +20,7 @@ export const scrapeRecipe = (url: string, tabId: number) => {
     );
 };
 
-async function scrapeRecipeFromUrl(url: string, server: string, token: string): Promise<string> {
+async function createRecipe(url: string, server: string, token: string): Promise<string> {
     try {
         const response = await fetch(`${server}/api/recipes/create/url`, {
             method: 'POST',
@@ -35,7 +35,6 @@ async function scrapeRecipeFromUrl(url: string, server: string, token: string): 
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Process the response if necessary
         await response.json();
         return 'success';
     } catch (error) {
@@ -43,3 +42,26 @@ async function scrapeRecipeFromUrl(url: string, server: string, token: string): 
         return 'failure';
     }
 }
+
+export const getUser = async (
+    url: string,
+    token: string,
+): Promise<User | { errorMessage: string }> => {
+    try {
+        const res = await fetch(`${url}/api/users/self`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!res.ok) {
+            throw new Error(`Get User Failed - status: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        if (error instanceof Error) {
+            return { errorMessage: error.message };
+        }
+        return { errorMessage: 'Unknown error occurred' };
+    }
+};

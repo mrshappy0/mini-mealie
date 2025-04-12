@@ -16,7 +16,7 @@ describe('Context Menu Utility', () => {
 
         expect(chrome.contextMenus.removeAll).toHaveBeenCalled();
         expect(chrome.contextMenus.create).toHaveBeenCalledWith({
-            id: 'scrapeRecipe',
+            id: 'runCreateRecipe',
             title: 'Import recipe to Mealie',
             contexts: ['page'],
         });

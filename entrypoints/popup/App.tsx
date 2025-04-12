@@ -4,11 +4,6 @@ import { ChangeEvent, useEffect, useState } from 'react';
 
 import miniMealieLogo from '/mini-mealie.svg';
 
-enum Protocol {
-    HTTP = 'http://',
-    HTTPS = 'https://',
-}
-
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState('');
@@ -16,19 +11,23 @@ function App() {
     const [mealieApiToken, setMealieApiToken] = useState('');
     const [inputToken, setInputToken] = useState('');
     const [isSaveDisabled, setIsSaveDisabled] = useState(true);
+    const [username, setUsername] = useState<string | undefined>();
+    const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        chrome.storage.sync.get(['mealieServer', 'mealieApiToken'], (data) => {
-            if (data.mealieServer) {
-                setMealieServer(data.mealieServer);
-            } else {
+        chrome.storage.sync.get<StorageData>(
+            [...storageKeys],
+            ({ mealieServer, mealieApiToken, mealieUsername }: StorageData) => {
+                if (mealieServer) {
+                    setMealieServer(mealieServer);
+                }
                 setInputServer(protocol);
-            }
 
-            if (data.mealieApiToken) {
-                setMealieApiToken(data.mealieApiToken);
-            }
-        });
+                if (mealieApiToken) setMealieApiToken(mealieApiToken);
+                if (mealieUsername) setUsername(mealieUsername);
+            },
+        );
     }, [protocol]);
 
     useEffect(() => {
@@ -36,19 +35,36 @@ function App() {
         setIsSaveDisabled(isDisabled);
     }, [inputServer, inputToken]);
 
-    const saveSettings = () => {
-        if (inputServer.trim() === protocol || inputToken.trim() === '') {
+    const saveSettings = async () => {
+        if (inputServer.trim() === protocol || inputToken.trim() === '') return;
+
+        setLoading(true);
+        setIsSaveDisabled(true);
+        const result = await getUser(inputServer, inputToken);
+
+        if (!('username' in result)) {
+            setError(true);
+            setLoading(false);
+            clearSettings();
             return;
         }
-        chrome.storage.sync.set({ mealieServer: inputServer, mealieApiToken: inputToken }, () => {
-            setMealieServer(inputServer);
-            setMealieApiToken(inputToken);
-        });
+        chrome.storage.sync.set<StorageData>(
+            {
+                mealieServer: inputServer,
+                mealieApiToken: inputToken,
+                mealieUsername: result.username,
+            },
+            () => {
+                setMealieServer(inputServer);
+                setMealieApiToken(inputToken);
+                setUsername(result.username);
+                setLoading(false);
+                setIsSaveDisabled(false);
+            },
+        );
     };
 
-    const handleServerChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-
+    const handleServerChange = ({ target: { value } }: ChangeEvent<HTMLInputElement>) => {
         if (!value.startsWith(protocol)) {
             setInputServer(protocol);
         } else {
@@ -73,16 +89,15 @@ function App() {
     };
 
     const clearSettings = () => {
-        chrome.storage.sync.remove(['mealieServer', 'mealieApiToken'], () => {
+        chrome.storage.sync.remove<StorageData>([...storageKeys], () => {
             setMealieServer('');
-            setInputServer('');
             setMealieApiToken('');
             setInputToken('');
+            setUsername(undefined);
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
         });
     };
-
     return (
         <>
             <div>
@@ -107,7 +122,7 @@ function App() {
             </div>
             <h2 className="header">Mini Mealie</h2>
             <div className="card">
-                {mealieServer === '' || mealieApiToken === '' ? (
+                {mealieServer === '' || mealieApiToken === '' || !username ? (
                     <>
                         <div className="protocol-toggle-container">
                             <div className="toggle-container">
@@ -150,13 +165,19 @@ function App() {
                                 }
                             }}
                         />
+
                         <button onClick={saveSettings} disabled={isSaveDisabled}>
-                            Connect Mealie
+                            {loading ? 'Connecting...' : 'Connect Mealie'}
                         </button>
+                        {error && <h3>Invalid Server Settings</h3>}
                     </>
                 ) : (
                     <>
-                        <h3>Settings saved successfully!</h3>
+                        <div className="connected-message">
+                            <p className="greeting">
+                                Hi <strong>{username}</strong> — your server is connected!
+                            </p>
+                        </div>
                         <button onClick={clearSettings}>Disconnect Server</button>
                     </>
                 )}

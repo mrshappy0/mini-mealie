@@ -20,7 +20,7 @@ beforeEach(() => {
     vi.clearAllMocks();
 });
 
-describe('scrapeRecipe', () => {
+describe('runCreateRecipe', () => {
     const mockTabId = 123;
     const mockUrl = 'https://example.com/recipe';
     const mockServer = 'https://mealie.local';
@@ -32,7 +32,7 @@ describe('scrapeRecipe', () => {
                 callback({ mealieApiToken: mockToken }), // Missing mealieServer
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
@@ -44,7 +44,7 @@ describe('scrapeRecipe', () => {
                 callback({ mealieServer: mockServer }), // Missing mealieApiToken
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe('scrapeRecipe', () => {
                 }),
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(chrome.scripting.executeScript).toHaveBeenCalledWith(
             {
@@ -95,7 +95,7 @@ describe('scrapeRecipe', () => {
             },
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('✅', 4);
     });
@@ -124,8 +124,59 @@ describe('scrapeRecipe', () => {
             },
         );
 
-        scrapeRecipe(mockUrl, mockTabId);
+        runCreateRecipe(mockUrl, mockTabId);
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
+    });
+});
+
+describe('getUser', () => {
+    const mockUrl = 'https://example.com';
+    const mockToken = 'mock-api-token';
+    const mockUser = { username: 'testUser' };
+
+    it('should return the username if the API call is successful', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockUser,
+        });
+
+        const result = await getUser(mockUrl, mockToken);
+
+        expect(result).toEqual(mockUser);
+    });
+
+    it('should calls fetch with correct url and headers', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockUser,
+        });
+
+        await getUser(mockUrl, mockToken);
+
+        expect(fetch).toHaveBeenCalledWith(
+            `${mockUrl}/api/users/self`,
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: `Bearer ${mockToken}`,
+                    'Content-Type': 'application/json',
+                }),
+            }),
+        );
+    });
+
+    it('should return an error message if the API returns a non-OK status', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 401,
+            json: async () => {
+                return;
+            },
+        });
+
+        const result = await getUser(mockUrl, mockToken);
+
+        expect(result).toEqual({ errorMessage: 'Get User Failed - status: 401' });
+        expect(fetch).toHaveBeenCalledTimes(1);
     });
 });
