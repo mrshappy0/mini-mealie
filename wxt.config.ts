@@ -2,7 +2,6 @@ import { defineConfig } from 'wxt';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-    // extensionApi: 'chrome',
     modules: ['@wxt-dev/module-react'],
     manifest: {
         permissions: ['storage', 'activeTab', 'contextMenus', 'scripting'],
@@ -14,5 +13,11 @@ export default defineConfig({
         eslintrc: {
             enabled: 9,
         },
+        imports: [
+            {
+                from: 'wxt/testing',
+                name: 'WxtVitest',
+            },
+        ],
     },
 });
