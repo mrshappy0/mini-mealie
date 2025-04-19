@@ -10,14 +10,6 @@ export default defineConfig({
     },
     // https://wxt.dev/guide/essentials/config/auto-imports.html
     imports: {
-        eslintrc: {
-            enabled: 9,
-        },
-        imports: [
-            {
-                from: 'wxt/testing',
-                name: 'WxtVitest',
-            },
-        ],
+        eslintrc: { enabled: 9 },
     },
 });
