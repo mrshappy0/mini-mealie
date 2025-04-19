@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
-import { WxtVitest } from 'wxt/testing';
+
+import { WxtVitest } from '#imports';
 
 export default defineConfig({
     plugins: [WxtVitest()],
