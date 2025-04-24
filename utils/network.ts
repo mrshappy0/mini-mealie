@@ -24,7 +24,7 @@ export const runCreateRecipe = (url: string, tabId: number) => {
     );
 };
 
-async function createRecipe(
+export async function createRecipe(
     url: string,
     server: string,
     token: string,
