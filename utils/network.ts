@@ -2,7 +2,6 @@ export const runCreateRecipe = (url: string, tabId: number) => {
     chrome.storage.sync.get<StorageData>(
         [...storageKeys],
         ({ mealieServer, mealieApiToken, ladderEnabled }: StorageData) => {
-            console.log(ladderEnabled);
             if (!mealieServer || !mealieApiToken) {
                 showBadge('❌', 4);
                 return;
@@ -18,9 +17,7 @@ export const runCreateRecipe = (url: string, tabId: number) => {
                     boolean,
                 ],
             };
-            console.log('hoitjhoiwe: ', ladderEnabled, typeof ladderEnabled);
             chrome.scripting.executeScript(scriptParams, (result) => {
-                console.log('result', result);
                 showBadge(result[0].result === 'success' ? '✅' : '❌', 4);
             });
         },
