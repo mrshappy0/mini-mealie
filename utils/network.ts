@@ -1,7 +1,7 @@
 export const runCreateRecipe = (url: string, tabId: number) => {
     chrome.storage.sync.get<StorageData>(
         [...storageKeys],
-        ({ mealieServer, mealieApiToken }: StorageData) => {
+        ({ mealieServer, mealieApiToken, ladderEnabled }: StorageData) => {
             if (!mealieServer || !mealieApiToken) {
                 showBadge('❌', 4);
                 return;
@@ -10,9 +10,13 @@ export const runCreateRecipe = (url: string, tabId: number) => {
             const scriptParams = {
                 target: { tabId },
                 func: createRecipe,
-                args: [url, mealieServer, mealieApiToken] as [string, string, string],
+                args: [url, mealieServer, mealieApiToken, ladderEnabled] as [
+                    string,
+                    string,
+                    string,
+                    boolean,
+                ],
             };
-
             chrome.scripting.executeScript(scriptParams, (result) => {
                 showBadge(result[0].result === 'success' ? '✅' : '❌', 4);
             });
@@ -20,7 +24,14 @@ export const runCreateRecipe = (url: string, tabId: number) => {
     );
 };
 
-async function createRecipe(url: string, server: string, token: string): Promise<string> {
+export async function createRecipe(
+    url: string,
+    server: string,
+    token: string,
+    ladderEnabled: boolean,
+): Promise<string> {
+    const ladderUrl = 'https://13ft.wasimaster.me';
+    const finalUrl = ladderEnabled ? `${ladderUrl}/${url}` : url;
     try {
         const response = await fetch(`${server}/api/recipes/create/url`, {
             method: 'POST',
@@ -28,7 +39,7 @@ async function createRecipe(url: string, server: string, token: string): Promise
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url }),
+            body: JSON.stringify({ url: finalUrl }),
         });
 
         if (!response.ok) {

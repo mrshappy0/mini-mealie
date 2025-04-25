@@ -14,18 +14,23 @@ function App() {
     const [username, setUsername] = useState<string | undefined>();
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [ladderEnabled, setLadderEnabled] = useState(true);
+
+    const handleToggleLadder = () => {
+        const newValue = !ladderEnabled;
+        setLadderEnabled(newValue);
+        chrome.storage.sync.set({ ladderEnabled: newValue });
+    };
 
     useEffect(() => {
         chrome.storage.sync.get<StorageData>(
             [...storageKeys],
-            ({ mealieServer, mealieApiToken, mealieUsername }: StorageData) => {
-                if (mealieServer) {
-                    setMealieServer(mealieServer);
-                }
+            ({ mealieServer, mealieApiToken, mealieUsername, ladderEnabled }: StorageData) => {
+                if (mealieServer) setMealieServer(mealieServer);
                 setInputServer(protocol);
-
                 if (mealieApiToken) setMealieApiToken(mealieApiToken);
                 if (mealieUsername) setUsername(mealieUsername);
+                if (ladderEnabled) setLadderEnabled(ladderEnabled);
             },
         );
     }, [protocol]);
@@ -48,11 +53,12 @@ function App() {
             clearSettings();
             return;
         }
-        chrome.storage.sync.set<StorageData>(
+        chrome.storage.sync.set(
             {
                 mealieServer: inputServer,
                 mealieApiToken: inputToken,
                 mealieUsername: result.username,
+                ladderEnabled: false,
             },
             () => {
                 setMealieServer(inputServer);
@@ -173,6 +179,20 @@ function App() {
                     </>
                 ) : (
                     <>
+                        <div className="ladder-toggle">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    checked={ladderEnabled}
+                                    onChange={handleToggleLadder}
+                                />
+                                <span>
+                                    {ladderEnabled
+                                        ? 'Paywall Ladder Enabled'
+                                        : 'Paywall Ladder Disabled'}
+                                </span>
+                            </label>
+                        </div>
                         <div className="connected-message">
                             <p className="greeting">
                                 Hi <strong>{username}</strong> — your server is connected!

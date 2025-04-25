@@ -4,7 +4,6 @@ vi.mock('../badge', () => ({
     showBadge: vi.fn(),
 }));
 
-// Mock Chrome API
 beforeEach(() => {
     global.chrome = {
         storage: {
@@ -25,11 +24,12 @@ describe('runCreateRecipe', () => {
     const mockUrl = 'https://example.com/recipe';
     const mockServer = 'https://mealie.local';
     const mockToken = 'mock-api-token';
+    const mockLadderDisabled = false;
 
     it('should show ❌ badge if mealieServer is missing', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string | undefined>) => void) =>
-                callback({ mealieApiToken: mockToken }), // Missing mealieServer
+            (_keys, callback: (items: Record<string, string | boolean | undefined>) => void) =>
+                callback({ mealieApiToken: mockToken }),
         );
 
         runCreateRecipe(mockUrl, mockTabId);
@@ -41,7 +41,7 @@ describe('runCreateRecipe', () => {
     it('should show ❌ badge if mealieApiToken is missing', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
             (_keys, callback: (items: Record<string, string | undefined>) => void) =>
-                callback({ mealieServer: mockServer }), // Missing mealieApiToken
+                callback({ mealieServer: mockServer }),
         );
 
         runCreateRecipe(mockUrl, mockTabId);
@@ -52,10 +52,11 @@ describe('runCreateRecipe', () => {
 
     it('should execute script when both mealieServer and mealieApiToken are present', () => {
         vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string>) => void) =>
+            (_keys, callback: (items: Record<string, string | boolean>) => void) =>
                 callback({
                     mealieServer: mockServer,
                     mealieApiToken: mockToken,
+                    ladderEnabled: mockLadderDisabled,
                 }),
         );
 
@@ -65,10 +66,83 @@ describe('runCreateRecipe', () => {
             {
                 target: { tabId: mockTabId },
                 func: expect.any(Function),
-                args: [mockUrl, mockServer, mockToken],
+                args: [mockUrl, mockServer, mockToken, mockLadderDisabled],
             },
             expect.any(Function),
         );
+    });
+
+    it('should prepend ladder URL when ladderEnabled is true', () => {
+        vi.mocked(chrome.storage.sync.get).mockImplementation(
+            (_keys, callback: (items: Record<string, string | boolean>) => void) =>
+                callback({
+                    mealieServer: mockServer,
+                    mealieApiToken: mockToken,
+                    ladderEnabled: !mockLadderDisabled,
+                }),
+        );
+
+        runCreateRecipe(mockUrl, mockTabId);
+
+        expect(chrome.scripting.executeScript).toHaveBeenCalledWith(
+            {
+                target: { tabId: mockTabId },
+                func: expect.any(Function),
+                args: [mockUrl, mockServer, mockToken, true],
+            },
+            expect.any(Function),
+        );
+    });
+
+    it('should prepend ladder URL and return success when ladderEnabled is true', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({}),
+        });
+        global.fetch = fetchMock;
+
+        const result = await createRecipe(
+            'https://example.com/recipe',
+            'https://mealie.local',
+            'mock-api-token',
+            true,
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://mealie.local/api/recipes/create/url',
+            expect.objectContaining({
+                method: 'POST',
+                headers: expect.objectContaining({
+                    Authorization: 'Bearer mock-api-token',
+                    'Content-Type': 'application/json',
+                }),
+                body: JSON.stringify({
+                    url: 'https://13ft.wasimaster.me/https://example.com/recipe',
+                }),
+            }),
+        );
+
+        // Assert function returned success
+        expect(result).toBe('success');
+    });
+
+    it('should return failure if fetch response is not ok', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: false, // Simulate failure
+            status: 500,
+            json: async () => ({}),
+        });
+        global.fetch = fetchMock;
+
+        const result = await createRecipe(
+            'https://example.com/recipe',
+            'https://mealie.local',
+            'mock-api-token',
+            true,
+        );
+
+        // Assert failure
+        expect(result).toBe('failure');
     });
 
     it('should show ✅ badge if the script execution result is success', () => {
