@@ -16,6 +16,18 @@ export default defineBackground(() => {
         }
     });
 
+    // Detect when the active tab changes
+    chrome.tabs.onActivated.addListener(() => {
+        checkStorageAndUpdateBadge();
+    });
+
+    // Detect when a tab URL is updated
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+        if (changeInfo.url) {
+            checkStorageAndUpdateBadge();
+        }
+    });
+
     chrome.contextMenus.onClicked.addListener((_, tab) => {
         if (tab?.url && tab.id) {
             runCreateRecipe(tab.url, tab.id);

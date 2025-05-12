@@ -76,3 +76,25 @@ export const getUser = async (
         return { errorMessage: 'Unknown error occurred' };
     }
 };
+
+export const testScrapeUrl = async (
+    url: string,
+    server: string,
+    token: string,
+): Promise<boolean> => {
+    try {
+        const res = await fetch(`${server}/api/recipes/test-scrape-url`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ url }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        return !!data?.name;
+    } catch {
+        return false;
+    }
+};

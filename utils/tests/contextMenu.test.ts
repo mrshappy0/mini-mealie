@@ -12,12 +12,12 @@ beforeEach(() => {
 
 describe('Context Menu Utility', () => {
     it('should remove all existing context menus before adding a new one', () => {
-        addContextMenu();
+        addContextMenu('No Recipe Detected - Attempt to Add Recipe');
 
         expect(chrome.contextMenus.removeAll).toHaveBeenCalled();
         expect(chrome.contextMenus.create).toHaveBeenCalledWith({
             id: 'runCreateRecipe',
-            title: 'Import recipe to Mealie',
+            title: 'No Recipe Detected - Attempt to Add Recipe',
             contexts: ['page'],
         });
     });
