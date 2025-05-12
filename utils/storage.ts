@@ -1,14 +1,23 @@
 export const checkStorageAndUpdateBadge = () => {
-    chrome.storage.sync.get([...storageKeys], ({ mealieServer, mealieApiToken }: StorageData) => {
-        const hasServer = !!mealieServer;
-        const hasToken = !!mealieApiToken;
+    chrome.storage.sync.get(
+        [...storageKeys],
+        async ({ mealieServer, mealieApiToken }: StorageData) => {
+            if (!mealieServer || !mealieApiToken) {
+                showBadge('❌');
+                removeContextMenu();
+                return;
+            }
 
-        if (!hasServer || !hasToken) {
-            showBadge('❌');
-            removeContextMenu();
-        } else {
             clearBadge();
-            addContextMenu();
-        }
-    });
+
+            const [{ url }] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+            const title =
+                url && (await testScrapeUrl(url, mealieServer, mealieApiToken))
+                    ? 'Recipe Detected - Add Recipe to Mealie'
+                    : 'No Recipe Detected - Attempt to Add Recipe';
+
+            addContextMenu(title);
+        },
+    );
 };
