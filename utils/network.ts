@@ -91,7 +91,6 @@ export const testScrapeUrl = async (
             },
             body: JSON.stringify({ url }),
         });
-        console.log('info: ', url, JSON.stringify(res));
         if (!res.ok) return false;
         const data = await res.json();
         return !!data?.name;

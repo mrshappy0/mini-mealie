@@ -254,3 +254,63 @@ describe('getUser', () => {
         expect(fetch).toHaveBeenCalledTimes(1);
     });
 });
+
+describe('testScrapeUrl', () => {
+    const mockUrl = 'http://recipe.org/mock-recipe';
+    const mockServer = 'http://recipe.org/mock-server';
+    const mockToken = 'mock-token';
+    it('should return true if the API call is successful and contains a "name" field', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ name: 'Mock Recipe' }),
+        });
+
+        const result = await testScrapeUrl(mockUrl, mockServer, mockToken);
+
+        expect(result).toBe(true);
+        expect(fetch).toHaveBeenCalledWith(
+            `${mockServer}/api/recipes/test-scrape-url`,
+            expect.objectContaining({
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${mockToken}`,
+                },
+                body: JSON.stringify({ url: mockUrl }),
+            }),
+        );
+    });
+
+    it('should return false if the API call is successful but "name" field is missing', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({}),
+        });
+
+        const result = await testScrapeUrl(mockUrl, mockServer, mockToken);
+
+        expect(result).toBe(false);
+    });
+
+    it('should return false if the API returns a non-OK status', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 404,
+            json: async () => ({}),
+        });
+
+        const result = await testScrapeUrl(mockUrl, mockServer, mockToken);
+
+        expect(result).toBe(false);
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return false if an error is thrown during the fetch call', async () => {
+        global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network Error'));
+
+        const result = await testScrapeUrl(mockUrl, mockServer, mockToken);
+
+        expect(result).toBe(false);
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+});
