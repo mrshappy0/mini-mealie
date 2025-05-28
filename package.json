@@ -2,7 +2,7 @@
     "name": "mini-mealie",
     "description": "manifest.json description",
     "private": true,
-    "version": "0.4.1",
+    "version": "0.4.2",
     "type": "module",
     "scripts": {
         "dev": "wxt",

@@ -30,7 +30,7 @@ function App() {
                 setInputServer(protocol);
                 if (mealieApiToken) setMealieApiToken(mealieApiToken);
                 if (mealieUsername) setUsername(mealieUsername);
-                if (ladderEnabled) setLadderEnabled(ladderEnabled);
+                setLadderEnabled(ladderEnabled ?? true);
             },
         );
     }, [protocol]);
