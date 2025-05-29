@@ -5,7 +5,7 @@ export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     manifest: {
         permissions: ['storage', 'activeTab', 'contextMenus', 'scripting'],
-        origins: ['<all_urls>'],
+        host_permissions: ['<all_urls>'],
         description: 'Scrape recipes and save them to a Mealie instance.',
         name: 'Mini Mealie',
     },
