@@ -226,7 +226,6 @@ input:checked + .slider::before {
     display: flex;
     align-items: center;
     justify-content: left;
-    margin: 1em 0;
     font-size: 1.1em;
     color: grey;
 }
