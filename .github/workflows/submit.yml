@@ -3,8 +3,8 @@ name: Upload Extension
 on:
     workflow_dispatch:
     push:
-        branches:
-            - main
+        tags:
+          - 'v*'
 
 jobs:
     submit:
