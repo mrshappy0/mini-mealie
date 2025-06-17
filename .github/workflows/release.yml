@@ -30,6 +30,6 @@ jobs:
               run: pnpm install
 
             - name: Run semantic-release
-              run: pnpm exec semantic-release
+              run: npx semantic-release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
