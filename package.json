@@ -28,6 +28,7 @@
         "@eslint/css": "^0.5.0",
         "@eslint/js": "^9.22.0",
         "@html-eslint/parser": "^0.35.2",
+        "@semantic-release/git": "^10.0.1",
         "@types/chrome": "^0.0.280",
         "@types/eslint-plugin-security": "^3.0.0",
         "@types/react": "^19.0.1",
