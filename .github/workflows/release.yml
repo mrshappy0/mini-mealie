@@ -33,3 +33,17 @@ jobs:
               run: npx semantic-release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Zip extensions
+              run: pnpm zip
+
+            - name: Submit to Chrome Store
+              run: |
+                  pnpm wxt submit \
+                    --chrome-zip .output/*-chrome.zip
+              env:
+                  CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+                  CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+                  CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+                  CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+                  CHROME_SKIP_SUBMIT_REVIEW: true
