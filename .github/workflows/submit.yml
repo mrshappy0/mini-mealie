@@ -2,9 +2,10 @@ name: Upload Extension
 
 on:
     workflow_dispatch:
-    push:
-        tags:
-          - 'v*'
+    workflow_run:
+        workflows: ["Release"]
+        types:
+          - completed
 
 jobs:
     submit:
