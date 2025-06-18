@@ -3,7 +3,7 @@ name: Upload Extension
 on:
     workflow_dispatch:
     release:
-      types: [published]
+        types: [published]
 
 jobs:
     submit:
@@ -31,6 +31,14 @@ jobs:
             - name: Zip extensions
               run: |
                   pnpm zip
+
+            - name: Extract release version from tag
+              id: extract_version
+              run: |
+                  echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+            - name: Inject version into package.json
+              run: |
+                  pnpm version ${{ steps.extract_version.outputs.VERSION }} --no-git-tag-version
 
             - name: Submit to Chrome Store
               run: |
