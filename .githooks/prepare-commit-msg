@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# If commit message is empty and terminal is interactive, launch Commitizen
+if [ ! -s "$1" ] && [ -t 1 ]; then
+  exec < /dev/tty && npx cz --hook || true
+fi
