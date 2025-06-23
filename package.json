@@ -11,19 +11,22 @@
         "zip": "wxt zip",
         "zip:firefox": "wxt zip -b firefox",
         "compile": "tsc --noEmit",
-        "postinstall": "wxt prepare",
+        "postinstall": "wxt prepare && git config core.hooksPath .githooks && chmod +x .githooks/*",
         "test": "vitest",
         "lint": "eslint",
         "lint-compact": "eslint -f compact",
         "coverage": "vitest run --coverage",
         "vitest-ui": "vitest run --ui",
-        "html-coverage": "pnpm vitest --ui --coverage.enabled=true"
+        "html-coverage": "pnpm vitest --ui --coverage.enabled=true",
+        "commitlint": "commitlint --edit"
     },
     "dependencies": {
         "react": "^19.0.0",
         "react-dom": "^19.0.0"
     },
     "devDependencies": {
+        "@commitlint/cli": "^19.8.1",
+        "@commitlint/config-conventional": "^19.8.1",
         "@eslint/css": "^0.5.0",
         "@eslint/js": "^9.22.0",
         "@html-eslint/parser": "^0.35.2",
@@ -35,6 +38,8 @@
         "@vitest/coverage-v8": "^3.0.8",
         "@vitest/ui": "^3.0.8",
         "@wxt-dev/module-react": "^1.1.2",
+        "commitizen": "^4.3.1",
+        "cz-conventional-changelog": "^3.3.0",
         "eslint": "^9.22.0",
         "eslint-config-prettier": "^10.1.1",
         "eslint-formatter-compact": "^8.40.0",
@@ -50,5 +55,10 @@
         "vitest": "^3.0.8",
         "wxt": "^0.20.3"
     },
-    "packageManager": "pnpm@10.6.3"
+    "packageManager": "pnpm@10.6.3",
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
+    }
 }
