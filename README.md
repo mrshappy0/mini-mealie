@@ -3,6 +3,8 @@
 [![Issues][issues-shield]][issues-url]
 [![AGPL License][license-shield]][license-url]
 [![Coverage Status][coverage-shield]][coverage-url]
+[![Commitizen friendly][commitizen-shield]][commitizen-url]
+[![Buy Me a Coffee][coffee-shield]](#-support-me)
 
 # Mini Mealie
 
@@ -122,7 +124,7 @@ This project is **proprietary and confidential**. Unauthorized copying, distribu
 
 ## ☕ Support Me
 
-If you find this project useful, consider [buying me a coffee](https://www.buymeacoffee.com/yourusername) to show your support!
+If you find this project useful, consider [buying me a coffee](https://www.buymeacoffee.com/atomos) to show your support!
 
 ---
 
@@ -149,3 +151,7 @@ Distributed under the AGPL License. See LICENSE for more information.
 [license-url]: https://github.com/mrshappy0/mini-mealie/blob/main/LICENSE
 [coverage-shield]: https://img.shields.io/endpoint?url=https://adam-shappy.com/mini-mealie/coverage-badge.json&style=for-the-badge
 [coverage-url]: https://adam-shappy.com/mini-mealie/coverage-badge.json
+[commitizen-shield]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?style=for-the-badge
+[commitizen-url]: http://commitizen.github.io/cz-cli/
+<!-- [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-8A2BE2.svg?style=for-the-badge -->
+[coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF813F.svg?style=for-the-badge&logo=buy-me-a-coffee
