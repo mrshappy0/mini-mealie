@@ -1,8 +1,5 @@
 #!/bin/sh
 
-echo "PREPARE-COMMIT-MSG HOOK RUNNING" >> hook.log
-echo "GIT COMMIT MSG FILE: $1" >> hook.log
-
 if [ -t 1 ]; then
   exec < /dev/tty && npx cz --hook --edit "$1"
 fi
