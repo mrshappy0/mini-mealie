@@ -1,3 +1,5 @@
+# Mini Mealie
+
 [![Release][release-shield]][release-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -5,23 +7,25 @@
 [![AGPL License][license-shield]][license-url]
 [![Coverage Status][coverage-shield]][coverage-url]
 [![Commitizen friendly][commitizen-shield]][commitizen-url]
+[![Chrome Web Store][chrome-web-store-shield]][chrome-web-store-url]
 [![Buy Me a Coffee][coffee-shield]](#-support-me)
 
-# Mini Mealie
 
-Mini Mealie is a Chrome extension built using WXT and React, designed to speed up recipe scraping. This extension integrates with Mealie to scrape recipes and import into Mealie.
+Mini Mealie is a Chrome extension built using WXT and React, designed to speed up recipe creation. This extension integrates with Mealie to scrape recipes and import into Mealie.
 
 ---
 
-## 🚀 Features
+## Features
 
-- Scrape recipes from any webpage using Mealie API
+- Import recipes from any webpage using Mealie API
+- Toggle for Paywall ladder
+- Each website uses Mealie dry-run to detect a recipe on the active tab
 - Store Mealie API token securely using `chrome.storage.sync`.
-- Supports selecting any Mealie server you want to import too
+- Supports connecting to any Mealie server
 
 ---
 
-## ⚙️ Requirements and Dependencies
+## Requirements and Dependencies
 
 - **Node.js** v22.x or later
 - **pnpm** (Package Manager)
@@ -33,7 +37,7 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ---
 
-## 📦 Installation and Setup
+## Installation and Setup
 
 1. **Clone the repository:**
 
@@ -62,64 +66,64 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ---
 
-## 🔑 Configuration
+## Configuration
 
 - To use the Mealie integration, you will need to **generate an API token** in your Mealie instance.
 - Save the token securely within the extension popup.
-- Ensure the following permissions are set in `wxt.config.ts`:
-    ```json
-    "permissions": [
-            "storage",
-            "activeTab",
-            "contextMenus",
-            "scripting",
-        ],
-    ```
+- Obtain your **local host URL** or public Mealie **instance URL** for API calls.
+- Modify your Mealie infrastructure to allow CORS (Cross-Origin Resource Sharing) calls, as the Chrome extension will be making API requests:
+    - This involves configuring your reverse proxies, authentication, or other related infrastructure.
 
 ---
 
-## 🚀 Usage
+## Usage
 
 1. **Right-click** on any recipe webpage.
-2. Select **"Scrape Recipe with Mealie"** from the context menu.
-3. The recipe will be scraped and added to your Mealie instance.
-4. If using the "Buy Me a Coffee" feature, users can click the donation button in the popup.
+2. Select **"Recipe Detected - Add Recipe to Mealie"** from the context menu.
+   2a. _(Optional)_ Enable the paywall ladder feature to send the recipe URL to a paywall ladder before proceeding.
+3. The extension will send the recipe URL to the Mealie create recipe endpoint.
 
 ---
 
-## 👨‍💻 Development and Contribution
+## Development and Contribution
 
-- This is a private repository. Only authorized contributors have access.
-- Branching strategy:
-    - `main`: Stable production build
-    - `dev`: Active development branch
+- **Open Source Invitation**:
+    - Contributions are welcome as Mini Mealie evolves. Enhance features or propose new ones!
+- **Discussion and Issues**:
+    - Use the [discussion page][discussions-url] for suggestions or issue troubleshooting. Feel free to create [detailed issues][issues-url] for bugs or desired features.
 
-### Setting Up Local Development
+### Pull Request Process
 
-1. Ensure you have **Node.js** and **pnpm** installed.
-2. Install dependencies with:
-    ```bash
-    pnpm install
-    ```
-3. Start the development server with:
-    ```bash
-    pnpm dev
-    ```
+1. **Branches**:
 
-### Pull Requests and Code Reviews
+    - **`main`**: Stable production build.
+    - Develop new features or fixes in a feature branch.
+    - Open a pull request (PR) pointing to `main`.
 
-- Create a feature branch from `dev`:
-    ```bash
-    git checkout -b feature/[feature-name]
-    ```
-- Push your changes and create a pull request against `dev`.
-- Ensure all tests and lint checks pass before requesting a review.
+2. **Review**:
+
+    - Request a review from a repository admin.
+
+3. **Release Management**:
+    - After a successful review and merge, a GitHub Action evaluates if a new release is necessary based on the PR commits.
+    - This project follows Conventional Commits for release determination.
+    - Approved releases are published to the Chrome Web Store via an upload workflow.
+
+### Code Reviews
+
+- All pull request reviews must be kept up-to-date with the `main` branch.
+- Branch protection rules are enforced to ensure:
+    - Passing of ESLint tests.
+    - Successful completion of unit tests.
+    - Adequate test coverage is maintained.
+- All issues must be resolved prior to requesting a review.
+- Pull requests require approval from at least one reviewer.
 
 ---
 
 ## 📄 License
 
-This project is **proprietary and confidential**. Unauthorized copying, distribution, or modification of this software, via any medium, is strictly prohibited.
+Distributed under the [AGPL License][license-url]. See the [LICENSE](LICENSE) file for more details.
 
 ---
 
@@ -129,7 +133,7 @@ If you find this project useful, consider [buying me a coffee](https://www.buyme
 
 ---
 
-## 📧 Contact
+## Contact
 
 For questions or collaboration requests, contact:
 
@@ -154,7 +158,9 @@ Distributed under the AGPL License. See LICENSE for more information.
 [coverage-url]: https://adam-shappy.com/mini-mealie/coverage-badge.json
 [commitizen-shield]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?style=for-the-badge
 [commitizen-url]: http://commitizen.github.io/cz-cli/
-<!-- [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-8A2BE2.svg?style=for-the-badge -->
 [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF813F.svg?style=for-the-badge&logo=buy-me-a-coffee
 [release-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/release.yml?branch=main&style=for-the-badge&label=release
 [release-url]: https://github.com/mrshappy0/mini-mealie/actions/workflows/release.yml
+[discussions-url]: https://github.com/mrshappy0/mini-mealie/discussions
+[chrome-web-store-shield]: https://img.shields.io/chrome-web-store/v/lchfnbjpjoeejalacnpjnafenacmdocc.svg?style=for-the-badge
+[chrome-web-store-url]: https://chromewebstore.google.com/detail/mini-mealie/lchfnbjpjoeejalacnpjnafenacmdocc
