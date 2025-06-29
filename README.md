@@ -142,10 +142,6 @@ For questions or collaboration requests, contact:
 
 ---
 
-## License
-
-Distributed under the AGPL License. See LICENSE for more information.
-
 [contributors-shield]: https://img.shields.io/github/contributors/mrshappy0/mini-mealie.svg?style=for-the-badge
 [contributors-url]: https://github.com/mrshappy0/mini-mealie/graphs/contributors
 [stars-shield]: https://img.shields.io/github/stars/mrshappy0/mini-mealie.svg?style=for-the-badge
