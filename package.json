@@ -11,14 +11,15 @@
         "zip": "wxt zip",
         "zip:firefox": "wxt zip -b firefox",
         "compile": "tsc --noEmit",
-        "postinstall": "wxt prepare && git config core.hooksPath .githooks && chmod +x .githooks/*",
+        "postinstall": "wxt prepare && git config core.hooksPath .githooks && chmod +x .githooks/* ",
         "test": "vitest",
         "lint": "eslint",
         "lint-compact": "eslint -f compact",
         "coverage": "vitest run --coverage",
         "vitest-ui": "vitest run --ui",
         "html-coverage": "pnpm vitest --ui --coverage.enabled=true",
-        "commitlint": "commitlint --edit"
+        "commitlint": "commitlint --edit",
+        "commit": "cz"
     },
     "dependencies": {
         "react": "^19.0.0",

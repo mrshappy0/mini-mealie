@@ -1,3 +1,4 @@
+[![Release][release-shield]][release-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
@@ -155,3 +156,5 @@ Distributed under the AGPL License. See LICENSE for more information.
 [commitizen-url]: http://commitizen.github.io/cz-cli/
 <!-- [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-8A2BE2.svg?style=for-the-badge -->
 [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF813F.svg?style=for-the-badge&logo=buy-me-a-coffee
+[release-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/release.yml?branch=main&style=for-the-badge&label=release
+[release-url]: https://github.com/mrshappy0/mini-mealie/actions/workflows/release.yml
