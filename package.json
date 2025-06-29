@@ -11,7 +11,7 @@
         "zip": "wxt zip",
         "zip:firefox": "wxt zip -b firefox",
         "compile": "tsc --noEmit",
-        "postinstall": "wxt prepare && git config core.hooksPath .githooks && chmod +x .githooks/*",
+        "postinstall": "wxt prepare && git config core.hooksPath .githooks && chmod +x .githooks/* && git config core.editor \"code --wait\"",
         "test": "vitest",
         "lint": "eslint",
         "lint-compact": "eslint -f compact",
