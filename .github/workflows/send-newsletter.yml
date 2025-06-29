@@ -1,0 +1,35 @@
+name: Email Subscribers on Release
+
+on:
+    workflow_dispatch:
+    release:
+        types: [published]
+
+jobs:
+    email:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Install Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: 'pnpm'
+                  cache-dependency-path: |
+                      package.json
+                      pnpm-lock.yaml
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Send Release Email via Resend
+              env:
+                  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+                  RELEASE_TAG: ${{ github.event.release.tag_name }}
+                  RELEASE_BODY: ${{ github.event.release.body }}
+              run: pnpm exec tsx scripts/send-release-emails.ts
