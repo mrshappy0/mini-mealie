@@ -4,9 +4,9 @@ const rawTag = process.env.RELEASE_TAG;
 const rawBody = process.env.RELEASE_BODY;
 const rawApiKey = process.env.RESEND_API_KEY;
 
-if (!rawTag || !rawBody || rawApiKey) {
+if (!rawTag || !rawBody || !rawApiKey) {
     console.error(
-        'Missing required environment variables: RELEASE_TAG and/or RELEASE_BODY, RELEASE_API_KEY.',
+        'Missing required environment variables: RELEASE_TAG and/or RELEASE_BODY, RESEND_API_KEY.',
     );
     process.exit(1);
 }
