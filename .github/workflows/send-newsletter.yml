@@ -32,4 +32,4 @@ jobs:
                   RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
                   RELEASE_TAG: ${{ github.event.release.tag_name }}
                   RELEASE_BODY: ${{ github.event.release.body }}
-              run: pnpm exec tsx scripts/send-release-emails.ts
+              run: pnpm exec tsx scripts/send-release-email.ts
