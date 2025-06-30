@@ -29,15 +29,13 @@ jobs:
 
             - name: Ensure jq is installed
               run: sudo apt-get install -y jq
-      
+
             - name: Resolve Release Info
               id: release_info
               run: |
-                # Try to use release trigger values
                 TAG_NAME="${{ github.event.release.tag_name }}"
                 BODY="${{ github.event.release.body }}"
       
-                # Fallback if empty (i.e., manual trigger)
                 if [ -z "$TAG_NAME" ] || [ -z "$BODY" ]; then
                   echo "Falling back to latest release..."
                   release=$(gh api repos/${{ github.repository }}/releases/latest)
@@ -45,8 +43,14 @@ jobs:
                   BODY=$(echo "$release" | jq -r .body)
                 fi
       
-                echo "RELEASE_TAG=$TAG_NAME" >> $GITHUB_ENV
-                echo "RELEASE_BODY=$BODY" >> $GITHUB_ENV
+                # Proper escaping of multiline values
+                echo "RELEASE_TAG<<EOF" >> $GITHUB_ENV
+                echo "$TAG_NAME" >> $GITHUB_ENV
+                echo "EOF" >> $GITHUB_ENV
+      
+                echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+                echo "$BODY" >> $GITHUB_ENV
+                echo "EOF" >> $GITHUB_ENV
               env:
                 GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
