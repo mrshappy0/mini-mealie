@@ -27,9 +27,32 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
+            - name: Ensure jq is installed
+              run: sudo apt-get install -y jq
+      
+            - name: Resolve Release Info
+              id: release_info
+              run: |
+                # Try to use release trigger values
+                TAG_NAME="${{ github.event.release.tag_name }}"
+                BODY="${{ github.event.release.body }}"
+      
+                # Fallback if empty (i.e., manual trigger)
+                if [ -z "$TAG_NAME" ] || [ -z "$BODY" ]; then
+                  echo "Falling back to latest release..."
+                  release=$(gh api repos/${{ github.repository }}/releases/latest)
+                  TAG_NAME=$(echo "$release" | jq -r .tag_name)
+                  BODY=$(echo "$release" | jq -r .body)
+                fi
+      
+                echo "RELEASE_TAG=$TAG_NAME" >> $GITHUB_ENV
+                echo "RELEASE_BODY=$BODY" >> $GITHUB_ENV
+              env:
+                GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
             - name: Send Release Email via Resend
               env:
-                  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-                  RELEASE_TAG: ${{ github.event.release.tag_name }}
-                  RELEASE_BODY: ${{ github.event.release.body }}
+                RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+                RELEASE_TAG: ${{ env.RELEASE_TAG }}
+                RELEASE_BODY: ${{ env.RELEASE_BODY }}
               run: pnpm exec tsx scripts/send-release-email.ts
