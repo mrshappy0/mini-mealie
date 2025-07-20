@@ -1,3 +1,5 @@
+import { ReleaseEmail } from '@/components/emails/ReleaseEmail';
+import { createElement } from 'react';
 import { Resend } from 'resend';
 
 const rawTag = process.env.RELEASE_TAG;
@@ -23,32 +25,40 @@ function generateBroadcastName(tag: string): string {
     return `Mini Mealie ${tag} - ${now}`;
 }
 
-function formatHTML(tag: string, body: string): string {
-    const lines = body
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line);
+// function formatHTML(tag: string, body: string): string {
+//     const lines = body
+//         .split('\n')
+//         .map((line) => line.trim())
+//         .filter((line) => line);
 
-    const list = lines.map((line) => `<li>${line}</li>`).join('\n');
+//     const list = lines.map((line) => `<li>${line}</li>`).join('\n');
 
-    return `
-		<div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-			<h1 style="color: #000;">🚀 Mini Mealie ${tag} Released</h1>
-			<p>Here’s what’s new in this version:</p>
-			<ul>${list}</ul>
-			<p style="margin-top: 2em;">Thanks for supporting Mini Mealie! 🎉</p>
-			<p>
-				<a href="https://chromewebstore.google.com/detail/mini-mealie/lchfnbjpjoeejalacnpjnafenacmdocc" style="color: #007bff;">
-					View in Chrome Web Store →
-				</a>
-			</p>
-            <hr style="margin-top: 2em;"/>
-            <p style="font-size: 0.8em; color: #888;">
-                If you wish to unsubscribe, click here: <a href="{{{RESEND_UNSUBSCRIBE_URL}}}">Unsubscribe</a>
-            </p>
-		</div>
-	`;
-}
+//     return `
+// 		<div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+// 			<h1 style="color: #000;">🚀 Mini Mealie ${tag} Released</h1>
+// 			<p>Here’s what’s new in this version:</p>
+// 			<ul>${list}</ul>
+// 			<p style="margin-top: 2em;">Thanks for supporting Mini Mealie! 🎉</p>
+// 			<p>
+// 				<a href="https://chromewebstore.google.com/detail/mini-mealie/lchfnbjpjoeejalacnpjnafenacmdocc" style="color: #007bff;">
+// 					View in Chrome Web Store →
+// 				</a>
+// 			</p>
+//             <hr style="margin-top: 2em;"/>
+//             <p style="font-size: 0.8em; color: #888;">
+//                 If you wish to unsubscribe, click here: <a href="{{{RESEND_UNSUBSCRIBE_URL}}}">Unsubscribe</a>
+//             </p>
+// 		</div>
+// 	`;
+// }
+const items = body
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line);
+const reactEmail = createElement(ReleaseEmail, {
+    tag,
+    items,
+});
 
 async function sendEmail() {
     const { data: createData, error: createError } = await resend.broadcasts.create({
@@ -56,7 +66,8 @@ async function sendEmail() {
         name: generateBroadcastName(tag),
         from: 'Mini Mealie <no-reply@shaplabs.net>',
         subject: `🎉 New Mini Mealie Release: ${tag}`,
-        html: formatHTML(tag, body),
+        // html: formatHTML(tag, body),
+        react: reactEmail,
     });
 
     if (createError) {
