@@ -57,6 +57,7 @@ jobs:
             - name: Send Release Email via Resend
               env:
                 RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+                RESEND_AUDIENCE_ID: ${{ vars.RESEND_AUDIENCE_ID}}
                 RELEASE_TAG: ${{ env.RELEASE_TAG }}
                 RELEASE_BODY: ${{ env.RELEASE_BODY }}
               run: pnpm exec tsx scripts/send-release-email.ts
