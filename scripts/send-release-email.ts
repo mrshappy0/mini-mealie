@@ -1,6 +1,11 @@
-import { ReleaseEmail } from '@/components/emails/ReleaseEmail';
-import { createElement } from 'react';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
 import { Resend } from 'resend';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const templatePath = join(__dirname, './email-templates/mini-mealie-release.html');
+let html = readFileSync(templatePath, 'utf-8');
 
 const rawTag = process.env.RELEASE_TAG;
 const rawBody = process.env.RELEASE_BODY;
@@ -21,44 +26,25 @@ const audienceId = rawAudienceId as string;
 const resend = new Resend(apiKey);
 
 function generateBroadcastName(tag: string): string {
-    const now = new Date().toISOString().replace(/[:.]/g, '-'); // e.g., 2025-07-19T20-48-59-123Z
+    const now = new Date().toISOString().replace(/[:.]/g, '-');
     return `Mini Mealie ${tag} - ${now}`;
 }
 
-// function formatHTML(tag: string, body: string): string {
-//     const lines = body
-//         .split('\n')
-//         .map((line) => line.trim())
-//         .filter((line) => line);
-
-//     const list = lines.map((line) => `<li>${line}</li>`).join('\n');
-
-//     return `
-// 		<div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-// 			<h1 style="color: #000;">🚀 Mini Mealie ${tag} Released</h1>
-// 			<p>Here’s what’s new in this version:</p>
-// 			<ul>${list}</ul>
-// 			<p style="margin-top: 2em;">Thanks for supporting Mini Mealie! 🎉</p>
-// 			<p>
-// 				<a href="https://chromewebstore.google.com/detail/mini-mealie/lchfnbjpjoeejalacnpjnafenacmdocc" style="color: #007bff;">
-// 					View in Chrome Web Store →
-// 				</a>
-// 			</p>
-//             <hr style="margin-top: 2em;"/>
-//             <p style="font-size: 0.8em; color: #888;">
-//                 If you wish to unsubscribe, click here: <a href="{{{RESEND_UNSUBSCRIBE_URL}}}">Unsubscribe</a>
-//             </p>
-// 		</div>
-// 	`;
-// }
 const items = body
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line);
-const reactEmail = createElement(ReleaseEmail, {
-    tag,
-    items,
-});
+
+html = html.replace(/{{tag}}/g, tag);
+
+const itemsHtml = items
+    .map(
+        (item) =>
+            `<li><span style="font-size:15px;line-height:24px;color:#374151">${item}</span></li>`,
+    )
+    .join('\n');
+
+html = html.replace('{{ITEMS}}', `<ul style="padding-left:20px;margin-top:0">${itemsHtml}</ul>`);
 
 async function sendEmail() {
     const { data: createData, error: createError } = await resend.broadcasts.create({
@@ -66,8 +52,7 @@ async function sendEmail() {
         name: generateBroadcastName(tag),
         from: 'Mini Mealie <no-reply@shaplabs.net>',
         subject: `🎉 New Mini Mealie Release: ${tag}`,
-        // html: formatHTML(tag, body),
-        react: reactEmail,
+        html,
     });
 
     if (createError) {
