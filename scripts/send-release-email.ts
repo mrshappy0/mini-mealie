@@ -37,24 +37,40 @@ function formatHTML(tag: string, body: string): string {
 					View in Chrome Web Store →
 				</a>
 			</p>
+            <p style="margin-top: 2em; font-size: 0.9em;">
+				<a href="{{unsubscribe_url}}">Unsubscribe</a>
+			</p>
 		</div>
 	`;
 }
 
 async function sendEmail() {
-    const { data, error } = await resend.broadcasts.create({
+    const { data: createData, error: createError } = await resend.broadcasts.create({
         audienceId,
         from: 'Mini Mealie <no-reply@shaplabs.net>',
         subject: `🎉 New Mini Mealie Release: ${tag}`,
         html: formatHTML(tag, body),
     });
 
-    if (error) {
-        console.error('Failed to send release email:', error);
+    if (createError) {
+        console.error('Failed to create broadcast:', createError);
         process.exit(1);
     }
 
-    console.log('Email sent:', data);
+    const broadcastId = createData?.id;
+    if (!broadcastId) {
+        console.error('Broadcast created but ID is missing.');
+        process.exit(1);
+    }
+
+    const { data: sendData, error: sendError } = await resend.broadcasts.send(broadcastId);
+
+    if (sendError) {
+        console.error('Failed to send broadcast:', sendError);
+        process.exit(1);
+    }
+
+    console.log('Broadcast sent successfully:', sendData);
 }
 
 sendEmail();
