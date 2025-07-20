@@ -38,14 +38,15 @@ function extractReleaseItems(body: string): string[] {
     for (const line of lines) {
         const trimmed = line.trim();
 
-        // Skip markdown headers
         if (trimmed.startsWith('###') || trimmed.startsWith('##')) continue;
-
-        // Only keep bullet points
         if (/^[-*+]\s+/.test(trimmed)) {
             let item = trimmed.replace(/^[-*+]\s+/, '');
 
-            // Replace (abcdef1) with GitHub commit link
+            // Replace raw markdown link with commit hash
+            // e.g. ([be530c2](https://...)) → (be530c2)
+            item = item.replace(/\[([0-9a-f]{7,})\]\(https:\/\/github\.com\/[^)]+\)/gi, '$1');
+
+            // Then convert plain (be530c2) to HTML link
             item = item.replace(/\(([0-9a-f]{7,})\)/gi, (_, hash) => {
                 const url = `https://github.com/${repo}/commit/${hash}`;
                 return `(<a href="${url}">${hash}</a>)`;
@@ -57,6 +58,7 @@ function extractReleaseItems(body: string): string[] {
 
     return items;
 }
+
 const items = extractReleaseItems(body);
 
 html = html.replace(/{{TAG}}/g, tag);
