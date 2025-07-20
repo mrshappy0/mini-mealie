@@ -42,9 +42,10 @@ function formatHTML(tag: string, body: string): string {
 					View in Chrome Web Store →
 				</a>
 			</p>
-            <p style="margin-top: 2em; font-size: 0.9em;">
-				<a href="{{unsubscribe_url}}">Unsubscribe</a>
-			</p>
+            <hr style="margin-top: 2em;"/>
+            <p style="font-size: 0.8em; color: #888;">
+                If you wish to unsubscribe, click here: <a href="{{{RESEND_UNSUBSCRIBE_URL}}}">Unsubscribe</a>
+            </p>
 		</div>
 	`;
 }
