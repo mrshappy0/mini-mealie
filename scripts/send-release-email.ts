@@ -30,12 +30,36 @@ function generateBroadcastName(tag: string): string {
     return `Mini Mealie ${tag} - ${now}`;
 }
 
-const items = body
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line);
+function extractReleaseItems(body: string): string[] {
+    const repo = 'mrshappy0/mini-mealie';
+    const lines = body.split('\n');
 
-html = html.replace(/{{tag}}/g, tag);
+    const items: string[] = [];
+    for (const line of lines) {
+        const trimmed = line.trim();
+
+        // Skip markdown headers
+        if (trimmed.startsWith('###') || trimmed.startsWith('##')) continue;
+
+        // Only keep bullet points
+        if (/^[-*+]\s+/.test(trimmed)) {
+            let item = trimmed.replace(/^[-*+]\s+/, '');
+
+            // Replace (abcdef1) with GitHub commit link
+            item = item.replace(/\(([0-9a-f]{7,})\)/gi, (_, hash) => {
+                const url = `https://github.com/${repo}/commit/${hash}`;
+                return `(<a href="${url}">${hash}</a>)`;
+            });
+
+            items.push(item);
+        }
+    }
+
+    return items;
+}
+const items = extractReleaseItems(body);
+
+html = html.replace(/{{TAG}}/g, tag);
 
 const itemsHtml = items
     .map(
