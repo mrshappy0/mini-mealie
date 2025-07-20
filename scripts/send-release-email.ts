@@ -18,6 +18,11 @@ const apiKey = rawApiKey as string;
 const audienceId = rawAudienceId as string;
 const resend = new Resend(apiKey);
 
+function generateBroadcastName(tag: string): string {
+    const now = new Date().toISOString().replace(/[:.]/g, '-'); // e.g., 2025-07-19T20-48-59-123Z
+    return `Mini Mealie ${tag} - ${now}`;
+}
+
 function formatHTML(tag: string, body: string): string {
     const lines = body
         .split('\n')
@@ -47,6 +52,7 @@ function formatHTML(tag: string, body: string): string {
 async function sendEmail() {
     const { data: createData, error: createError } = await resend.broadcasts.create({
         audienceId,
+        name: generateBroadcastName(tag),
         from: 'Mini Mealie <no-reply@shaplabs.net>',
         subject: `🎉 New Mini Mealie Release: ${tag}`,
         html: formatHTML(tag, body),
