@@ -3,10 +3,11 @@ import { Resend } from 'resend';
 const rawTag = process.env.RELEASE_TAG;
 const rawBody = process.env.RELEASE_BODY;
 const rawApiKey = process.env.RESEND_API_KEY;
+const rawAudienceId = process.env.RESEND_AUDIENCE_ID;
 
-if (!rawTag || !rawBody || !rawApiKey) {
+if (!rawTag || !rawBody || !rawApiKey || !rawAudienceId) {
     console.error(
-        'Missing required environment variables: RELEASE_TAG and/or RELEASE_BODY, RESEND_API_KEY.',
+        'Missing required environment variables: RELEASE_TAG and/or RELEASE_BODY, RESEND_API_KEY, RESEND_AUDIENCE_ID.',
     );
     process.exit(1);
 }
@@ -14,6 +15,7 @@ if (!rawTag || !rawBody || !rawApiKey) {
 const tag = rawTag as string;
 const body = rawBody as string;
 const apiKey = rawApiKey as string;
+const audienceId = rawAudienceId as string;
 const resend = new Resend(apiKey);
 
 function formatHTML(tag: string, body: string): string {
@@ -40,9 +42,9 @@ function formatHTML(tag: string, body: string): string {
 }
 
 async function sendEmail() {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resend.broadcasts.create({
+        audienceId,
         from: 'Mini Mealie <no-reply@shaplabs.net>',
-        to: ['ajs11300@gmail.com', 'atom@shaplabs.net'], // Replace this later with real subscribers
         subject: `🎉 New Mini Mealie Release: ${tag}`,
         html: formatHTML(tag, body),
     });
