@@ -1,18 +1,3 @@
-export function runCreateRecipe(tab: chrome.tabs.Tab) {
-    chrome.storage.sync.get<StorageData>(
-        [...storageKeys],
-        async ({ mealieServer, mealieApiToken }) => {
-            if (!mealieServer || !mealieApiToken) {
-                showBadge('❌', 4);
-                return;
-            }
-
-            const result = await createRecipe(tab.url!, mealieServer, mealieApiToken);
-            showBadge(result === 'success' ? '✅' : '❌', 4);
-        },
-    );
-}
-
 export async function createRecipe(url: string, server: string, token: string): Promise<string> {
     try {
         const fetchUrl = new URL('/api/recipes/create/url', server).href;
