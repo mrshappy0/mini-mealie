@@ -215,80 +215,10 @@ input:checked + .slider::before {
     padding: 0.75em 1em;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    margin-top: 0;
 }
 
 .greeting strong {
     color: var(--mealie-orange);
     font-weight: 600;
-}
-
-.ladder-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: left;
-    font-size: 1.1em;
-    color: grey;
-}
-
-.ladder-toggle label {
-    display: flex;
-    align-items: center;
-    gap: 0.75em;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.ladder-toggle label:hover {
-    color: var(--mealie-orange);
-}
-
-.ladder-toggle label:hover input[type='checkbox'] {
-    background-color: #555;
-    border-color: var(--mealie-orange);
-}
-
-.ladder-toggle input[type='checkbox'] {
-    all: unset;
-    appearance: none;
-    width: 2.6em;
-    height: 1.4em;
-    background-color: #444;
-    border: 1.5px solid #444;
-    border-radius: 9999px;
-    position: relative;
-    top: 0.05em;
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 0;
-    flex-shrink: 0;
-    padding: 0;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.ladder-toggle input[type='checkbox']:checked {
-    background-color: #444;
-}
-
-.ladder-toggle input[type='checkbox']::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0.15em;
-    transform: translateY(-50%);
-    width: 1.1em;
-    height: 1.1em;
-    background-color: var(--mealie-grey);
-    border-radius: 50%;
-    transition: transform 0.25s ease, background-color 0.25s ease;
-}
-
-/* Knob checked state */
-.ladder-toggle input[type='checkbox']:checked::before {
-    transform: translate(1.1em, -50%);
-    background-color: var(--mealie-orange);
-}
-
-/* Label text color when checked */
-.ladder-toggle input[type='checkbox']:checked + span {
-    color: var(--mealie-white);
 }
