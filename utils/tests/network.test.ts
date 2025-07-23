@@ -1,22 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../badge', () => ({
     showBadge: vi.fn(),
 }));
 
-beforeEach(() => {
-    global.chrome = {
-        storage: {
-            sync: {
-                get: vi.fn(),
-            },
-        },
-        scripting: {
-            executeScript: vi.fn(),
-        },
-    } as unknown as typeof chrome;
+const mockConfig = {
+    createRecipeResult: 'success' as 'success' | 'failure',
+};
 
-    vi.clearAllMocks();
+vi.mock('../network', async () => {
+    const actual = await vi.importActual<typeof import('../network')>('../network');
+
+    return {
+        ...actual,
+        createRecipe: vi.fn().mockImplementation(() => {
+            return Promise.resolve(mockConfig.createRecipeResult);
+        }),
+    };
 });
 
 describe('runCreateRecipe', () => {
@@ -24,105 +24,51 @@ describe('runCreateRecipe', () => {
     const mockUrl = 'https://example.com/recipe';
     const mockServer = 'https://mealie.local';
     const mockToken = 'mock-api-token';
-    const mockLadderDisabled = false;
 
-    it('should show ❌ badge if mealieServer is missing', () => {
-        vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string | boolean | undefined>) => void) =>
-                callback({ mealieApiToken: mockToken }),
-        );
-
-        runCreateRecipe(mockUrl, mockTabId);
-
-        expect(showBadge).toHaveBeenCalledWith('❌', 4);
-        expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
-    });
-
-    it('should show ❌ badge if mealieApiToken is missing', () => {
-        vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string | undefined>) => void) =>
-                callback({ mealieServer: mockServer }),
-        );
-
-        runCreateRecipe(mockUrl, mockTabId);
-
-        expect(showBadge).toHaveBeenCalledWith('❌', 4);
-        expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
-    });
-
-    it('should execute script when both mealieServer and mealieApiToken are present', () => {
-        vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string | boolean>) => void) =>
-                callback({
-                    mealieServer: mockServer,
-                    mealieApiToken: mockToken,
-                    ladderEnabled: mockLadderDisabled,
-                }),
-        );
-
-        runCreateRecipe(mockUrl, mockTabId);
-
-        expect(chrome.scripting.executeScript).toHaveBeenCalledWith(
-            {
-                target: { tabId: mockTabId },
-                func: expect.any(Function),
-                args: [mockUrl, mockServer, mockToken, mockLadderDisabled],
-            },
-            expect.any(Function),
-        );
-    });
-
-    it('should prepend ladder URL when ladderEnabled is true', () => {
-        vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string | boolean>) => void) =>
-                callback({
-                    mealieServer: mockServer,
-                    mealieApiToken: mockToken,
-                    ladderEnabled: !mockLadderDisabled,
-                }),
-        );
-
-        runCreateRecipe(mockUrl, mockTabId);
-
-        expect(chrome.scripting.executeScript).toHaveBeenCalledWith(
-            {
-                target: { tabId: mockTabId },
-                func: expect.any(Function),
-                args: [mockUrl, mockServer, mockToken, true],
-            },
-            expect.any(Function),
-        );
-    });
-
-    it('should prepend ladder URL and return success when ladderEnabled is true', async () => {
-        const fetchMock = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({}),
-        });
-        global.fetch = fetchMock;
-
-        const result = await createRecipe(
-            'https://example.com/recipe',
-            'https://mealie.local',
-            'mock-api-token',
-            true,
-        );
-
-        expect(fetchMock).toHaveBeenCalledWith(
-            'https://mealie.local/api/recipes/create/url',
-            expect.objectContaining({
-                method: 'POST',
-                headers: expect.objectContaining({
-                    Authorization: 'Bearer mock-api-token',
-                    'Content-Type': 'application/json',
-                }),
-                body: JSON.stringify({
-                    url: 'https://13ft.wasimaster.me/https://example.com/recipe',
-                }),
+    it('should show ❌ badge if mealieServer is missing', async () => {
+        chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
+            callback({
+                mealieToken: mockToken,
             }),
         );
 
-        // Assert function returned success
+        runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
+
+        const { createRecipe } = await import('../network');
+        expect(showBadge).toHaveBeenCalledWith('❌', 4);
+        expect(createRecipe).not.toHaveBeenCalled();
+    });
+
+    it('should show ❌ badge if mealieApiToken is missing', async () => {
+        mockConfig.createRecipeResult = 'success';
+        chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
+            callback({
+                mealieServer: mockServer,
+            }),
+        );
+
+        runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
+
+        const { createRecipe } = await import('../network');
+        expect(showBadge).toHaveBeenCalledWith('❌', 4);
+        expect(createRecipe).not.toHaveBeenCalled();
+    });
+
+    it('should call createRecipe when mealieServer and mealieApiToken are present', async () => {
+        mockConfig.createRecipeResult = 'success';
+
+        chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
+            callback({
+                mealieServer: mockServer,
+                mealieApiToken: mockToken,
+            }),
+        );
+
+        runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
+
+        const { createRecipe } = await import('../network');
+        expect(createRecipe).toHaveBeenCalledWith(mockUrl, mockServer, mockToken);
+        const result = await (createRecipe as vi.Mock).mock.results[0].value;
         expect(result).toBe('success');
     });
 
@@ -134,71 +80,50 @@ describe('runCreateRecipe', () => {
         });
         global.fetch = fetchMock;
 
+        // Import the real function (bypassing the mock)
+        const { createRecipe } = await vi.importActual<typeof import('../network')>('../network');
+
         const result = await createRecipe(
             'https://example.com/recipe',
             'https://mealie.local',
             'mock-api-token',
-            true,
         );
 
-        // Assert failure
         expect(result).toBe('failure');
     });
 
-    it('should show ✅ badge if the script execution result is success', () => {
-        vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string>) => void) =>
-                callback({
-                    mealieServer: mockServer,
-                    mealieApiToken: mockToken,
-                }),
+    it('should show ✅ badge if the script execution result is success', async () => {
+        mockConfig.createRecipeResult = 'success';
+
+        chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
+            callback({
+                mealieServer: mockServer,
+                mealieApiToken: mockToken,
+            }),
         );
 
-        vi.mocked(chrome.scripting.executeScript).mockImplementation(
-            (
-                _options,
-                callback: (
-                    result: Array<{
-                        result: string;
-                        frameId: number;
-                        documentId: string;
-                    }>,
-                ) => void,
-            ) => {
-                callback([{ result: 'success', frameId: 0, documentId: '1234' }]);
-            },
-        );
+        runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
 
-        runCreateRecipe(mockUrl, mockTabId);
+        // Wait for async badge update (microtask + tick)
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(showBadge).toHaveBeenCalledWith('✅', 4);
     });
 
-    it('should show ❌ badge if the script execution result is failure', () => {
-        vi.mocked(chrome.storage.sync.get).mockImplementation(
-            (_keys, callback: (items: Record<string, string>) => void) =>
-                callback({
-                    mealieServer: mockServer,
-                    mealieApiToken: mockToken,
-                }),
+    it('should show ❌ badge if the script execution result is failure', async () => {
+        mockConfig.createRecipeResult = 'failure';
+
+        chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
+            callback({
+                mealieServer: mockServer,
+                mealieApiToken: mockToken,
+            }),
         );
 
-        vi.mocked(chrome.scripting.executeScript).mockImplementation(
-            (
-                _options,
-                callback: (
-                    result: Array<{
-                        result: string;
-                        frameId: number;
-                        documentId: string;
-                    }>,
-                ) => void,
-            ) => {
-                callback([{ result: 'failure', frameId: 0, documentId: '5678' }]);
-            },
-        );
+        runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
 
-        runCreateRecipe(mockUrl, mockTabId);
+        // Wait for async badge update (microtask + tick)
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
     });

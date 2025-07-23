@@ -1,47 +1,14 @@
-export const runCreateRecipe = (url: string, tabId: number) => {
-    chrome.storage.sync.get<StorageData>(
-        [...storageKeys],
-        ({ mealieServer, mealieApiToken, ladderEnabled }: StorageData) => {
-            if (!mealieServer || !mealieApiToken) {
-                showBadge('❌', 4);
-                return;
-            }
-
-            const scriptParams = {
-                target: { tabId },
-                func: createRecipe,
-                args: [url, mealieServer, mealieApiToken, ladderEnabled] as [
-                    string,
-                    string,
-                    string,
-                    boolean,
-                ],
-            };
-            chrome.scripting.executeScript(scriptParams, (result) => {
-                showBadge(result[0].result === 'success' ? '✅' : '❌', 4);
-            });
-        },
-    );
-};
-
-export async function createRecipe(
-    url: string,
-    server: string,
-    token: string,
-    ladderEnabled: boolean,
-): Promise<string> {
-    const ladderUrl = 'https://13ft.wasimaster.me';
-    const finalUrl = ladderEnabled ? `${ladderUrl}/${url}` : url;
+export async function createRecipe(url: string, server: string, token: string): Promise<string> {
     try {
-        const response = await fetch(`${server}/api/recipes/create/url`, {
+        const fetchUrl = new URL('/api/recipes/create/url', server).href;
+        const response = await fetch(fetchUrl, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url: finalUrl }),
+            body: JSON.stringify({ url }),
         });
-
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
