@@ -85,13 +85,11 @@ function App() {
     };
 
     const handleToggle = () => {
-        setProtocol((prev) => (prev === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS));
-        setInputServer((prev) =>
-            prev.replace(
-                /^https?:\/\//,
-                protocol === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS,
-            ),
-        );
+        setProtocol((prev) => {
+            const next = prev === Protocol.HTTPS ? Protocol.HTTP : Protocol.HTTPS;
+            setInputServer((currentServer) => currentServer.replace(/^https?:\/\//, next));
+            return next;
+        });
     };
 
     const clearSettings = () => {
