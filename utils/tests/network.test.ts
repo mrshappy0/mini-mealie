@@ -1,22 +1,52 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../badge', () => ({
     showBadge: vi.fn(),
 }));
 
+const mockHtml = '<html><body>Recipe</body></html>';
+
 const mockConfig = {
-    createRecipeResult: 'success' as 'success' | 'failure',
+    createRecipeFromHTMLResult: 'success' as 'success' | 'failure',
 };
+
+// Microtask checkpoint ensuring async badge updates complete before assertions.
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 vi.mock('../network', async () => {
     const actual = await vi.importActual<typeof import('../network')>('../network');
 
     return {
         ...actual,
-        createRecipe: vi.fn().mockImplementation(() => {
-            return Promise.resolve(mockConfig.createRecipeResult);
+        createRecipeFromHTML: vi.fn().mockImplementation(() => {
+            return Promise.resolve(mockConfig.createRecipeFromHTMLResult);
         }),
     };
+});
+
+beforeEach(() => {
+    vi.clearAllMocks();
+    mockConfig.createRecipeFromHTMLResult = 'success';
+
+    global.chrome = {
+        storage: {
+            sync: {
+                get: vi.fn(),
+            },
+        },
+        scripting: {
+            executeScript: vi.fn((_, callback) => {
+                callback?.([
+                    {
+                        result: mockHtml,
+                    },
+                ] as unknown as chrome.scripting.InjectionResult[]);
+            }),
+        },
+        runtime: {
+            lastError: undefined,
+        },
+    } as unknown as typeof chrome;
 });
 
 describe('runCreateRecipe', () => {
@@ -34,13 +64,15 @@ describe('runCreateRecipe', () => {
 
         runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
 
-        const { createRecipe } = await import('../network');
+        await flushPromises();
+
+        const { createRecipeFromHTML } = await import('../network');
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
-        expect(createRecipe).not.toHaveBeenCalled();
+        expect(createRecipeFromHTML).not.toHaveBeenCalled();
     });
 
     it('should show ❌ badge if mealieApiToken is missing', async () => {
-        mockConfig.createRecipeResult = 'success';
+        mockConfig.createRecipeFromHTMLResult = 'success';
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
                 mealieServer: mockServer,
@@ -49,13 +81,15 @@ describe('runCreateRecipe', () => {
 
         runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
 
-        const { createRecipe } = await import('../network');
+        await flushPromises();
+
+        const { createRecipeFromHTML } = await import('../network');
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
-        expect(createRecipe).not.toHaveBeenCalled();
+        expect(createRecipeFromHTML).not.toHaveBeenCalled();
     });
 
-    it('should call createRecipe when mealieServer and mealieApiToken are present', async () => {
-        mockConfig.createRecipeResult = 'success';
+    it('should call createRecipeFromHTML when mealieServer and mealieApiToken are present', async () => {
+        mockConfig.createRecipeFromHTMLResult = 'success';
 
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
@@ -66,9 +100,11 @@ describe('runCreateRecipe', () => {
 
         runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
 
-        const { createRecipe } = await import('../network');
-        expect(createRecipe).toHaveBeenCalledWith(mockUrl, mockServer, mockToken);
-        const result = await (createRecipe as vi.Mock).mock.results[0].value;
+        await flushPromises();
+
+        const { createRecipeFromHTML } = await import('../network');
+        expect(createRecipeFromHTML).toHaveBeenCalledWith(mockHtml, mockServer, mockToken);
+        const result = await (createRecipeFromHTML as vi.Mock).mock.results[0].value;
         expect(result).toBe('success');
     });
 
@@ -93,7 +129,7 @@ describe('runCreateRecipe', () => {
     });
 
     it('should show ✅ badge if the script execution result is success', async () => {
-        mockConfig.createRecipeResult = 'success';
+        mockConfig.createRecipeFromHTMLResult = 'success';
 
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
@@ -105,13 +141,13 @@ describe('runCreateRecipe', () => {
         runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
 
         // Wait for async badge update (microtask + tick)
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await flushPromises();
 
         expect(showBadge).toHaveBeenCalledWith('✅', 4);
     });
 
     it('should show ❌ badge if the script execution result is failure', async () => {
-        mockConfig.createRecipeResult = 'failure';
+        mockConfig.createRecipeFromHTMLResult = 'failure';
 
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
@@ -123,7 +159,7 @@ describe('runCreateRecipe', () => {
         runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
 
         // Wait for async badge update (microtask + tick)
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await flushPromises();
 
         expect(showBadge).toHaveBeenCalledWith('❌', 4);
     });
