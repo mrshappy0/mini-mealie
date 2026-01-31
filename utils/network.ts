@@ -21,6 +21,33 @@ export async function createRecipe(url: string, server: string, token: string): 
     }
 }
 
+export async function createRecipeFromHTML(
+    html: string,
+    server: string,
+    token: string,
+): Promise<string> {
+    try {
+        const fetchUrl = new URL('/api/recipes/create/html-or-json', server).href;
+        const response = await fetch(fetchUrl, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ includeTags: false, data: html }),
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await response.json();
+        return 'success';
+    } catch (error) {
+        console.error('Error scraping recipe:', error);
+        return 'failure';
+    }
+}
+
 export const getUser = async (
     url: string,
     token: string,
