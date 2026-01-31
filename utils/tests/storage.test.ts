@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WxtVitest } from 'wxt/testing';
 
+import { clearBadge, showBadge } from '../badge';
+import { addContextMenu, removeContextMenu } from '../contextMenu';
+import { testScrapeUrlDetailed } from '../network';
+import { checkStorageAndUpdateBadge } from '../storage';
+
 WxtVitest();
 
 const mockActiveTab = {
@@ -28,7 +33,7 @@ vi.mock('../contextMenu', () => ({
 }));
 
 vi.mock('../network', () => ({
-    testScrapeUrl: vi.fn(() => false),
+    testScrapeUrlDetailed: vi.fn(() => ({ outcome: 'not-recipe' })),
 }));
 
 describe('checkStorageAndUpdateBadge', () => {
@@ -72,13 +77,13 @@ describe('checkStorageAndUpdateBadge', () => {
 
         const mockedClearBadge = vi.mocked(clearBadge);
         const mockedShowBadge = vi.mocked(showBadge);
-        const mockTestScrapeUrl = vi.mocked(testScrapeUrl);
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         const mockAddContextMenu = vi.mocked(addContextMenu);
 
         await checkStorageAndUpdateBadge();
 
         expect(mockedClearBadge).toHaveBeenCalled();
-        expect(mockTestScrapeUrl).toHaveBeenCalledWith(
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalledWith(
             'https://recipe.org/mock-recipe-url',
             'https://mealie.tld',
             'mock-token',
@@ -95,5 +100,102 @@ describe('checkStorageAndUpdateBadge', () => {
         expect(mockAddContextMenu).toHaveBeenCalledWith(
             'No Recipe Detected - Attempt to Add Recipe',
         );
+    });
+
+    it('should set "Recipe Detected" title when scraper detects a recipe', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
+            { ...mockActiveTab, url: 'https://recipe.org/detected' },
+        ]);
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'recipe' });
+
+        const mockAddContextMenu = vi.mocked(addContextMenu);
+
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+
+        expect(mockAddContextMenu).toHaveBeenCalledWith('Recipe Detected - Add Recipe to Mealie');
+    });
+
+    it('should set a timeout title when scraper check times out', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
+            { ...mockActiveTab, url: 'https://recipe.org/timeout' },
+        ]);
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'timeout', timeoutMs: 4500 });
+
+        const mockAddContextMenu = vi.mocked(addContextMenu);
+
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+
+        expect(mockAddContextMenu).toHaveBeenCalledWith(
+            'Recipe Check Timed Out - Attempt to Add Recipe',
+        );
+    });
+
+    it('should set an http-error title with status when scraper check fails', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
+            { ...mockActiveTab, url: 'https://recipe.org/http-error' },
+        ]);
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        mockTestScrapeUrlDetailed.mockResolvedValueOnce({
+            outcome: 'http-error',
+            status: 500,
+            details: 'Internal',
+        });
+
+        const mockAddContextMenu = vi.mocked(addContextMenu);
+
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+
+        expect(mockAddContextMenu).toHaveBeenCalledWith(
+            'Recipe Check Failed (500) - Attempt to Add Recipe',
+        );
+    });
+
+    it('should cache detection results for the same URL', async () => {
+        const url = 'https://recipe.org/cache-test';
+
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url }]);
+        vi.spyOn(Date, 'now').mockReturnValue(1_000);
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        mockTestScrapeUrlDetailed.mockResolvedValue({ outcome: 'not-recipe' });
+
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
     });
 });
