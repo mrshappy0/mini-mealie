@@ -251,7 +251,6 @@ function App() {
                 <a href="https://mealie.io/" target="_blank" rel="noopener noreferrer">
                     Mealie
                 </a>
-                {/* . Visit to learn more about this self-hosted recipe manager. */}
             </p>
             <div className="buy-me-a-coffee-container">
                 <BuyMeACoffeeButton />
