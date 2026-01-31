@@ -8,6 +8,9 @@ const detectionCache = new Map<string, { checkedAt: number; title: string }>();
  * Called opportunistically on each cache access to prevent unbounded memory growth.
  */
 function pruneDetectionCache() {
+    // Early return if cache is empty
+    if (detectionCache.size === 0) return;
+
     const now = Date.now();
 
     // Remove expired entries
@@ -18,6 +21,7 @@ function pruneDetectionCache() {
     }
 
     // Enforce max size by removing oldest entries (LRU)
+    // Only sort when we actually need to evict entries
     if (detectionCache.size > DETECTION_CACHE_MAX_SIZE) {
         const entriesToDelete = detectionCache.size - DETECTION_CACHE_MAX_SIZE;
         const sortedEntries = Array.from(detectionCache.entries()).sort(
