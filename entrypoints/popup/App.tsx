@@ -3,6 +3,7 @@ import './App.css';
 import { ChangeEvent, useEffect, useState } from 'react';
 
 import miniMealieLogo from '/mini-mealie.svg';
+import { isRecipeCreateMode, RecipeCreateMode } from '@/utils/types/storageTypes';
 
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
@@ -12,17 +13,28 @@ function App() {
     const [inputToken, setInputToken] = useState('');
     const [isSaveDisabled, setIsSaveDisabled] = useState(true);
     const [username, setUsername] = useState<string | undefined>();
+    const [recipeCreateMode, setRecipeCreateMode] = useState<RecipeCreateMode>(
+        RecipeCreateMode.URL,
+    );
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         chrome.storage.sync.get<StorageData>(
             [...storageKeys],
-            ({ mealieServer, mealieApiToken, mealieUsername }: StorageData) => {
+            ({
+                mealieServer,
+                mealieApiToken,
+                mealieUsername,
+                recipeCreateMode: storedRecipeCreateMode,
+            }: StorageData) => {
                 if (mealieServer) setMealieServer(mealieServer);
                 setInputServer(protocol);
                 if (mealieApiToken) setMealieApiToken(mealieApiToken);
                 if (mealieUsername) setUsername(mealieUsername);
+                if (isRecipeCreateMode(storedRecipeCreateMode)) {
+                    setRecipeCreateMode(storedRecipeCreateMode);
+                }
             },
         );
     }, [protocol]);
@@ -92,6 +104,13 @@ function App() {
             setUsername(undefined);
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
+            setRecipeCreateMode(RecipeCreateMode.URL);
+        });
+    };
+
+    const updateRecipeCreateMode = (next: RecipeCreateMode) => {
+        chrome.storage.sync.set({ recipeCreateMode: next }, () => {
+            setRecipeCreateMode(next);
         });
     };
     return (
@@ -174,6 +193,55 @@ function App() {
                                 Hi <strong>{username}</strong> — your server is connected!
                             </p>
                         </div>
+
+                        <div className="recipe-mode-card">
+                            <div
+                                className="segmented"
+                                role="radiogroup"
+                                aria-label="Recipe creation mode"
+                            >
+                                <label
+                                    className={
+                                        recipeCreateMode === RecipeCreateMode.URL
+                                            ? 'segmented-option is-active'
+                                            : 'segmented-option'
+                                    }
+                                >
+                                    <input
+                                        type="radio"
+                                        name="recipeCreateMode"
+                                        value={RecipeCreateMode.URL}
+                                        checked={recipeCreateMode === RecipeCreateMode.URL}
+                                        onChange={() =>
+                                            updateRecipeCreateMode(RecipeCreateMode.URL)
+                                        }
+                                    />
+                                    <span className="segmented-label">URL</span>
+                                    <span className="segmented-subtitle">Send page link</span>
+                                </label>
+
+                                <label
+                                    className={
+                                        recipeCreateMode === RecipeCreateMode.HTML
+                                            ? 'segmented-option is-active'
+                                            : 'segmented-option'
+                                    }
+                                >
+                                    <input
+                                        type="radio"
+                                        name="recipeCreateMode"
+                                        value={RecipeCreateMode.HTML}
+                                        checked={recipeCreateMode === RecipeCreateMode.HTML}
+                                        onChange={() =>
+                                            updateRecipeCreateMode(RecipeCreateMode.HTML)
+                                        }
+                                    />
+                                    <span className="segmented-label">HTML</span>
+                                    <span className="segmented-subtitle">Send page content</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <button onClick={clearSettings}>Disconnect Server</button>
                     </>
                 )}
@@ -183,7 +251,6 @@ function App() {
                 <a href="https://mealie.io/" target="_blank" rel="noopener noreferrer">
                     Mealie
                 </a>
-                . Visit their website to learn more about this self-hosted recipe manager.
             </p>
             <div className="buy-me-a-coffee-container">
                 <BuyMeACoffeeButton />
