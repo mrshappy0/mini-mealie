@@ -1,9 +1,34 @@
 const DETECTION_CACHE_TTL_MS = 30_000;
+const DETECTION_CACHE_MAX_SIZE = 100;
 let lastCheckId = 0;
-const detectionCache = new Map<
-    string,
-    { checkedAt: number; title: string; outcome: TestScrapeUrlDetailedResult['outcome'] }
->();
+const detectionCache = new Map<string, { checkedAt: number; title: string }>();
+
+/**
+ * Prune expired cache entries and enforce size limit using LRU eviction.
+ * Called opportunistically on each cache access to prevent unbounded memory growth.
+ */
+function pruneDetectionCache() {
+    const now = Date.now();
+
+    // Remove expired entries
+    for (const [url, entry] of detectionCache.entries()) {
+        if (now - entry.checkedAt >= DETECTION_CACHE_TTL_MS) {
+            detectionCache.delete(url);
+        }
+    }
+
+    // Enforce max size by removing oldest entries (LRU)
+    if (detectionCache.size > DETECTION_CACHE_MAX_SIZE) {
+        const entriesToDelete = detectionCache.size - DETECTION_CACHE_MAX_SIZE;
+        const sortedEntries = Array.from(detectionCache.entries()).sort(
+            (a, b) => a[1].checkedAt - b[1].checkedAt,
+        );
+
+        for (let i = 0; i < entriesToDelete; i++) {
+            detectionCache.delete(sortedEntries[i][0]);
+        }
+    }
+}
 
 export const checkStorageAndUpdateBadge = async () => {
     const checkId = ++lastCheckId;
@@ -28,6 +53,8 @@ export const checkStorageAndUpdateBadge = async () => {
             let title = 'No Recipe Detected - Attempt to Add Recipe';
 
             if (url) {
+                pruneDetectionCache();
+
                 const cached = detectionCache.get(url);
                 const now = Date.now();
                 if (cached && now - cached.checkedAt < DETECTION_CACHE_TTL_MS) {
@@ -57,7 +84,6 @@ export const checkStorageAndUpdateBadge = async () => {
                     detectionCache.set(url, {
                         checkedAt: now,
                         title,
-                        outcome: result.outcome,
                     });
                 }
             }
