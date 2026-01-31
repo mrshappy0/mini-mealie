@@ -4,7 +4,7 @@ import { WxtVitest } from 'wxt/testing';
 import { clearBadge, showBadge } from '../badge';
 import { addContextMenu, removeContextMenu } from '../contextMenu';
 import { testScrapeUrlDetailed } from '../network';
-import { checkStorageAndUpdateBadge } from '../storage';
+import { checkStorageAndUpdateBadge, clearDetectionCache } from '../storage';
 
 WxtVitest();
 
@@ -40,6 +40,7 @@ describe('checkStorageAndUpdateBadge', () => {
     beforeEach(() => {
         fakeBrowser.reset();
         vi.clearAllMocks();
+        clearDetectionCache();
     });
 
     afterEach(() => {
@@ -222,15 +223,16 @@ describe('checkStorageAndUpdateBadge', () => {
 
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
 
-        // Second call within TTL - should use cache
+        // Second call within TTL - should use cache and update timestamp (LRU)
         dateSpy.mockReturnValue(20_000); // 19 seconds later, within 30s TTL
         await checkStorageAndUpdateBadge();
         await Promise.resolve();
 
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1); // Still only 1 call
 
-        // Third call after TTL expires - should fetch again and prune old entry
-        dateSpy.mockReturnValue(32_000); // 31 seconds later, beyond 30s TTL
+        // Third call after TTL expires from the LAST ACCESS (not original cache time)
+        // Since last access was at 20_000, we need to wait 30s from that point
+        dateSpy.mockReturnValue(51_000); // 31 seconds after last access at 20_000
         await checkStorageAndUpdateBadge();
         await Promise.resolve();
 
@@ -356,5 +358,61 @@ describe('checkStorageAndUpdateBadge', () => {
         await Promise.resolve();
 
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(5); // Fetched again
+    });
+
+    it('should update timestamp on cache access for true LRU behavior', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+            },
+        );
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        mockTestScrapeUrlDetailed.mockResolvedValue({ outcome: 'recipe' });
+
+        const dateSpy = vi.spyOn(Date, 'now');
+        const tabsQuerySpy = vi.spyOn(chrome.tabs, 'query');
+
+        const url1 = 'https://recipe.org/lru-test-frequently-accessed';
+        const url2 = 'https://recipe.org/lru-test-rarely-accessed';
+
+        // Cache url1 at time 1000
+        dateSpy.mockReturnValue(1_000);
+        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
+
+        // Cache url2 at time 2000
+        dateSpy.mockReturnValue(2_000);
+        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url2 }]);
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(2);
+
+        // Access url1 again at time 20000 (19s after initial cache)
+        // This updates url1's timestamp to 20000
+        dateSpy.mockReturnValue(20_000);
+        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(2); // Still cached
+
+        // At time 33000:
+        // - url1's timestamp is 20000, age = 13s (still valid, < 30s)
+        // - url2's timestamp is 2000, age = 31s (expired, >= 30s)
+        dateSpy.mockReturnValue(33_000);
+
+        // Access url2 - should fetch because it expired
+        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url2 }]);
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(3);
+
+        // Access url1 - should still be cached because timestamp was updated to 20000
+        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
+        await checkStorageAndUpdateBadge();
+        await Promise.resolve();
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(3); // Still 3, no new fetch
     });
 });

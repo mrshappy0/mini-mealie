@@ -4,6 +4,14 @@ let lastCheckId = 0;
 const detectionCache = new Map<string, { checkedAt: number; title: string }>();
 
 /**
+ * Clear the detection cache. Exported for testing purposes.
+ * @internal
+ */
+export function clearDetectionCache() {
+    detectionCache.clear();
+}
+
+/**
  * Prune expired cache entries and enforce size limit using LRU eviction.
  * Called opportunistically on each cache access to prevent unbounded memory growth.
  */
@@ -62,6 +70,8 @@ export const checkStorageAndUpdateBadge = async () => {
                 const cached = detectionCache.get(url);
                 const now = Date.now();
                 if (cached && now - cached.checkedAt < DETECTION_CACHE_TTL_MS) {
+                    // Update timestamp for true LRU behavior
+                    cached.checkedAt = now;
                     title = cached.title;
                 } else {
                     const result = await testScrapeUrlDetailed(url, mealieServer, mealieApiToken);
