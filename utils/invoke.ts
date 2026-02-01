@@ -7,7 +7,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
         [...storageKeys],
         async ({ mealieServer, mealieApiToken, recipeCreateMode }) => {
             if (!mealieServer || !mealieApiToken) {
-                logEvent({
+                void logEvent({
                     level: 'warn',
                     feature: 'recipe-create',
                     action: 'runCreateRecipe',
@@ -27,7 +27,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                 const cached = detectionCache.get(tab.url);
                 if (cached && cached.outcome !== 'recipe') {
                     // Detection failed - suggest HTML mode via popup
-                    logEvent({
+                    void logEvent({
                         level: 'info',
                         feature: 'recipe-create',
                         action: 'suggestHtmlMode',
@@ -45,7 +45,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
             switch (mode) {
                 case RecipeCreateMode.URL: {
                     if (!tab.url) {
-                        logEvent({
+                        void logEvent({
                             level: 'warn',
                             feature: 'recipe-create',
                             action: 'createFromUrl',
@@ -57,7 +57,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     }
 
                     await beginActivity('Creating recipe (URL)');
-                    logEvent({
+                    void logEvent({
                         level: 'info',
                         feature: 'recipe-create',
                         action: 'createFromUrl',
@@ -69,7 +69,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     const result = await createRecipeFromURL(tab.url, mealieServer, mealieApiToken);
                     const success = result === 'success';
 
-                    logEvent({
+                    void logEvent({
                         level: success ? 'info' : 'warn',
                         feature: 'recipe-create',
                         action: 'createFromUrl',
@@ -89,7 +89,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
 
                 case RecipeCreateMode.HTML: {
                     if (tab.id == null) {
-                        logEvent({
+                        void logEvent({
                             level: 'warn',
                             feature: 'recipe-create',
                             action: 'createFromHtml',
@@ -101,7 +101,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     }
 
                     await beginActivity('Creating recipe (HTML)');
-                    logEvent({
+                    void logEvent({
                         level: 'info',
                         feature: 'html-capture',
                         action: 'getPageHTML',
@@ -112,7 +112,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
 
                     const html = await getPageHTML(tab.id);
                     if (!html) {
-                        logEvent({
+                        void logEvent({
                             level: 'warn',
                             feature: 'html-capture',
                             action: 'getPageHTML',
@@ -123,7 +123,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         return;
                     }
 
-                    logEvent({
+                    void logEvent({
                         level: 'info',
                         feature: 'html-capture',
                         action: 'getPageHTML',
@@ -132,7 +132,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         data: { htmlLength: html.length },
                     });
 
-                    logEvent({
+                    void logEvent({
                         level: 'info',
                         feature: 'recipe-create',
                         action: 'createFromHtml',
@@ -149,7 +149,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     );
                     const success = result === 'success';
 
-                    logEvent({
+                    void logEvent({
                         level: success ? 'info' : 'warn',
                         feature: 'recipe-create',
                         action: 'createFromHtml',

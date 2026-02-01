@@ -120,7 +120,7 @@ The extension automatically detects when URL mode fails and suggests switching t
 
 All major extension operations are tracked through a structured logging system:
 
-- **Persistent Storage:** Logs stored in `chrome.storage.local` with LRU cache management (up to 500 entries)
+- **Persistent Storage:** Logs stored in `chrome.storage.local` with LRU cache management (up to 300 entries)
 - **Event Correlation:** Each operation gets a unique operation ID for tracing multi-step workflows
 - **Real-time Viewer:** Dedicated logs page with auto-refresh, filtering, and export capabilities
 - **Activity Tracking:** Visual feedback via extension badge and tooltip during operations

@@ -32,7 +32,7 @@ Low effort is a priority: invest most work into the event system, keep UI minima
 ## Proposed Strategy (Recommended MVP)
 ### 1) Build an event logger (core)
 Create a small logging module that:
-- Stores logs in a **ring buffer** (fixed size, e.g. 200–500 entries).
+- Stores logs in a **ring buffer** (fixed size, e.g. 300 entries).
 - Persists to `chrome.storage.local` under a single key (e.g. `miniMealie.eventLog`).
 - Emits structured events with correlation ids:
 
