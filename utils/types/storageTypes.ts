@@ -13,6 +13,7 @@ export const storageKeys = [
     'mealieApiToken',
     'mealieUsername',
     'recipeCreateMode',
+    'suggestHtmlMode',
 ] as const;
 
 export type StorageData = {
@@ -20,4 +21,5 @@ export type StorageData = {
     mealieApiToken?: string;
     mealieUsername?: string;
     recipeCreateMode?: RecipeCreateMode;
+    suggestHtmlMode?: boolean;
 };

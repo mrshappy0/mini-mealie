@@ -22,6 +22,26 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                 ? recipeCreateMode
                 : RecipeCreateMode.URL;
 
+            // Check if we should suggest HTML mode instead of creating
+            if (mode === RecipeCreateMode.URL && tab.url) {
+                const cached = detectionCache.get(tab.url);
+                if (cached && cached.outcome !== 'recipe') {
+                    // Detection failed - suggest HTML mode via popup
+                    logEvent({
+                        level: 'info',
+                        feature: 'recipe-create',
+                        action: 'suggestHtmlMode',
+                        phase: 'start',
+                        message: 'Opening popup to suggest HTML mode',
+                        data: { url: sanitizeUrl(tab.url) },
+                    });
+
+                    chrome.storage.local.set({ suggestHtmlMode: true });
+                    chrome.action.openPopup();
+                    return;
+                }
+            }
+
             switch (mode) {
                 case RecipeCreateMode.URL: {
                     if (!tab.url) {
@@ -36,7 +56,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         return;
                     }
 
-                    await beginActivity('Creating recipe (URL)…');
+                    await beginActivity('Creating recipe (URL)');
                     logEvent({
                         level: 'info',
                         feature: 'recipe-create',
@@ -80,7 +100,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         return;
                     }
 
-                    await beginActivity('Creating recipe (HTML)…');
+                    await beginActivity('Creating recipe (HTML)');
                     logEvent({
                         level: 'info',
                         feature: 'html-capture',

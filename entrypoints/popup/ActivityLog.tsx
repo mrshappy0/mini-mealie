@@ -42,24 +42,14 @@ function getPhaseLabel(phase?: LogEvent['phase']): string {
 export function ActivityLog() {
     const [events, setEvents] = useState<LogEvent[]>([]);
     const [expanded, setExpanded] = useState(false);
-    const [recipeMode, setRecipeMode] = useState<string>('url');
 
     const loadEvents = async () => {
-        const recent = await getRecentEvents(30);
-        setEvents(recent.reverse()); // newest first
-    };
-
-    const loadRecipeMode = () => {
-        if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
-            chrome.storage.sync.get(['recipeCreateMode'], (items) => {
-                setRecipeMode(items.recipeCreateMode || 'url');
-            });
-        }
+        const recent = await getRecentEvents(2);
+        setEvents(recent.reverse());
     };
 
     useEffect(() => {
         loadEvents();
-        loadRecipeMode();
 
         // Listen for storage changes to refresh
         const handleChange = (
@@ -68,9 +58,6 @@ export function ActivityLog() {
         ) => {
             if (area === 'local' && Object.hasOwn(changes, EVENT_LOG_STORAGE_KEY)) {
                 loadEvents();
-            }
-            if (area === 'sync' && Object.hasOwn(changes, 'recipeCreateMode')) {
-                loadRecipeMode();
             }
         };
 
@@ -95,6 +82,10 @@ export function ActivityLog() {
         await navigator.clipboard.writeText(text);
     };
 
+    const handleOpenLogs = () => {
+        chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
+    };
+
     if (events.length === 0 && !expanded) {
         return (
             <div className="activity-log-empty">
@@ -113,6 +104,9 @@ export function ActivityLog() {
                 </button>
                 {expanded && (
                     <div className="activity-log-actions">
+                        <button onClick={handleOpenLogs} title="Open full logs">
+                            📄
+                        </button>
                         <button onClick={handleCopy} title="Copy logs">
                             📋
                         </button>
@@ -128,39 +122,23 @@ export function ActivityLog() {
                     {events.length === 0 ? (
                         <div className="activity-log-empty-message">No recent activity</div>
                     ) : (
-                        events.map((event) => {
-                            const showTip =
-                                recipeMode === 'url' &&
-                                event.feature === 'recipe-detect' &&
-                                event.phase === 'failure' &&
-                                (event.level === 'warn' || event.level === 'error');
-
-                            return (
-                                <div key={event.id}>
-                                    <div
-                                        className={`activity-log-item activity-log-${event.level}`}
-                                    >
-                                        <span className="activity-log-time">
-                                            {formatTimestamp(event.ts)}
-                                        </span>
-                                        <span className="activity-log-level">
-                                            {getLevelEmoji(event.level)}
-                                        </span>
-                                        <span className="activity-log-phase">
-                                            {getPhaseLabel(event.phase)}
-                                        </span>
-                                        <span className="activity-log-message">
-                                            {event.message}
-                                        </span>
-                                    </div>
-                                    {showTip && (
-                                        <div className="activity-log-tip">
-                                            💡 Tip: HTML mode may work better for this page
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })
+                        events.map((event) => (
+                            <div
+                                key={event.id}
+                                className={`activity-log-item activity-log-${event.level}`}
+                            >
+                                <span className="activity-log-time">
+                                    {formatTimestamp(event.ts)}
+                                </span>
+                                <span className="activity-log-level">
+                                    {getLevelEmoji(event.level)}
+                                </span>
+                                <span className="activity-log-phase">
+                                    {getPhaseLabel(event.phase)}
+                                </span>
+                                <span className="activity-log-message">{event.message}</span>
+                            </div>
+                        ))
                     )}
                 </div>
             )}

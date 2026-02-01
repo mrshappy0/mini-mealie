@@ -50,8 +50,7 @@
 }
 
 .activity-log-list {
-    max-height: 150px;
-    overflow-y: auto;
+    overflow-y: hidden;
     background: rgba(0, 0, 0, 0.2);
     border-radius: 6px;
     padding: 0.5em;
@@ -62,7 +61,7 @@
     gap: 0.4em;
     padding: 0.25em 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    align-items: flex-start;
+    align-items: center;
 }
 
 .activity-log-item:last-child {
@@ -73,7 +72,8 @@
     color: rgba(255, 255, 255, 0.5);
     flex-shrink: 0;
     font-family: monospace;
-    font-size: 0.85em;
+    font-size: 1.2em;
+    /* padding-top: 0.1em; */
 }
 
 .activity-log-level {

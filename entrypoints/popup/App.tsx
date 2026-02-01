@@ -37,6 +37,15 @@ function App() {
                 if (isRecipeCreateMode(storedRecipeCreateMode)) {
                     setRecipeCreateMode(storedRecipeCreateMode);
                 }
+
+                // Check if we should suggest HTML mode
+                chrome.storage.local.get(['suggestHtmlMode'], ({ suggestHtmlMode }) => {
+                    if (suggestHtmlMode) {
+                        setRecipeCreateMode(RecipeCreateMode.HTML);
+                        chrome.storage.local.remove('suggestHtmlMode');
+                        updateRecipeCreateMode(RecipeCreateMode.HTML);
+                    }
+                });
             },
         );
     }, [protocol]);
@@ -111,8 +120,10 @@ function App() {
     };
 
     const updateRecipeCreateMode = (next: RecipeCreateMode) => {
-        chrome.storage.sync.set({ recipeCreateMode: next }, () => {
+        chrome.storage.sync.set({ recipeCreateMode: next }, async () => {
             setRecipeCreateMode(next);
+            // Trigger context menu update with new mode
+            checkStorageAndUpdateBadge();
         });
     };
     return (

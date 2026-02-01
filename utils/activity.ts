@@ -41,6 +41,11 @@ function stopSpinner() {
         clearInterval(spinnerTimer);
         spinnerTimer = undefined;
     }
+
+    // Reset badge background to default (black)
+    if (typeof chrome !== 'undefined' && chrome.action?.setBadgeBackgroundColor) {
+        chrome.action.setBadgeBackgroundColor({ color: '#000000' });
+    }
 }
 
 async function writeActivityState(): Promise<void> {
@@ -82,7 +87,7 @@ export async function beginActivity(label: string, opId?: string): Promise<void>
 
     // Update context menu to show busy state and disable it
     savedMenuTitle = savedMenuTitle ?? label;
-    addContextMenu(`${label}…`, false);
+    addContextMenu(`${label}`, false);
 
     if (activeCount === 1) {
         startSpinner();
