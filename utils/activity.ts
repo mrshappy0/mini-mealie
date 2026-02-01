@@ -28,10 +28,12 @@ function startSpinner() {
         spinnerIndex++;
 
         if (typeof chrome !== 'undefined' && chrome.action?.setBadgeText) {
-            chrome.action.setBadgeText({ text: frame });
+            // TODO: investigate if should be awaited
+            void chrome.action.setBadgeText({ text: frame });
         }
         if (typeof chrome !== 'undefined' && chrome.action?.setBadgeBackgroundColor) {
-            chrome.action.setBadgeBackgroundColor({ color: '#ec7e19' });
+            // TODO: investigate if should be awaited
+            void chrome.action.setBadgeBackgroundColor({ color: '#ec7e19' });
         }
     }, SPINNER_INTERVAL_MS);
 }
@@ -44,7 +46,8 @@ function stopSpinner() {
 
     // Reset badge background to default (black)
     if (typeof chrome !== 'undefined' && chrome.action?.setBadgeBackgroundColor) {
-        chrome.action.setBadgeBackgroundColor({ color: '#000000' });
+        // TODO: investigate if should be awaited
+        void chrome.action.setBadgeBackgroundColor({ color: '#000000' });
     }
 }
 
@@ -82,7 +85,8 @@ export async function beginActivity(label: string, opId?: string): Promise<void>
 
     // Update tooltip
     if (typeof chrome !== 'undefined' && chrome.action?.setTitle) {
-        chrome.action.setTitle({ title: label });
+        // TODO: investigate if should be awaited
+        void chrome.action.setTitle({ title: label });
     }
 
     // Update context menu to show busy state and disable it
@@ -120,7 +124,8 @@ export async function endActivity(
 
         // Update tooltip with result
         if (tooltipMessage && typeof chrome !== 'undefined' && chrome.action?.setTitle) {
-            chrome.action.setTitle({ title: tooltipMessage });
+            // TODO: investigate if should be awaited
+            void chrome.action.setTitle({ title: tooltipMessage });
         }
 
         await clearActivityState();

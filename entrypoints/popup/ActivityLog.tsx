@@ -49,7 +49,8 @@ export function ActivityLog() {
     };
 
     useEffect(() => {
-        loadEvents();
+        // TODO: investigate if we can await this call
+        void loadEvents();
 
         // Listen for storage changes to refresh
         const handleChange = (
@@ -57,7 +58,8 @@ export function ActivityLog() {
             area: string,
         ) => {
             if (area === 'local' && Object.hasOwn(changes, EVENT_LOG_STORAGE_KEY)) {
-                loadEvents();
+                // TODO: investigate if we can await this call
+                void loadEvents();
             }
         };
 
@@ -83,7 +85,8 @@ export function ActivityLog() {
     };
 
     const handleOpenLogs = () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
+        // TODO: investigate if we can await this call
+        void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
     };
 
     if (events.length === 0 && !expanded) {

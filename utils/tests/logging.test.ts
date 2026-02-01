@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-object-injection */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -103,7 +104,6 @@ describe('logging', () => {
             });
 
             const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
-            // eslint-disable-next-line security/detect-object-injection
             const events = (setCall[0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                 data?: Record<string, unknown>;
             }>;
@@ -136,7 +136,6 @@ describe('logging', () => {
             });
 
             const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
-            // eslint-disable-next-line security/detect-object-injection
             const events = (setCall[0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                 data?: Record<string, unknown>;
             }>;
@@ -167,7 +166,6 @@ describe('logging', () => {
             });
 
             const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
-            // eslint-disable-next-line security/detect-object-injection
             const events = (setCall[0] as Record<string, unknown>)[
                 EVENT_LOG_STORAGE_KEY
             ] as Array<unknown>;
@@ -481,7 +479,6 @@ describe('logging', () => {
             });
 
             const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
-            // eslint-disable-next-line security/detect-object-injection
             const events = (setCall[0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                 id: string;
             }>;

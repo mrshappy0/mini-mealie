@@ -6,7 +6,7 @@ import { addContextMenu, removeContextMenu } from '../contextMenu';
 import { testScrapeUrlDetailed } from '../network';
 import { checkStorageAndUpdateBadge, clearDetectionCache } from '../storage';
 
-WxtVitest();
+void WxtVitest();
 
 const mockActiveTab = {
     url: 'https://recipe.org/mock-recipe-url',

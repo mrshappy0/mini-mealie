@@ -554,7 +554,7 @@ describe('activity', () => {
 
             // Wrap beginActivity promise to capture resolution (line 72)
             const promise = beginActivity('WriteState return test');
-            promise.then(resolveSpy);
+            void promise.then(resolveSpy);
 
             await promise;
             expect(resolveSpy).toHaveBeenCalled();
@@ -568,7 +568,7 @@ describe('activity', () => {
 
             // Wrap endActivity promise to capture resolution (line 68)
             const promise = endActivity();
-            promise.then(resolveSpy);
+            void promise.then(resolveSpy);
 
             await promise;
             expect(resolveSpy).toHaveBeenCalled();

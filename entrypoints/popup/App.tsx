@@ -42,7 +42,8 @@ function App() {
                 chrome.storage.local.get(['suggestHtmlMode'], ({ suggestHtmlMode }) => {
                     if (suggestHtmlMode) {
                         setRecipeCreateMode(RecipeCreateMode.HTML);
-                        chrome.storage.local.remove('suggestHtmlMode');
+                        // TODO: investigate if we can await this call
+                        void chrome.storage.local.remove('suggestHtmlMode');
                         updateRecipeCreateMode(RecipeCreateMode.HTML);
                     }
                 });
@@ -123,7 +124,8 @@ function App() {
         chrome.storage.sync.set({ recipeCreateMode: next }, async () => {
             setRecipeCreateMode(next);
             // Trigger context menu update with new mode
-            checkStorageAndUpdateBadge();
+            // TODO: investigate if we can await this call
+            void checkStorageAndUpdateBadge();
         });
     };
     return (
@@ -177,7 +179,8 @@ function App() {
                                 onFocus={handleServerFocus}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !isSaveDisabled) {
-                                        saveSettings();
+                                        // TODO: investigate if we can await this call
+                                        void saveSettings();
                                     }
                                 }}
                             />
@@ -189,7 +192,8 @@ function App() {
                             onChange={(e) => setInputToken(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !isSaveDisabled) {
-                                    saveSettings();
+                                    // TODO: investigate if we can await this call
+                                    void saveSettings();
                                 }
                             }}
                         />
