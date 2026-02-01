@@ -53,7 +53,7 @@ Enhance the developer experience by:
 
 1. **Config File Hierarchy** (per [Browser Startup docs](https://wxt.dev/guide/essentials/config/browser-startup.html)):
 
-    - `web-ext.config.ts` - Per-developer config, gitignored ✅
+    - `web-ext.config.ts` - Per-developer config
     - `wxt.config.ts` - Project-wide config, version controlled
     - `$HOME/web-ext.config.ts` - Global config for all WXT projects
 
