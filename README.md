@@ -10,7 +10,6 @@
 [![Chrome Web Store][chrome-web-store-shield]][chrome-web-store-url]
 [![Buy Me a Coffee][coffee-shield]](#-support-me)
 
-
 Mini Mealie is a Chrome extension built using WXT and React, designed to speed up recipe creation. This extension integrates with Mealie to scrape recipes and import into Mealie.
 
 ---
@@ -108,6 +107,21 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     - After a successful review and merge, a GitHub Action evaluates if a new release is necessary based on the PR commits.
     - This project follows Conventional Commits for release determination.
     - Approved releases are published to the Chrome Web Store via an upload workflow.
+
+### Copilot Commit Helper (Optional)
+
+If you use GitHub Copilot Chat in VS Code, you can use the prompt file at `.github/prompts/cz.prompt.md` to:
+
+- Inspect **staged** changes only (`git diff --staged`)
+- Propose a strict **Conventional Commits** message
+- Iterate with you until you say **"commit those changes"**
+
+Typical flow:
+
+1. Stage your work (`git add ...`).
+2. Open the prompt file and run it in Copilot Chat (or paste its contents into chat).
+3. Review/tweak the proposed message.
+4. When satisfied, respond: **"commit those changes"**.
 
 ### Code Reviews
 
