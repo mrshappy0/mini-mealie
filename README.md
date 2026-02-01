@@ -46,19 +46,52 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     pnpm install
     ```
 
-3. **Start the development server:**
+3. **Set up your local development environment (optional but recommended):**
+
+    ```bash
+    cp .env.local.example .env.local
+    ```
+
+    Then edit `.env.local` and fill in your Mealie server details:
+
+    ```env
+    WXT_MEALIE_SERVER=https://your-mealie-server.com
+    WXT_MEALIE_API_TOKEN=your-api-token-here
+    WXT_MEALIE_USERNAME=your-username
+    ```
+
+    **Why `.env.local`?**
+
+    - ✅ Pre-populates your Mealie server URL and API token during development
+    - ✅ No need to re-login every time you restart the dev browser
+    - ✅ Persistent Chrome profile remembers your settings
+    - ✅ Your credentials never get committed to git (`.env.local` is gitignored)
+
+    Without `.env.local`, you'll need to manually configure the extension via the popup on each dev session - it will still work, just less convenient!
+
+4. **Start the development server:**
 
     ```bash
     pnpm dev
     ```
 
-4. **Build the extension for production:**
+    This will:
+
+    - Start the WXT dev server
+    - Open Chrome with the extension loaded in a persistent profile (`.wxt/chrome-data`)
+    - Auto-open a recipe page for testing (https://www.allrecipes.com/recipe/286369/)
+    - Auto-open the Mini Mealie activity logs page for monitoring
+    - Pre-populate your credentials from `.env.local` (if configured)
+
+    Your settings and browser state persist across dev sessions - no need to re-configure!
+
+5. **Build the extension for production:**
 
     ```bash
     pnpm build
     ```
 
-5. **Load the extension in Chrome:**
+6. **Load the extension in Chrome:**
     - Go to `chrome://extensions/`
     - Enable **Developer Mode**
     - Click **Load unpacked** and select the `dist` folder

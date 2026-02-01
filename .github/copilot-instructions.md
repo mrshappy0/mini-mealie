@@ -19,6 +19,17 @@ This repo is a **WXT + React** browser extension (MV3). Please optimize for **sm
 
 Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execution policy.
 
+## Development environment setup
+
+- Create `.env.local` from `.env.local.example` and fill in your Mealie server details (URL, API token, username).
+- `pnpm dev` automatically:
+    - Opens Chrome with persistent profile (`.wxt/chrome-data`)
+    - Pre-populates credentials from `.env.local` (dev mode only, never in production)
+    - Opens a recipe page (https://www.allrecipes.com/recipe/286369/) for testing
+    - Opens the logs page (`chrome-extension://[id]/logs.html`) for monitoring activity
+- Settings persist across sessions - no re-login needed.
+- Production builds (`pnpm build`) never include dev config or credentials - verified by tree-shaking.
+
 ## Auto-imports (important)
 
 - This repo relies on WXT auto-import generation.

@@ -12,13 +12,22 @@ export default defineBackground(() => {
     };
 
     // Check storage and update badge on startup
-    chrome.runtime.onStartup.addListener(() => {
+    chrome.runtime.onStartup.addListener(async () => {
+        // Pre-populate dev environment if applicable
+        await initDevEnvironment();
         scheduleUpdate();
     });
 
     // Check storage and update badge when extension is installed or updated
-    chrome.runtime.onInstalled.addListener(() => {
+    chrome.runtime.onInstalled.addListener(async () => {
+        // Pre-populate dev environment if applicable
+        await initDevEnvironment();
         scheduleUpdate();
+
+        // Auto-open logs page in dev mode (only on install/update, not every startup)
+        if (import.meta.env.DEV) {
+            chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
+        }
     });
 
     // Watch for changes in storage to update badge and context menu
