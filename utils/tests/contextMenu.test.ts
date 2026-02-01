@@ -20,6 +20,7 @@ describe('Context Menu Utility', () => {
         expect(chrome.contextMenus.create).toHaveBeenCalledWith({
             id: 'runCreateRecipe',
             title: 'No Recipe Detected - Attempt to Add Recipe',
+            enabled: true,
             contexts: ['page'],
         });
     });
@@ -51,7 +52,7 @@ describe('Context Menu Utility (update/remove path)', () => {
 
         expect(chrome.contextMenus.update).toHaveBeenCalledWith(
             'runCreateRecipe',
-            { title: 'Recipe Detected - Add Recipe to Mealie' },
+            { title: 'Recipe Detected - Add Recipe to Mealie', enabled: true },
             expect.any(Function),
         );
         expect(chrome.contextMenus.create).not.toHaveBeenCalled();
@@ -72,6 +73,7 @@ describe('Context Menu Utility (update/remove path)', () => {
             {
                 id: 'runCreateRecipe',
                 title: 'No Recipe Detected - Attempt to Add Recipe',
+                enabled: true,
                 contexts: ['page'],
             },
             expect.any(Function),

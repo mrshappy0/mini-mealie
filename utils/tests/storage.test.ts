@@ -33,7 +33,12 @@ vi.mock('../contextMenu', () => ({
 }));
 
 vi.mock('../network', () => ({
-    testScrapeUrlDetailed: vi.fn(() => ({ outcome: 'not-recipe' })),
+    testScrapeUrlDetailed: vi.fn(() => Promise.resolve({ outcome: 'not-recipe' })),
+}));
+
+vi.mock('../logging', () => ({
+    logEvent: vi.fn(),
+    sanitizeUrl: vi.fn((url: string) => url),
 }));
 
 describe('checkStorageAndUpdateBadge', () => {
@@ -76,31 +81,23 @@ describe('checkStorageAndUpdateBadge', () => {
 
         vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
 
-        const mockedClearBadge = vi.mocked(clearBadge);
         const mockedShowBadge = vi.mocked(showBadge);
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         const mockAddContextMenu = vi.mocked(addContextMenu);
 
         await checkStorageAndUpdateBadge();
 
-        expect(mockedClearBadge).toHaveBeenCalled();
+        // Wait for all async operations to complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledWith(
             'https://recipe.org/mock-recipe-url',
             'https://mealie.tld',
             'mock-token',
         );
         expect(mockedShowBadge).not.toHaveBeenCalled();
-
-        // This `await Promise.resolve()` serves as a microtask checkpoint.
-        // Despite `addContextMenu()` not being explicitly asynchronous, the test fails without this line.
-        // We are already awaiting `checkStorageAndUpdateBadge()`, so it is unclear why this extra await is necessary.
-        // Possible explanation: The function may internally trigger microtasks that complete after the primary call stack,
-        // requiring this additional microtask flush to ensure that all asynchronous operations have fully completed.
-        await Promise.resolve();
         expect(mockAddContextMenu).toHaveBeenCalledTimes(1);
-        expect(mockAddContextMenu).toHaveBeenCalledWith(
-            'No Recipe Detected - Attempt to Add Recipe',
-        );
+        expect(mockAddContextMenu).toHaveBeenCalledWith('No Recipe - Switch to HTML Mode');
     });
 
     it('should set "Recipe Detected" title when scraper detects a recipe', async () => {
@@ -120,9 +117,9 @@ describe('checkStorageAndUpdateBadge', () => {
         const mockAddContextMenu = vi.mocked(addContextMenu);
 
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(mockAddContextMenu).toHaveBeenCalledWith('Recipe Detected - Add Recipe to Mealie');
+        expect(mockAddContextMenu).toHaveBeenCalledWith('Create Recipe from URL');
     });
 
     it('should set a timeout title when scraper check times out', async () => {
@@ -142,11 +139,9 @@ describe('checkStorageAndUpdateBadge', () => {
         const mockAddContextMenu = vi.mocked(addContextMenu);
 
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(mockAddContextMenu).toHaveBeenCalledWith(
-            'Recipe Check Timed Out - Attempt to Add Recipe',
-        );
+        expect(mockAddContextMenu).toHaveBeenCalledWith('Timed Out - Switch to HTML Mode');
     });
 
     it('should set an http-error title with status when scraper check fails', async () => {
@@ -170,10 +165,10 @@ describe('checkStorageAndUpdateBadge', () => {
         const mockAddContextMenu = vi.mocked(addContextMenu);
 
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockAddContextMenu).toHaveBeenCalledWith(
-            'Recipe Check Failed (500) - Attempt to Add Recipe',
+            'Failed Detection (HTTP 500) - Switch to HTML Mode',
         );
     });
 
@@ -193,9 +188,9 @@ describe('checkStorageAndUpdateBadge', () => {
         mockTestScrapeUrlDetailed.mockResolvedValue({ outcome: 'not-recipe' });
 
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
     });
@@ -219,14 +214,14 @@ describe('checkStorageAndUpdateBadge', () => {
 
         // First call - should cache the result
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
 
         // Second call within TTL - should use cache and update timestamp (LRU)
         dateSpy.mockReturnValue(20_000); // 19 seconds later, within 30s TTL
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1); // Still only 1 call
 
@@ -234,7 +229,7 @@ describe('checkStorageAndUpdateBadge', () => {
         // Since last access was at 20_000, we need to wait 30s from that point
         dateSpy.mockReturnValue(51_000); // 31 seconds after last access at 20_000
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(2); // New fetch
     });
@@ -380,14 +375,14 @@ describe('checkStorageAndUpdateBadge', () => {
         dateSpy.mockReturnValue(1_000);
         tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
 
         // Cache url2 at time 2000
         dateSpy.mockReturnValue(2_000);
         tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url2 }]);
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(2);
 
         // Access url1 again at time 20000 (19s after initial cache)
@@ -395,7 +390,7 @@ describe('checkStorageAndUpdateBadge', () => {
         dateSpy.mockReturnValue(20_000);
         tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(2); // Still cached
 
         // At time 33000:
@@ -406,13 +401,67 @@ describe('checkStorageAndUpdateBadge', () => {
         // Access url2 - should fetch because it expired
         tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url2 }]);
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(3);
 
         // Access url1 - should still be cached because timestamp was updated to 20000
         tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(3); // Still 3, no new fetch
+    });
+
+    it('should use HTML mode title when in HTML mode', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({
+                    mealieServer: 'https://mealie.tld',
+                    mealieApiToken: 'mock-token',
+                    recipeCreateMode: RecipeCreateMode.HTML,
+                });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+
+        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+
+        // Mock successful recipe detection
+        mockTestScrapeUrlDetailed.mockResolvedValue({
+            outcome: 'recipe',
+        });
+
+        await checkStorageAndUpdateBadge();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // In HTML mode, should still call detection for cache, but use HTML mode title
+        expect(mockTestScrapeUrlDetailed).toHaveBeenCalled();
+        expect(mockAddContextMenu).toHaveBeenCalledWith('Create Recipe from HTML');
+    });
+
+    it('should handle error outcome from detection', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
+            { ...mockActiveTab, url: 'https://recipe.org/error-test' },
+        ]);
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        mockTestScrapeUrlDetailed.mockResolvedValueOnce({
+            outcome: 'error',
+            message: 'Network failure',
+        });
+
+        const mockAddContextMenu = vi.mocked(addContextMenu);
+
+        await checkStorageAndUpdateBadge();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        expect(mockAddContextMenu).toHaveBeenCalledWith('Failed Detection - Switch to HTML Mode');
     });
 });

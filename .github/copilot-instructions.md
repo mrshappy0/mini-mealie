@@ -1,3 +1,7 @@
+---
+applyTo: "*"
+---
+
 # Copilot instructions (mini-mealie)
 
 This repo is a **WXT + React** browser extension (MV3). Please optimize for **small, safe diffs**, strong TypeScript types, and extension-specific constraints.

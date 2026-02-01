@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { clearBadge, showBadge } from '../badge';
+
 // Mocking the Chrome API
 beforeEach(() => {
     global.chrome = {

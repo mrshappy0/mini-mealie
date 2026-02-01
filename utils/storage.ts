@@ -38,8 +38,8 @@ function pruneDetectionCache() {
             (a, b) => a[1].checkedAt - b[1].checkedAt,
         );
 
-        for (let i = 0; i < entriesToDelete; i++) {
-            detectionCache.delete(sortedEntries[i][0]);
+        for (const [url] of sortedEntries.slice(0, entriesToDelete)) {
+            detectionCache.delete(url);
         }
     }
 }
