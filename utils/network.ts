@@ -121,6 +121,17 @@ export const getUser = async (
     url: string,
     token: string,
 ): Promise<User | { errorMessage: string }> => {
+    const { logEvent, sanitizeUrl } = await import('./logging');
+
+    await logEvent({
+        level: 'info',
+        feature: 'auth',
+        action: 'getUser',
+        phase: 'start',
+        message: 'Fetching user profile',
+        data: { server: sanitizeUrl(url) },
+    });
+
     try {
         const res = await fetch(`${url}/api/users/self`, {
             headers: {
@@ -131,8 +142,30 @@ export const getUser = async (
         if (!res.ok) {
             throw new Error(`Get User Failed - status: ${res.status}`);
         }
-        return await res.json();
+        const user = await res.json();
+
+        await logEvent({
+            level: 'info',
+            feature: 'auth',
+            action: 'getUser',
+            phase: 'success',
+            message: 'User profile fetched',
+            data: { server: sanitizeUrl(url), username: user.username },
+        });
+
+        return user;
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+
+        await logEvent({
+            level: 'error',
+            feature: 'auth',
+            action: 'getUser',
+            phase: 'failure',
+            message: `Failed to fetch user: ${errorMessage}`,
+            data: { server: sanitizeUrl(url) },
+        });
+
         if (error instanceof Error) {
             return { errorMessage: error.message };
         }

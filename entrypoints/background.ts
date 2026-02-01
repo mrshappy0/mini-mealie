@@ -7,18 +7,29 @@ export default defineBackground(() => {
 
         updateTimer = setTimeout(() => {
             updateTimer = undefined;
-            checkStorageAndUpdateBadge();
+            // TODO: investigate if we can await this call
+            void checkStorageAndUpdateBadge();
         }, 250);
     };
 
     // Check storage and update badge on startup
-    chrome.runtime.onStartup.addListener(() => {
+    chrome.runtime.onStartup.addListener(async () => {
+        // Pre-populate dev environment if applicable
+        await initDevEnvironment();
         scheduleUpdate();
     });
 
     // Check storage and update badge when extension is installed or updated
-    chrome.runtime.onInstalled.addListener(() => {
+    chrome.runtime.onInstalled.addListener(async () => {
+        // Pre-populate dev environment if applicable
+        await initDevEnvironment();
         scheduleUpdate();
+
+        // Auto-open logs page in dev mode (only on install/update, not every startup)
+        if (import.meta.env.DEV) {
+            // TODO: investigate if we can await this call
+            void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
+        }
     });
 
     // Watch for changes in storage to update badge and context menu

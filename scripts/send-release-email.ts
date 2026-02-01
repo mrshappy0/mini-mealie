@@ -102,4 +102,4 @@ async function sendEmail() {
     console.log('Broadcast sent successfully:', sendData);
 }
 
-sendEmail();
+void sendEmail();

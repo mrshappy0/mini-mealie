@@ -8,8 +8,12 @@ export default defineConfig({
         coverage: {
             enabled: true,
             reporter: ['text', 'html', 'json', 'json-summary'],
-            include: ['utils'], // TODO: increase coverage to components & entrypoints
-            exclude: ['**/index.ts'],
+            include: ['utils/**/*.ts'],
+            exclude: [
+                '**/index.ts', // Barrel exports
+                '**/devInit.ts', // Dev-only initialization code
+                '**/types/apiTypes.ts', // Pure TypeScript type definitions
+            ],
             reportOnFailure: true,
         },
     },

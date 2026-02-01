@@ -16,6 +16,18 @@ export default [
         ...config,
         files: ['**/*.{js,ts,jsx,tsx}'],
     })),
+    {
+        files: ['**/*.{ts,tsx}'],
+        languageOptions: {
+            parserOptions: {
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname,
+            },
+        },
+        rules: {
+            '@typescript-eslint/no-floating-promises': 'error',
+        },
+    },
     { ...pluginReact.configs.flat.recommended, files: ['**/*.{js,ts,jsx,tsx}'] },
     {
         files: ['**/*.{js,ts,jsx,tsx}'],

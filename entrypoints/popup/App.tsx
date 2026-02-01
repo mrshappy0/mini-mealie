@@ -5,6 +5,8 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import miniMealieLogo from '/mini-mealie.svg';
 import { isRecipeCreateMode, RecipeCreateMode } from '@/utils/types/storageTypes';
 
+import { ActivityLog } from './ActivityLog';
+
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState('');
@@ -35,6 +37,16 @@ function App() {
                 if (isRecipeCreateMode(storedRecipeCreateMode)) {
                     setRecipeCreateMode(storedRecipeCreateMode);
                 }
+
+                // Check if we should suggest HTML mode
+                chrome.storage.local.get(['suggestHtmlMode'], ({ suggestHtmlMode }) => {
+                    if (suggestHtmlMode) {
+                        setRecipeCreateMode(RecipeCreateMode.HTML);
+                        // TODO: investigate if we can await this call
+                        void chrome.storage.local.remove('suggestHtmlMode');
+                        updateRecipeCreateMode(RecipeCreateMode.HTML);
+                    }
+                });
             },
         );
     }, [protocol]);
@@ -109,8 +121,11 @@ function App() {
     };
 
     const updateRecipeCreateMode = (next: RecipeCreateMode) => {
-        chrome.storage.sync.set({ recipeCreateMode: next }, () => {
+        chrome.storage.sync.set({ recipeCreateMode: next }, async () => {
             setRecipeCreateMode(next);
+            // Trigger context menu update with new mode
+            // TODO: investigate if we can await this call
+            void checkStorageAndUpdateBadge();
         });
     };
     return (
@@ -164,7 +179,8 @@ function App() {
                                 onFocus={handleServerFocus}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !isSaveDisabled) {
-                                        saveSettings();
+                                        // TODO: investigate if we can await this call
+                                        void saveSettings();
                                     }
                                 }}
                             />
@@ -176,7 +192,8 @@ function App() {
                             onChange={(e) => setInputToken(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !isSaveDisabled) {
-                                    saveSettings();
+                                    // TODO: investigate if we can await this call
+                                    void saveSettings();
                                 }
                             }}
                         />
@@ -252,6 +269,7 @@ function App() {
                     Mealie
                 </a>
             </p>
+            <ActivityLog />
             <div className="buy-me-a-coffee-container">
                 <BuyMeACoffeeButton />
             </div>

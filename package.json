@@ -4,6 +4,7 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "predev": "node scripts/check-dev-env.js",
         "dev": "wxt",
         "dev:firefox": "wxt -b firefox",
         "build": "wxt build",

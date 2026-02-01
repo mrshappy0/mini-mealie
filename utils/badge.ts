@@ -4,7 +4,8 @@
  * @param duration - Optional duration in seconds.
  */
 export const showBadge = (text: string, duration?: number) => {
-    chrome.action.setBadgeText({ text });
+    // TODO: investigate if should be awaited
+    void chrome.action.setBadgeText({ text });
 
     // Clear badge after the specified duration (in seconds) if duration provided
     if (duration) {
@@ -15,5 +16,6 @@ export const showBadge = (text: string, duration?: number) => {
 };
 
 export const clearBadge = () => {
-    chrome.action.setBadgeText({ text: '' });
+    // TODO: investigate if should be awaited
+    void chrome.action.setBadgeText({ text: '' });
 };

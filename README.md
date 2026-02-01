@@ -10,18 +10,20 @@
 [![Chrome Web Store][chrome-web-store-shield]][chrome-web-store-url]
 [![Buy Me a Coffee][coffee-shield]](#-support-me)
 
-
 Mini Mealie is a Chrome extension built using WXT and React, designed to speed up recipe creation. This extension integrates with Mealie to scrape recipes and import into Mealie.
 
 ---
 
 ## Features
 
-- Import recipes from any webpage using Mealie API
-- Toggle for Paywall ladder
-- Each website uses Mealie dry-run to detect a recipe on the active tab
-- Store Mealie API token securely using `chrome.storage.sync`.
-- Supports connecting to any Mealie server
+- **Dual Import Modes:**
+    - **URL Mode:** Send recipe URL directly to Mealie for server-side parsing
+    - **HTML Mode:** Extract page HTML in the browser and send to Mealie (useful for paywalled or JavaScript-heavy sites)
+- **Intelligent Recipe Detection:** Automatic dry-run detection on active tab to verify recipe presence
+- **Activity Logging System:** Real-time event logging with dedicated viewer (`chrome-extension://[id]/logs.html`)
+- **Smart Context Menu:** Mode-aware menu options that adapt to your selected import method
+- **Secure Credential Storage:** API tokens stored securely using `chrome.storage.sync`
+- **Self-Hosted Support:** Connect to any Mealie server instance
 
 ---
 
@@ -47,22 +49,89 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     pnpm install
     ```
 
-3. **Start the development server:**
+3. **Set up your local development environment (optional but recommended):**
+
+    ```bash
+    cp .env.local.example .env.local
+    ```
+
+    Then edit `.env.local` and fill in your Mealie server details:
+
+    ```env
+    WXT_MEALIE_SERVER=https://your-mealie-server.com
+    WXT_MEALIE_API_TOKEN=your-api-token-here
+    WXT_MEALIE_USERNAME=your-username
+    ```
+
+    **Why `.env.local`?**
+
+    - ✅ Pre-populates your Mealie server URL and API token during development
+    - ✅ No need to re-login every time you restart the dev browser
+    - ✅ Persistent Chrome profile remembers your settings
+    - ✅ Your credentials never get committed to git (`.env.local` is gitignored)
+
+    Without `.env.local`, you'll need to manually configure the extension via the popup on each dev session - it will still work, just less convenient!
+
+4. **Start the development server:**
 
     ```bash
     pnpm dev
     ```
 
-4. **Build the extension for production:**
+    This will:
+
+    - Start the WXT dev server
+    - Open Chrome with the extension loaded in a persistent profile (`.wxt/chrome-data`)
+    - Auto-open a recipe page for testing (https://www.allrecipes.com/recipe/286369/)
+    - Auto-open the activity logs page (`logs.html`) for real-time monitoring
+    - Pre-populate your credentials from `.env.local` (if configured)
+
+    Your settings and browser state persist across dev sessions - no need to re-configure!
+
+5. **Build the extension for production:**
 
     ```bash
     pnpm build
     ```
 
-5. **Load the extension in Chrome:**
+6. **Load the extension in Chrome:**
     - Go to `chrome://extensions/`
     - Enable **Developer Mode**
     - Click **Load unpacked** and select the `dist` folder
+
+---
+
+## Architecture
+
+### Import Modes
+
+Mini Mealie supports two distinct recipe import strategies:
+
+- **URL Mode:** Sends the recipe URL to Mealie's server-side scraper. This is the default mode and works well for most public recipe sites. Fast and efficient.
+
+- **HTML Mode:** Captures the entire page HTML in the browser using `chrome.scripting.executeScript`, then sends the HTML content to Mealie. Useful for:
+    - Sites behind paywalls or authentication
+    - JavaScript-heavy sites that don't render properly server-side
+    - Sites with bot detection that blocks server requests
+
+The extension automatically detects when URL mode fails and suggests switching to HTML mode.
+
+### Event Logging System
+
+All major extension operations are tracked through a structured logging system:
+
+- **Persistent Storage:** Logs stored in `chrome.storage.local` with LRU cache management (up to 300 entries)
+- **Event Correlation:** Each operation gets a unique operation ID for tracing multi-step workflows
+- **Real-time Viewer:** Dedicated logs page with auto-refresh, filtering, and export capabilities
+- **Activity Tracking:** Visual feedback via extension badge and tooltip during operations
+
+Logged operations include:
+
+- User authentication and connection verification
+- Recipe detection (dry-run test scrapes)
+- Recipe creation (both URL and HTML modes)
+- HTML page capture
+- Network requests and errors
 
 ---
 
@@ -78,10 +147,27 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ## Usage
 
-1. **Right-click** on any recipe webpage.
-2. Select **"Recipe Detected - Add Recipe to Mealie"** from the context menu.
-   2a. _(Optional)_ Enable the paywall ladder feature to send the recipe URL to a paywall ladder before proceeding.
-3. The extension will send the recipe URL to the Mealie create recipe endpoint.
+### Importing Recipes
+
+1. **Configure your import mode** via the extension popup:
+    - **URL Mode (default):** Fast server-side parsing - works for most public recipes
+    - **HTML Mode:** Client-side extraction - best for sites with paywalls or heavy JavaScript
+2. **Right-click** on any recipe webpage.
+3. Select **"Add Recipe to Mealie (URL)"** or **"Add Recipe to Mealie (HTML)"** from the context menu (depends on your selected mode).
+4. The extension will process the recipe and send it to your Mealie server.
+
+### Monitoring Activity
+
+- **Extension Badge:** Shows real-time status (⏳ processing, ✅ success, ❌ error)
+- **Activity Log Viewer:** Access detailed logs at `chrome-extension://[id]/logs.html` or via the popup
+- **Event Tracking:** All major operations (authentication, recipe creation, detection) are logged with timestamps and correlation IDs
+
+### Troubleshooting Failed Imports
+
+If URL mode fails to detect a recipe:
+
+- The extension will automatically suggest switching to HTML mode
+- HTML mode captures the full page content, which often resolves parsing issues on complex sites
 
 ---
 
@@ -108,6 +194,21 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     - After a successful review and merge, a GitHub Action evaluates if a new release is necessary based on the PR commits.
     - This project follows Conventional Commits for release determination.
     - Approved releases are published to the Chrome Web Store via an upload workflow.
+
+### Copilot Commit Helper (Optional)
+
+If you use GitHub Copilot Chat in VS Code, you can use the prompt file at `.github/prompts/cz.prompt.md` to:
+
+- Inspect **staged** changes only (`git diff --staged`)
+- Propose a strict **Conventional Commits** message
+- Iterate with you until you say **"commit those changes"**
+
+Typical flow:
+
+1. Stage your work (`git add ...`).
+2. Open the prompt file and run it in Copilot Chat (or paste its contents into chat).
+3. Review/tweak the proposed message.
+4. When satisfied, respond: **"commit those changes"**.
 
 ### Code Reviews
 
