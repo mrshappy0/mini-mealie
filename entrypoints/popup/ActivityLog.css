@@ -1,0 +1,117 @@
+.activity-log {
+    margin-top: 1em;
+    text-align: left;
+    font-size: 0.8em;
+}
+
+.activity-log-empty {
+    margin-top: 1em;
+    text-align: center;
+}
+
+.activity-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5em;
+}
+
+.activity-log-toggle {
+    background: transparent;
+    border: none;
+    color: var(--mealie-orange);
+    cursor: pointer;
+    padding: 0.3em 0.5em;
+    font-size: 0.9em;
+}
+
+.activity-log-toggle:hover {
+    text-decoration: underline;
+}
+
+.activity-log-actions {
+    display: flex;
+    gap: 0.3em;
+}
+
+.activity-log-actions button {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: var(--mealie-white);
+    cursor: pointer;
+    padding: 0.2em 0.4em;
+    font-size: 0.9em;
+    width: auto;
+}
+
+.activity-log-actions button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.activity-log-list {
+    max-height: 150px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 0.5em;
+}
+
+.activity-log-item {
+    display: flex;
+    gap: 0.4em;
+    padding: 0.25em 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: flex-start;
+}
+
+.activity-log-item:last-child {
+    border-bottom: none;
+}
+
+.activity-log-time {
+    color: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
+.activity-log-level {
+    flex-shrink: 0;
+}
+
+.activity-log-phase {
+    flex-shrink: 0;
+    width: 1em;
+    text-align: center;
+}
+
+.activity-log-message {
+    flex: 1;
+    word-break: break-word;
+}
+
+.activity-log-error .activity-log-message {
+    color: #ff6b6b;
+}
+
+.activity-log-warn .activity-log-message {
+    color: #ffd93d;
+}
+
+.activity-log-empty-message {
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    padding: 1em;
+}
+
+.activity-log-tip {
+    margin-left: 2.5em;
+    margin-top: 0.2em;
+    padding: 0.3em 0.5em;
+    background: rgba(236, 126, 25, 0.15);
+    border-left: 2px solid rgba(236, 126, 25, 0.5);
+    border-radius: 3px;
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.85);
+}

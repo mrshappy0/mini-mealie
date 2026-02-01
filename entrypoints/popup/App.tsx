@@ -5,6 +5,8 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import miniMealieLogo from '/mini-mealie.svg';
 import { isRecipeCreateMode, RecipeCreateMode } from '@/utils/types/storageTypes';
 
+import { ActivityLog } from './ActivityLog';
+
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState('');
@@ -252,6 +254,7 @@ function App() {
                     Mealie
                 </a>
             </p>
+            <ActivityLog />
             <div className="buy-me-a-coffee-container">
                 <BuyMeACoffeeButton />
             </div>

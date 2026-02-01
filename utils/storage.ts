@@ -62,7 +62,7 @@ export const checkStorageAndUpdateBadge = async () => {
             if (checkId !== lastCheckId) return;
 
             const { url } = tab ?? {};
-            let title = 'No Recipe Detected - Attempt to Add Recipe';
+            let title = 'No Recipe Found - Try HTML Mode';
 
             if (url) {
                 pruneDetectionCache();
@@ -77,21 +77,63 @@ export const checkStorageAndUpdateBadge = async () => {
                     const result = await testScrapeUrlDetailed(url, mealieServer, mealieApiToken);
                     if (checkId !== lastCheckId) return;
 
+                    const { logEvent, sanitizeUrl } = await import('./logging');
+
                     switch (result.outcome) {
                         case 'recipe':
-                            title = 'Recipe Detected - Add Recipe to Mealie';
+                            title = 'Recipe Detected - Add to Mealie';
+                            await logEvent({
+                                level: 'info',
+                                feature: 'recipe-detect',
+                                action: 'testScrape',
+                                phase: 'success',
+                                message: 'Recipe detected on page',
+                                data: { url: sanitizeUrl(url) },
+                            });
                             break;
                         case 'not-recipe':
                             // Keep default title.
+                            await logEvent({
+                                level: 'info',
+                                feature: 'recipe-detect',
+                                action: 'testScrape',
+                                phase: 'failure',
+                                message: 'No recipe found on page',
+                                data: { url: sanitizeUrl(url) },
+                            });
                             break;
                         case 'timeout':
-                            title = 'Recipe Check Timed Out - Attempt to Add Recipe';
+                            title = 'Detection Timed Out - Try HTML Mode';
+                            await logEvent({
+                                level: 'warn',
+                                feature: 'recipe-detect',
+                                action: 'testScrape',
+                                phase: 'failure',
+                                message: `Recipe detection timed out (${result.timeoutMs}ms)`,
+                                data: { url: sanitizeUrl(url), timeoutMs: result.timeoutMs },
+                            });
                             break;
                         case 'http-error':
-                            title = `Recipe Check Failed (${result.status}) - Attempt to Add Recipe`;
+                            title = `Detection Failed (${result.status}) - Try HTML Mode`;
+                            await logEvent({
+                                level: 'warn',
+                                feature: 'recipe-detect',
+                                action: 'testScrape',
+                                phase: 'failure',
+                                message: `Recipe detection failed with HTTP ${result.status}`,
+                                data: { url: sanitizeUrl(url), status: result.status },
+                            });
                             break;
                         case 'error':
-                            title = 'Recipe Check Failed - Attempt to Add Recipe';
+                            title = 'Detection Failed - Try HTML Mode';
+                            await logEvent({
+                                level: 'error',
+                                feature: 'recipe-detect',
+                                action: 'testScrape',
+                                phase: 'failure',
+                                message: `Recipe detection error: ${result.message}`,
+                                data: { url: sanitizeUrl(url) },
+                            });
                             break;
                     }
 

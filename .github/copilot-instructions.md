@@ -39,8 +39,7 @@ Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execu
 
 - TypeScript is **strict** (`noImplicitAny`): do not introduce `any` unless there is no reasonable alternative.
 - Follow ESLint + Prettier output; don’t do stylistic refactors.
-- Keep imports sorted (repo uses `eslint-plugin-simple-import-sort`).
-- Prefer existing patterns:
+- Keep imports sorted (repo uses `eslint-plugin-simple-import-sort`).- **Line endings must be LF (Unix-style), not CRLF.** When creating new files, ensure they use `\n` only.- Prefer existing patterns:
     - typed result unions over throwing for expected errors (see `utils/network.ts`).
     - React function components + hooks in popup UI.
 - Avoid widening extension permissions/host_permissions unless explicitly requested.

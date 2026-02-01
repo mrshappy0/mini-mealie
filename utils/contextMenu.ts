@@ -1,6 +1,6 @@
 const RUN_CREATE_RECIPE_MENU_ID = 'runCreateRecipe';
 
-export const addContextMenu = (title: string) => {
+export const addContextMenu = (title: string, enabled = true) => {
     const canUpdate = typeof chrome.contextMenus.update === 'function';
     const canCreate = typeof chrome.contextMenus.create === 'function';
     const canRemoveAll = typeof chrome.contextMenus.removeAll === 'function';
@@ -11,6 +11,7 @@ export const addContextMenu = (title: string) => {
             chrome.contextMenus.create({
                 id: RUN_CREATE_RECIPE_MENU_ID,
                 title,
+                enabled,
                 contexts: ['page'],
             });
         });
@@ -19,12 +20,13 @@ export const addContextMenu = (title: string) => {
 
     if (!canUpdate || !canCreate) return;
 
-    chrome.contextMenus.update(RUN_CREATE_RECIPE_MENU_ID, { title }, () => {
+    chrome.contextMenus.update(RUN_CREATE_RECIPE_MENU_ID, { title, enabled }, () => {
         if (!chrome.runtime.lastError) return;
         chrome.contextMenus.create(
             {
                 id: RUN_CREATE_RECIPE_MENU_ID,
                 title,
+                enabled,
                 contexts: ['page'],
             },
             () => {
