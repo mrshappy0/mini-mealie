@@ -16,11 +16,14 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ## Features
 
-- Import recipes from any webpage using Mealie API
-- Toggle for Paywall ladder
-- Each website uses Mealie dry-run to detect a recipe on the active tab
-- Store Mealie API token securely using `chrome.storage.sync`.
-- Supports connecting to any Mealie server
+- **Dual Import Modes:**
+    - **URL Mode:** Send recipe URL directly to Mealie for server-side parsing
+    - **HTML Mode:** Extract page HTML in the browser and send to Mealie (useful for paywalled or JavaScript-heavy sites)
+- **Intelligent Recipe Detection:** Automatic dry-run detection on active tab to verify recipe presence
+- **Activity Logging System:** Real-time event logging with dedicated viewer (`chrome-extension://[id]/logs.html`)
+- **Smart Context Menu:** Mode-aware menu options that adapt to your selected import method
+- **Secure Credential Storage:** API tokens stored securely using `chrome.storage.sync`
+- **Self-Hosted Support:** Connect to any Mealie server instance
 
 ---
 
@@ -80,7 +83,7 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     - Start the WXT dev server
     - Open Chrome with the extension loaded in a persistent profile (`.wxt/chrome-data`)
     - Auto-open a recipe page for testing (https://www.allrecipes.com/recipe/286369/)
-    - Auto-open the Mini Mealie activity logs page for monitoring
+    - Auto-open the activity logs page (`logs.html`) for real-time monitoring
     - Pre-populate your credentials from `.env.local` (if configured)
 
     Your settings and browser state persist across dev sessions - no need to re-configure!
@@ -98,6 +101,40 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ---
 
+## Architecture
+
+### Import Modes
+
+Mini Mealie supports two distinct recipe import strategies:
+
+- **URL Mode:** Sends the recipe URL to Mealie's server-side scraper. This is the default mode and works well for most public recipe sites. Fast and efficient.
+
+- **HTML Mode:** Captures the entire page HTML in the browser using `chrome.scripting.executeScript`, then sends the HTML content to Mealie. Useful for:
+    - Sites behind paywalls or authentication
+    - JavaScript-heavy sites that don't render properly server-side
+    - Sites with bot detection that blocks server requests
+
+The extension automatically detects when URL mode fails and suggests switching to HTML mode.
+
+### Event Logging System
+
+All major extension operations are tracked through a structured logging system:
+
+- **Persistent Storage:** Logs stored in `chrome.storage.local` with LRU cache management (up to 500 entries)
+- **Event Correlation:** Each operation gets a unique operation ID for tracing multi-step workflows
+- **Real-time Viewer:** Dedicated logs page with auto-refresh, filtering, and export capabilities
+- **Activity Tracking:** Visual feedback via extension badge and tooltip during operations
+
+Logged operations include:
+
+- User authentication and connection verification
+- Recipe detection (dry-run test scrapes)
+- Recipe creation (both URL and HTML modes)
+- HTML page capture
+- Network requests and errors
+
+---
+
 ## Configuration
 
 - To use the Mealie integration, you will need to **generate an API token** in your Mealie instance.
@@ -110,10 +147,27 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 
 ## Usage
 
-1. **Right-click** on any recipe webpage.
-2. Select **"Recipe Detected - Add Recipe to Mealie"** from the context menu.
-   2a. _(Optional)_ Enable the paywall ladder feature to send the recipe URL to a paywall ladder before proceeding.
-3. The extension will send the recipe URL to the Mealie create recipe endpoint.
+### Importing Recipes
+
+1. **Configure your import mode** via the extension popup:
+    - **URL Mode (default):** Fast server-side parsing - works for most public recipes
+    - **HTML Mode:** Client-side extraction - best for sites with paywalls or heavy JavaScript
+2. **Right-click** on any recipe webpage.
+3. Select **"Add Recipe to Mealie (URL)"** or **"Add Recipe to Mealie (HTML)"** from the context menu (depends on your selected mode).
+4. The extension will process the recipe and send it to your Mealie server.
+
+### Monitoring Activity
+
+- **Extension Badge:** Shows real-time status (⏳ processing, ✅ success, ❌ error)
+- **Activity Log Viewer:** Access detailed logs at `chrome-extension://[id]/logs.html` or via the popup
+- **Event Tracking:** All major operations (authentication, recipe creation, detection) are logged with timestamps and correlation IDs
+
+### Troubleshooting Failed Imports
+
+If URL mode fails to detect a recipe:
+
+- The extension will automatically suggest switching to HTML mode
+- HTML mode captures the full page content, which often resolves parsing issues on complex sites
 
 ---
 
