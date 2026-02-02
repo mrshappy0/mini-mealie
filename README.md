@@ -19,6 +19,11 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 - **Dual Import Modes:**
     - **URL Mode:** Send recipe URL directly to Mealie for server-side parsing
     - **HTML Mode:** Extract page HTML in the browser and send to Mealie (useful for paywalled or JavaScript-heavy sites)
+- **Import Options:**
+    - **Import Tags:** Optionally import original keywords from recipe metadata as Mealie tags
+    - **Import Categories:** Optionally import recipe categories from structured data
+    - _Note: Tag and category extraction depends on the source recipe having proper metadata (schema.org keywords, meta tags, etc.). Not all recipes include this information._
+    - _Example recipe with tags/categories: [Homemade Nutty Granola](https://www.katheats.com/homemade-nutty-granola-recipe)_
 - **Intelligent Recipe Detection:** Automatic dry-run detection on active tab to verify recipe presence
 - **Activity Logging System:** Real-time event logging with dedicated viewer (`chrome-extension://[id]/logs.html`)
 - **Smart Context Menu:** Mode-aware menu options that adapt to your selected import method
@@ -152,9 +157,13 @@ Logged operations include:
 1. **Configure your import mode** via the extension popup:
     - **URL Mode (default):** Fast server-side parsing - works for most public recipes
     - **HTML Mode:** Client-side extraction - best for sites with paywalls or heavy JavaScript
-2. **Right-click** on any recipe webpage.
-3. Select **"Add Recipe to Mealie (URL)"** or **"Add Recipe to Mealie (HTML)"** from the context menu (depends on your selected mode).
-4. The extension will process the recipe and send it to your Mealie server.
+2. **Configure import options** (optional):
+    - **Import tags from recipe:** Extract keywords from recipe metadata as Mealie tags
+    - **Import categories from recipe:** Extract categories from structured recipe data
+    - Both options depend on the source recipe having proper metadata - many recipes won't have this information
+3. **Right-click** on any recipe webpage.
+4. Select **"Add Recipe to Mealie (URL)"** or **"Add Recipe to Mealie (HTML)"** from the context menu (depends on your selected mode).
+5. The extension will process the recipe and send it to your Mealie server.
 
 ### Monitoring Activity
 

@@ -5,7 +5,13 @@ import { isRecipeCreateMode, RecipeCreateMode } from './types/storageTypes';
 export function runCreateRecipe(tab: chrome.tabs.Tab) {
     chrome.storage.sync.get<StorageData>(
         [...storageKeys],
-        async ({ mealieServer, mealieApiToken, recipeCreateMode }) => {
+        async ({
+            mealieServer,
+            mealieApiToken,
+            recipeCreateMode,
+            importTags,
+            importCategories,
+        }) => {
             if (!mealieServer || !mealieApiToken) {
                 void logEvent({
                     level: 'warn',
@@ -67,7 +73,13 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         data: { url: sanitizeUrl(tab.url) },
                     });
 
-                    const result = await createRecipeFromURL(tab.url, mealieServer, mealieApiToken);
+                    const result = await createRecipeFromURL(
+                        tab.url,
+                        mealieServer,
+                        mealieApiToken,
+                        importTags ?? false,
+                        importCategories ?? false,
+                    );
                     const success = result === 'success';
 
                     void logEvent({
@@ -147,6 +159,8 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         mealieServer,
                         mealieApiToken,
                         tab.url,
+                        importTags ?? false,
+                        importCategories ?? false,
                     );
                     const success = result === 'success';
 

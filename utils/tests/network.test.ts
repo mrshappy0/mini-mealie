@@ -290,6 +290,200 @@ describe('createRecipeFromURL edge cases', () => {
         expect(result).toBe('success');
         expect(jsonMock).toHaveBeenCalled();
     });
+
+    it('should include includeTags and includeCategories in request body when provided', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce({ id: '123' }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromURL(
+            'https://example.com/recipe',
+            'https://mealie.local',
+            'mock-token',
+            true,
+            true,
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://mealie.local/api/recipes/create/url',
+            expect.objectContaining({
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer mock-token',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    url: 'https://example.com/recipe',
+                    includeTags: true,
+                    includeCategories: true,
+                }),
+            }),
+        );
+    });
+
+    it('should default includeTags and includeCategories to false when not provided', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce({ id: '123' }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromURL(
+            'https://example.com/recipe',
+            'https://mealie.local',
+            'mock-token',
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://mealie.local/api/recipes/create/url',
+            expect.objectContaining({
+                body: JSON.stringify({
+                    url: 'https://example.com/recipe',
+                    includeTags: false,
+                    includeCategories: false,
+                }),
+            }),
+        );
+    });
+
+    it('should support mixed values for includeTags and includeCategories', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce({ id: '123' }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromURL(
+            'https://example.com/recipe',
+            'https://mealie.local',
+            'mock-token',
+            true,
+            false,
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://mealie.local/api/recipes/create/url',
+            expect.objectContaining({
+                body: JSON.stringify({
+                    url: 'https://example.com/recipe',
+                    includeTags: true,
+                    includeCategories: false,
+                }),
+            }),
+        );
+    });
+});
+
+describe('createRecipeFromHTML with includeTags and includeCategories', () => {
+    it('should include includeTags and includeCategories in request body when provided', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce({ id: '123' }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromHTML(
+            '<html><body>Recipe</body></html>',
+            'https://mealie.local',
+            'mock-token',
+            'https://example.com/recipe',
+            true,
+            true,
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://mealie.local/api/recipes/create/html-or-json',
+            expect.objectContaining({
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer mock-token',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    data: '<html><body>Recipe</body></html>',
+                    url: 'https://example.com/recipe',
+                    includeTags: true,
+                    includeCategories: true,
+                }),
+            }),
+        );
+    });
+
+    it('should default includeTags and includeCategories to false when not provided', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce({ id: '123' }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromHTML(
+            '<html><body>Recipe</body></html>',
+            'https://mealie.local',
+            'mock-token',
+            'https://example.com/recipe',
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://mealie.local/api/recipes/create/html-or-json',
+            expect.objectContaining({
+                body: JSON.stringify({
+                    data: '<html><body>Recipe</body></html>',
+                    url: 'https://example.com/recipe',
+                    includeTags: false,
+                    includeCategories: false,
+                }),
+            }),
+        );
+    });
+
+    it('should support mixed values for includeTags and includeCategories', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce({ id: '123' }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromHTML(
+            '<html><body>Recipe</body></html>',
+            'https://mealie.local',
+            'mock-token',
+            'https://example.com/recipe',
+            false,
+            true,
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://mealie.local/api/recipes/create/html-or-json',
+            expect.objectContaining({
+                body: JSON.stringify({
+                    data: '<html><body>Recipe</body></html>',
+                    url: 'https://example.com/recipe',
+                    includeTags: false,
+                    includeCategories: true,
+                }),
+            }),
+        );
+    });
 });
 
 describe('runCreateRecipe', () => {
@@ -346,7 +540,13 @@ describe('runCreateRecipe', () => {
         await flushPromises();
 
         const { createRecipeFromURL, createRecipeFromHTML } = await import('../network');
-        expect(createRecipeFromURL).toHaveBeenCalledWith(mockUrl, mockServer, mockToken);
+        expect(createRecipeFromURL).toHaveBeenCalledWith(
+            mockUrl,
+            mockServer,
+            mockToken,
+            false,
+            false,
+        );
         expect(createRecipeFromHTML).not.toHaveBeenCalled();
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
 
@@ -371,7 +571,14 @@ describe('runCreateRecipe', () => {
 
         const { createRecipeFromHTML, createRecipeFromURL } = await import('../network');
         expect(chrome.scripting.executeScript).toHaveBeenCalled();
-        expect(createRecipeFromHTML).toHaveBeenCalledWith(mockHtml, mockServer, mockToken, mockUrl);
+        expect(createRecipeFromHTML).toHaveBeenCalledWith(
+            mockHtml,
+            mockServer,
+            mockToken,
+            mockUrl,
+            false,
+            false,
+        );
         expect(createRecipeFromURL).not.toHaveBeenCalled();
     });
 
@@ -466,7 +673,13 @@ describe('runCreateRecipe', () => {
         await flushPromises();
 
         const { createRecipeFromURL, createRecipeFromHTML } = await import('../network');
-        expect(createRecipeFromURL).toHaveBeenCalledWith(mockUrl, mockServer, mockToken);
+        expect(createRecipeFromURL).toHaveBeenCalledWith(
+            mockUrl,
+            mockServer,
+            mockToken,
+            false,
+            false,
+        );
         expect(createRecipeFromHTML).not.toHaveBeenCalled();
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
     });

@@ -50,6 +50,8 @@ export async function createRecipeFromURL(
     url: string,
     server: string,
     token: string,
+    includeTags = false,
+    includeCategories = false,
 ): Promise<CreateRecipeResult> {
     try {
         const fetchUrl = new URL('/api/recipes/create/url', server).href;
@@ -59,7 +61,7 @@ export async function createRecipeFromURL(
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url }),
+            body: JSON.stringify({ url, includeTags, includeCategories }),
         })) as FetchLikeResponse;
         if (!response.ok) {
             const responseText = await safeReadResponseText(response);
@@ -86,6 +88,8 @@ export async function createRecipeFromHTML(
     server: string,
     token: string,
     sourceUrl?: string,
+    includeTags = false,
+    includeCategories = false,
 ): Promise<CreateRecipeResult> {
     try {
         const fetchUrl = new URL('/api/recipes/create/html-or-json', server).href;
@@ -95,7 +99,7 @@ export async function createRecipeFromHTML(
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ includeTags: false, data: html, url: sourceUrl }),
+            body: JSON.stringify({ data: html, url: sourceUrl, includeTags, includeCategories }),
         })) as FetchLikeResponse;
         if (!response.ok) {
             const responseText = await safeReadResponseText(response);

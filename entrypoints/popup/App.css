@@ -300,3 +300,38 @@ input:checked + .slider::before {
     color: var(--mealie-orange);
     font-weight: 600;
 }
+
+.import-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    margin: 1.25em 0;
+    padding: 0.75em;
+    background-color: #222;
+    border-radius: 6px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+    font-size: 0.95em;
+    text-align: left;
+    color: #f1f1f1;
+}
+
+.checkbox-label input[type='checkbox'] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--mealie-orange);
+}
+
+.checkbox-label span {
+    user-select: none;
+}
+
+.checkbox-label:hover span {
+    color: var(--mealie-hover);
+}
