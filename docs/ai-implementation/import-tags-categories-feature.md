@@ -4,7 +4,7 @@
 
 **API Support**: Both `/api/recipes/create/url` and `/api/recipes/create/html-or-json` endpoints support `includeTags` and `includeCategories` boolean parameters.
 
-**Design Decision**: Two separate checkboxes, both default to `false`, persist in sync storage.
+**Design Decision**: Two separate checkboxes, both default to `true`, persist in sync storage.
 
 ---
 
@@ -19,7 +19,7 @@
 - Add `'importTags'` to `storageKeys` array
 - Add `'importCategories'` to `storageKeys` array
 
-**Defaults**: Both default to `false` when not present in storage.
+**Defaults**: Both default to `true` when not present in storage.
 
 ---
 

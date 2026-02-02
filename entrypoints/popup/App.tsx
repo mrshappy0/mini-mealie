@@ -20,8 +20,8 @@ function App() {
     );
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [importTags, setImportTags] = useState(false);
-    const [importCategories, setImportCategories] = useState(false);
+    const [importTags, setImportTags] = useState(true);
+    const [importCategories, setImportCategories] = useState(true);
 
     useEffect(() => {
         chrome.storage.sync.get<StorageData>(
@@ -41,8 +41,8 @@ function App() {
                 if (isRecipeCreateMode(storedRecipeCreateMode)) {
                     setRecipeCreateMode(storedRecipeCreateMode);
                 }
-                setImportTags(storedImportTags ?? false);
-                setImportCategories(storedImportCategories ?? false);
+                setImportTags(storedImportTags ?? true);
+                setImportCategories(storedImportCategories ?? true);
 
                 // Check if we should suggest HTML mode
                 chrome.storage.local.get(['suggestHtmlMode'], ({ suggestHtmlMode }) => {
@@ -123,8 +123,8 @@ function App() {
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
             setRecipeCreateMode(RecipeCreateMode.URL);
-            setImportTags(false);
-            setImportCategories(false);
+            setImportTags(true);
+            setImportCategories(true);
         });
     };
 
