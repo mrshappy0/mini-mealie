@@ -140,13 +140,15 @@ function App() {
     const handleImportTagsChange = () => {
         const newValue = !importTags;
         setImportTags(newValue);
-        chrome.storage.sync.set({ importTags: newValue });
+        // TODO: investigate if we can await this call
+        void chrome.storage.sync.set({ importTags: newValue });
     };
 
     const handleImportCategoriesChange = () => {
         const newValue = !importCategories;
         setImportCategories(newValue);
-        chrome.storage.sync.set({ importCategories: newValue });
+        // TODO: investigate if we can await this call
+        void chrome.storage.sync.set({ importCategories: newValue });
     };
     return (
         <>
