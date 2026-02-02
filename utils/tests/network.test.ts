@@ -544,8 +544,8 @@ describe('runCreateRecipe', () => {
             mockUrl,
             mockServer,
             mockToken,
-            false,
-            false,
+            true,
+            true,
         );
         expect(createRecipeFromHTML).not.toHaveBeenCalled();
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
@@ -576,8 +576,8 @@ describe('runCreateRecipe', () => {
             mockServer,
             mockToken,
             mockUrl,
-            false,
-            false,
+            true,
+            true,
         );
         expect(createRecipeFromURL).not.toHaveBeenCalled();
     });
@@ -677,8 +677,8 @@ describe('runCreateRecipe', () => {
             mockUrl,
             mockServer,
             mockToken,
-            false,
-            false,
+            true,
+            true,
         );
         expect(createRecipeFromHTML).not.toHaveBeenCalled();
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();

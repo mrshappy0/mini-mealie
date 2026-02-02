@@ -77,8 +77,8 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         tab.url,
                         mealieServer,
                         mealieApiToken,
-                        importTags ?? false,
-                        importCategories ?? false,
+                        importTags ?? true,
+                        importCategories ?? true,
                     );
                     const success = result === 'success';
 
@@ -159,8 +159,8 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         mealieServer,
                         mealieApiToken,
                         tab.url,
-                        importTags ?? false,
-                        importCategories ?? false,
+                        importTags ?? true,
+                        importCategories ?? true,
                     );
                     const success = result === 'success';
 
