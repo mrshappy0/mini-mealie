@@ -1,9 +1,7 @@
 {
     "recommendations": [
-        "dbaeumer.vscode-eslint", // ESLint for linting
-        "esbenp.prettier-vscode", // Prettier for formatting
-        "streetsidesoftware.code-spell-checker", // Spell checker (optional)
-        "continue.continue" // Configurable AI autocomplete & chat
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
     ],
     "unwantedRecommendations": []
 }
