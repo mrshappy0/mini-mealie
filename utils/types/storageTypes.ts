@@ -14,6 +14,8 @@ export const storageKeys = [
     'mealieUsername',
     'recipeCreateMode',
     'suggestHtmlMode',
+    'importTags',
+    'importCategories',
 ] as const;
 
 export type StorageData = {
@@ -22,4 +24,6 @@ export type StorageData = {
     mealieUsername?: string;
     recipeCreateMode?: RecipeCreateMode;
     suggestHtmlMode?: boolean;
+    importTags?: boolean;
+    importCategories?: boolean;
 };

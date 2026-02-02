@@ -6,7 +6,10 @@ export default defineWebExtConfig({
     chromiumArgs: ['--user-data-dir=./.wxt/chrome-data'],
 
     // Auto-open useful pages for development
-    startUrls: ['https://www.allrecipes.com/recipe/286369/cheesy-ground-beef-and-potatoes/'],
+    startUrls: [
+        'https://www.allrecipes.com/recipe/286369/cheesy-ground-beef-and-potatoes/',
+        'https://www.katheats.com/homemade-nutty-granola-recipe',
+    ],
 
     // Optional: Uncomment to auto-open DevTools
     // openDevtools: true,

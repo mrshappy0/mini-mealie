@@ -20,6 +20,8 @@ function App() {
     );
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [importTags, setImportTags] = useState(false);
+    const [importCategories, setImportCategories] = useState(false);
 
     useEffect(() => {
         chrome.storage.sync.get<StorageData>(
@@ -29,6 +31,8 @@ function App() {
                 mealieApiToken,
                 mealieUsername,
                 recipeCreateMode: storedRecipeCreateMode,
+                importTags: storedImportTags,
+                importCategories: storedImportCategories,
             }: StorageData) => {
                 if (mealieServer) setMealieServer(mealieServer);
                 setInputServer(protocol);
@@ -37,6 +41,8 @@ function App() {
                 if (isRecipeCreateMode(storedRecipeCreateMode)) {
                     setRecipeCreateMode(storedRecipeCreateMode);
                 }
+                setImportTags(storedImportTags ?? false);
+                setImportCategories(storedImportCategories ?? false);
 
                 // Check if we should suggest HTML mode
                 chrome.storage.local.get(['suggestHtmlMode'], ({ suggestHtmlMode }) => {
@@ -117,6 +123,8 @@ function App() {
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
             setRecipeCreateMode(RecipeCreateMode.URL);
+            setImportTags(false);
+            setImportCategories(false);
         });
     };
 
@@ -127,6 +135,18 @@ function App() {
             // TODO: investigate if we can await this call
             void checkStorageAndUpdateBadge();
         });
+    };
+
+    const handleImportTagsChange = () => {
+        const newValue = !importTags;
+        setImportTags(newValue);
+        chrome.storage.sync.set({ importTags: newValue });
+    };
+
+    const handleImportCategoriesChange = () => {
+        const newValue = !importCategories;
+        setImportCategories(newValue);
+        chrome.storage.sync.set({ importCategories: newValue });
     };
     return (
         <>
@@ -257,6 +277,25 @@ function App() {
                                     <span className="segmented-subtitle">Send page content</span>
                                 </label>
                             </div>
+                        </div>
+
+                        <div className="import-options">
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={importTags}
+                                    onChange={handleImportTagsChange}
+                                />
+                                <span>Import tags from recipe</span>
+                            </label>
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={importCategories}
+                                    onChange={handleImportCategoriesChange}
+                                />
+                                <span>Import categories from recipe</span>
+                            </label>
                         </div>
 
                         <button onClick={clearSettings}>Disconnect Server</button>
