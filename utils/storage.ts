@@ -2,7 +2,20 @@ const DETECTION_CACHE_TTL_MS = 30_000;
 const DETECTION_CACHE_MAX_SIZE = 100;
 let lastCheckId = 0;
 type DetectionOutcome = 'recipe' | 'not-recipe' | 'timeout' | 'http-error' | 'error';
-type CachedDetection = { checkedAt: number; outcome: DetectionOutcome; status?: number };
+
+export type DuplicateDetectionResult =
+    | { type: 'none' }
+    | { type: 'url'; match: RecipeSummary }
+    | { type: 'name'; matches: RecipeSummary[]; searchQuery: string };
+
+type CachedDetection = {
+    checkedAt: number;
+    outcome: DetectionOutcome;
+    status?: number;
+    recipeName?: string;
+    duplicateDetection?: DuplicateDetectionResult;
+};
+
 export const detectionCache = new Map<string, CachedDetection>();
 
 /**
@@ -45,6 +58,78 @@ function pruneDetectionCache() {
 }
 
 /**
+ * Check for duplicate recipes by URL and name.
+ * First attempts exact URL match (high confidence), then falls back to fuzzy name search.
+ * @param url - The recipe URL to check
+ * @param recipeName - The parsed recipe name (optional)
+ * @param server - Mealie server URL
+ * @param token - API token
+ * @returns Duplicate detection result with match type and data
+ */
+async function checkForDuplicates(
+    url: string,
+    recipeName: string | undefined,
+    server: string,
+    token: string,
+): Promise<DuplicateDetectionResult> {
+    try {
+        // Try exact URL match first (high confidence)
+        const urlMatch = await findRecipeByURL(url, server, token);
+        console.log('URL duplicate check result:', urlMatch);
+        if (urlMatch) {
+            await logEvent({
+                level: 'info',
+                feature: 'duplicate-detect',
+                action: 'checkDuplicates',
+                phase: 'success',
+                message: 'Found exact URL match',
+                data: { url: sanitizeUrl(url), recipeName: urlMatch.name },
+            });
+            return { type: 'url', match: urlMatch };
+        }
+
+        // Fall back to name search if we have a recipe name (lower confidence)
+        if (recipeName) {
+            const nameMatches = await searchRecipesByName(recipeName, server, token);
+            if (nameMatches.length > 0) {
+                await logEvent({
+                    level: 'info',
+                    feature: 'duplicate-detect',
+                    action: 'checkDuplicates',
+                    phase: 'success',
+                    message: `Found ${nameMatches.length} similar recipes by name`,
+                    data: { recipeName, matchCount: nameMatches.length },
+                });
+                return { type: 'name', matches: nameMatches, searchQuery: recipeName };
+            }
+        }
+
+        // No duplicates found
+        await logEvent({
+            level: 'info',
+            feature: 'duplicate-detect',
+            action: 'checkDuplicates',
+            phase: 'success',
+            message: 'No duplicates found',
+            data: { url: sanitizeUrl(url) },
+        });
+        return { type: 'none' };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await logEvent({
+            level: 'error',
+            feature: 'duplicate-detect',
+            action: 'checkDuplicates',
+            phase: 'failure',
+            message: `Duplicate detection failed: ${errorMessage}`,
+            data: { url: sanitizeUrl(url) },
+        });
+        // On error, don't block - just return no duplicates
+        return { type: 'none' };
+    }
+}
+
+/**
  * Generate context menu title based on detection outcome and current mode.
  */
 function getTitleForOutcome(
@@ -77,7 +162,12 @@ export const checkStorageAndUpdateBadge = async () => {
 
     chrome.storage.sync.get(
         [...storageKeys],
-        async ({ mealieServer, mealieApiToken, recipeCreateMode }: StorageData) => {
+        async ({
+            mealieServer,
+            mealieApiToken,
+            mealieGroupSlug,
+            recipeCreateMode,
+        }: StorageData) => {
             if (checkId !== lastCheckId) return;
 
             if (!mealieServer || !mealieApiToken) {
@@ -96,8 +186,17 @@ export const checkStorageAndUpdateBadge = async () => {
             const isUrlMode = mode === RecipeCreateMode.URL;
 
             let title = isUrlMode ? 'No Recipe - Switch to HTML Mode' : 'Create Recipe from HTML';
+            let duplicateInfo: DuplicateDetectionResult = { type: 'none' };
 
             if (url) {
+                // Skip internal browser and extension pages
+                if (url.startsWith('chrome://') || url.startsWith('chrome-extension://')) {
+                    showBadge('');
+                    removeContextMenu();
+                    removeAllDuplicateMenus();
+                    return;
+                }
+
                 pruneDetectionCache();
 
                 const cached = detectionCache.get(url);
@@ -107,11 +206,13 @@ export const checkStorageAndUpdateBadge = async () => {
                     cached.checkedAt = now;
                     // Generate title based on current mode and cached outcome
                     title = getTitleForOutcome(cached.outcome, cached.status, isUrlMode);
+                    // Use cached duplicate detection if available
+                    if (cached.duplicateDetection) {
+                        duplicateInfo = cached.duplicateDetection;
+                    }
                 } else {
                     const result = await testScrapeUrlDetailed(url, mealieServer, mealieApiToken);
                     if (checkId !== lastCheckId) return;
-
-                    const { logEvent, sanitizeUrl } = await import('./logging');
 
                     switch (result.outcome) {
                         case 'recipe':
@@ -174,12 +275,32 @@ export const checkStorageAndUpdateBadge = async () => {
                     if (result.outcome === 'http-error') {
                         cacheEntry.status = result.status;
                     }
+                    if (result.outcome === 'recipe') {
+                        // Store recipe name if available
+                        if (result.recipeName) {
+                            cacheEntry.recipeName = result.recipeName;
+                        }
+                        // Check for duplicates
+                        const duplicateDetection = await checkForDuplicates(
+                            url,
+                            result.recipeName,
+                            mealieServer,
+                            mealieApiToken,
+                        );
+                        console.log('Duplicate detection result:', duplicateDetection);
+                        if (checkId !== lastCheckId) return;
+                        cacheEntry.duplicateDetection = duplicateDetection;
+                        duplicateInfo = duplicateDetection;
+                    }
                     detectionCache.set(url, cacheEntry);
                     title = getTitleForOutcome(result.outcome, cacheEntry.status, isUrlMode);
                 }
             }
 
-            addContextMenu(title);
+            // Use updateContextMenu with duplicate info
+            const enabled =
+                title === 'Create Recipe from URL' || title === 'Create Recipe from HTML';
+            updateContextMenu(title, enabled, duplicateInfo, mealieServer, mealieGroupSlug);
         },
     );
 };

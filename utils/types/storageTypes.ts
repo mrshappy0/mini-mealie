@@ -12,6 +12,7 @@ export const storageKeys = [
     'mealieServer',
     'mealieApiToken',
     'mealieUsername',
+    'mealieGroupSlug',
     'recipeCreateMode',
     'suggestHtmlMode',
     'importTags',
@@ -22,6 +23,7 @@ export type StorageData = {
     mealieServer?: string;
     mealieApiToken?: string;
     mealieUsername?: string;
+    mealieGroupSlug?: string;
     recipeCreateMode?: RecipeCreateMode;
     suggestHtmlMode?: boolean;
     importTags?: boolean;

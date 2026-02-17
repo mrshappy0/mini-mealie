@@ -1,7 +1,3 @@
-import { beginActivity, endActivity } from './activity';
-import { logEvent, sanitizeUrl } from './logging';
-import { isRecipeCreateMode, RecipeCreateMode } from './types/storageTypes';
-
 export function runCreateRecipe(tab: chrome.tabs.Tab) {
     chrome.storage.sync.get<StorageData>(
         [...storageKeys],

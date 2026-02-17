@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { clearEvents, EVENT_LOG_STORAGE_KEY, getRecentEvents, LogEvent } from '@/utils/logging';
-
 export function LogsPage() {
     const [events, setEvents] = useState<LogEvent[]>([]);
     const [autoRefresh, setAutoRefresh] = useState(true);

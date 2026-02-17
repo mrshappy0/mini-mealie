@@ -879,7 +879,7 @@ describe('testScrapeUrlDetailed', () => {
         const actual = await vi.importActual<typeof import('../network')>('../network');
         const result = await actual.testScrapeUrlDetailed(mockUrl, mockServer, mockToken);
 
-        expect(result).toEqual({ outcome: 'recipe' });
+        expect(result).toEqual({ outcome: 'recipe', recipeName: 'Recipe Name' });
     });
 
     it("should return outcome 'http-error' with details when response is not ok", async () => {
@@ -1016,5 +1016,313 @@ describe('testScrapeUrlDetailed', () => {
         if (result.outcome === 'error') {
             expect(result.message).toBe('Unknown error');
         }
+    });
+
+    it('should return recipeName when recipe detected', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: { get: () => 'application/json' },
+            text: async () => '{"name":"Chicken Carbonara"}',
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.testScrapeUrlDetailed(mockUrl, mockServer, mockToken);
+
+        expect(result.outcome).toBe('recipe');
+        if (result.outcome === 'recipe') {
+            expect(result.recipeName).toBe('Chicken Carbonara');
+        }
+    });
+
+    it('should not return recipeName when name is not a string', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: { get: () => 'application/json' },
+            text: async () => '{"name":123}',
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.testScrapeUrlDetailed(mockUrl, mockServer, mockToken);
+
+        expect(result.outcome).toBe('not-recipe');
+    });
+});
+
+describe('normalizeUrl', () => {
+    it('should remove www prefix', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl('https://www.example.com/recipe');
+        expect(normalized).toBe('https://example.com/recipe');
+    });
+
+    it('should remove trailing slash', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl('https://example.com/recipe/');
+        expect(normalized).toBe('https://example.com/recipe');
+    });
+
+    it('should preserve root trailing slash', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl('https://example.com/');
+        expect(normalized).toBe('https://example.com/');
+    });
+
+    it('should remove tracking query parameters', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl(
+            'https://example.com/recipe?utm_source=twitter&utm_medium=social&fbclid=123',
+        );
+        expect(normalized).toBe('https://example.com/recipe');
+    });
+
+    it('should preserve non-tracking query parameters', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl(
+            'https://example.com/recipe?id=123&utm_source=twitter',
+        );
+        expect(normalized).toBe('https://example.com/recipe?id=123');
+    });
+
+    it('should remove URL fragments', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl('https://example.com/recipe#ingredients');
+        expect(normalized).toBe('https://example.com/recipe');
+    });
+
+    it('should lowercase hostname', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl('https://EXAMPLE.COM/recipe');
+        expect(normalized).toBe('https://example.com/recipe');
+    });
+
+    it('should handle multiple normalizations at once', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const normalized = actual.normalizeUrl(
+            'https://WWW.Example.COM/recipe/?utm_source=email&id=456#section',
+        );
+        expect(normalized).toBe('https://example.com/recipe?id=456');
+    });
+
+    it('should return original URL if parsing fails', async () => {
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const invalidUrl = 'not-a-valid-url';
+        const normalized = actual.normalizeUrl(invalidUrl);
+        expect(normalized).toBe(invalidUrl);
+    });
+});
+
+describe('findRecipeByURL', () => {
+    const mockUrl = 'https://example.com/recipe';
+    const mockServer = 'https://mealie.example.com';
+    const mockToken = 'test-token';
+
+    it('should find exact URL match', async () => {
+        const mockRecipe = { id: '123', name: 'Test Recipe', slug: 'test-recipe', orgURL: mockUrl };
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () =>
+                JSON.stringify({
+                    items: [mockRecipe],
+                }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.findRecipeByURL(mockUrl, mockServer, mockToken);
+
+        expect(result).toEqual(mockRecipe);
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/api/recipes'),
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: 'Bearer test-token',
+                }),
+            }),
+        );
+    });
+
+    it('should return null when no match found', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () =>
+                JSON.stringify({
+                    items: [],
+                }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.findRecipeByURL(mockUrl, mockServer, mockToken);
+
+        expect(result).toBeNull();
+    });
+
+    it('should return null on HTTP error', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 500,
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.findRecipeByURL(mockUrl, mockServer, mockToken);
+
+        expect(result).toBeNull();
+    });
+
+    it('should return null on network error', async () => {
+        global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'));
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.findRecipeByURL(mockUrl, mockServer, mockToken);
+
+        expect(result).toBeNull();
+    });
+
+    it('should normalize URL before querying', async () => {
+        const normalizedUrl = 'https://example.com/recipe';
+        const mockRecipe = {
+            id: '123',
+            name: 'Test Recipe',
+            slug: 'test-recipe',
+            orgURL: normalizedUrl,
+        };
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () =>
+                JSON.stringify({
+                    items: [mockRecipe],
+                }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.findRecipeByURL(
+            'https://www.example.com/recipe/?utm_source=test',
+            mockServer,
+            mockToken,
+        );
+
+        // Should find the recipe because URLs are normalized and compared client-side
+        expect(result).toEqual(mockRecipe);
+        // Verify the fetch call uses the new approach (no queryFilter)
+        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        expect(callArgs[0]).toContain('perPage=100');
+        expect(callArgs[0]).toContain('orderBy=dateUpdated');
+        expect(callArgs[0]).not.toContain('queryFilter');
+    });
+});
+
+describe('searchRecipesByName', () => {
+    const mockName = 'Chicken Carbonara';
+    const mockServer = 'https://mealie.example.com';
+    const mockToken = 'test-token';
+
+    it('should find multiple recipe matches', async () => {
+        const mockRecipes = [
+            { id: '1', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
+            { id: '2', name: 'Carbonara Pasta', slug: 'carbonara-pasta' },
+            { id: '3', name: 'Classic Carbonara', slug: 'classic-carbonara' },
+        ];
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () =>
+                JSON.stringify({
+                    items: mockRecipes,
+                }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.searchRecipesByName(mockName, mockServer, mockToken);
+
+        expect(result).toEqual(mockRecipes);
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/api/recipes'),
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: 'Bearer test-token',
+                }),
+            }),
+        );
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('search='),
+            expect.any(Object),
+        );
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('perPage=5'),
+            expect.any(Object),
+        );
+    });
+
+    it('should return empty array when no matches found', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () =>
+                JSON.stringify({
+                    items: [],
+                }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.searchRecipesByName(mockName, mockServer, mockToken);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should return empty array on HTTP error', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 400,
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.searchRecipesByName(mockName, mockServer, mockToken);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should return empty array on network error', async () => {
+        global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'));
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.searchRecipesByName(mockName, mockServer, mockToken);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should handle missing items in response', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({}),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.searchRecipesByName(mockName, mockServer, mockToken);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should URL encode recipe name', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () =>
+                JSON.stringify({
+                    items: [],
+                }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.searchRecipesByName('Chicken & Pasta', mockServer, mockToken);
+
+        // Verify the fetch call contains the encoded name (searchParams uses + for spaces)
+        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        expect(callArgs[0]).toContain('search=Chicken');
+        expect(callArgs[0]).toContain('Pasta');
+        expect(callArgs[0]).toContain('%26'); // & is encoded as %26
     });
 });

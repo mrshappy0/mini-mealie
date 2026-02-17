@@ -2,8 +2,6 @@ import './ActivityLog.css';
 
 import { useEffect, useState } from 'react';
 
-import { clearEvents, EVENT_LOG_STORAGE_KEY, getRecentEvents, LogEvent } from '@/utils/logging';
-
 function formatTimestamp(ts: number): string {
     const d = new Date(ts);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });

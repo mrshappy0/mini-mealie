@@ -11,6 +11,9 @@ importers:
       '@react-email/components':
         specifier: ^0.3.2
         version: 0.3.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      normalize-url:
+        specifier: ^8.1.1
+        version: 8.1.1
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -3233,8 +3236,8 @@ packages:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
 
-  normalize-url@8.0.1:
-    resolution: {integrity: sha512-IO9QvjUMWxPQQhs60oOu10CRkWCiZzSUkzbXGGV9pviYl1fXYcvkzQ5jV9z8Y6un8ARoVRl4EtC6v6jNqbaJ/w==}
+  normalize-url@8.1.1:
+    resolution: {integrity: sha512-JYc0DPlpGWB40kH5g07gGTrYuMqV653k3uBKY6uITPWds3M0ov3GaWGp9lbE3Bzngx8+XkfzgvASb9vk9JDFXQ==}
     engines: {node: '>=14.16'}
 
   npm-run-path@4.0.1:
@@ -5464,7 +5467,7 @@ snapshots:
       fs-extra: 11.3.3
       lodash-es: 4.17.21
       nerf-dart: 1.0.0
-      normalize-url: 8.0.1
+      normalize-url: 8.1.1
       npm: 10.9.2
       rc: 1.2.8
       read-pkg: 9.0.1
@@ -7853,7 +7856,7 @@ snapshots:
 
   normalize-path@3.0.0: {}
 
-  normalize-url@8.0.1: {}
+  normalize-url@8.1.1: {}
 
   npm-run-path@4.0.1:
     dependencies:
