@@ -75,7 +75,6 @@ async function checkForDuplicates(
     try {
         // Try exact URL match first (high confidence)
         const urlMatch = await findRecipeByURL(url, server, token);
-        console.log('URL duplicate check result:', urlMatch);
         if (urlMatch) {
             await logEvent({
                 level: 'info',
