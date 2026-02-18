@@ -1,6 +1,7 @@
 import type { DuplicateDetectionResult } from './storage';
 
 export const RUN_CREATE_RECIPE_MENU_ID = 'runCreateRecipe';
+export const DUPLICATE_DETECTION_PARENT_ID = 'duplicateDetection';
 export const DUPLICATE_URL_MENU_ID = 'viewDuplicateUrl';
 export const DUPLICATE_NAME_MENU_ID = 'viewDuplicatesByName';
 
@@ -103,23 +104,32 @@ export const updateContextMenu = (
     createEnabled: boolean,
     duplicateInfo: DuplicateInfo,
 ) => {
-    // Always create/update the main menu item
-    addContextMenu(createTitle, createEnabled);
-
-    // Remove old duplicate menu items first
+    // Remove all menus first to ensure correct ordering
+    removeContextMenu();
     removeAllDuplicateMenus();
 
-    // Add duplicate warnings based on detection type
     const canCreate = typeof chrome.contextMenus.create === 'function';
     if (!canCreate) return;
 
-    if (duplicateInfo.type === 'url') {
-        // Exact URL match - high confidence warning
-        const { match } = duplicateInfo;
+    // 1. Always create the main menu FIRST (ensures it appears first)
+    chrome.contextMenus.create(
+        {
+            id: RUN_CREATE_RECIPE_MENU_ID,
+            title: `➕ ${createTitle}`,
+            enabled: createEnabled,
+            contexts: ['page'],
+        },
+        () => {
+            void chrome.runtime.lastError;
+        },
+    );
+
+    // 2. Create "Already exists" menu if URL match found
+    if (duplicateInfo.urlMatch) {
         chrome.contextMenus.create(
             {
                 id: DUPLICATE_URL_MENU_ID,
-                title: `⚠️ Exact match: "${match.name}"`,
+                title: `⚠️ Already exists: "${duplicateInfo.urlMatch.name}"`,
                 enabled: true,
                 contexts: ['page'],
             },
@@ -127,13 +137,16 @@ export const updateContextMenu = (
                 void chrome.runtime.lastError;
             },
         );
-    } else if (duplicateInfo.type === 'name') {
-        // Similar name matches - lower confidence warning
-        const { matches } = duplicateInfo;
+    }
+
+    // 3. Create "Found X similar recipes" menu if name matches found
+    if (duplicateInfo.nameMatches && duplicateInfo.nameMatches.length > 0) {
+        const matches = duplicateInfo.nameMatches;
+        const recipeWord = matches.length === 1 ? 'recipe' : 'recipes';
         chrome.contextMenus.create(
             {
                 id: DUPLICATE_NAME_MENU_ID,
-                title: `💡 Similar recipes (${matches.length})`,
+                title: `🔍 Found ${matches.length} similar ${recipeWord}`,
                 enabled: true,
                 contexts: ['page'],
             },
@@ -160,5 +173,4 @@ export const updateContextMenu = (
             );
         }
     }
-    // type === 'none': no duplicate menu items added
 };

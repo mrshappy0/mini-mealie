@@ -100,7 +100,7 @@ describe('checkStorageAndUpdateBadge', () => {
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'No Recipe - Switch to HTML Mode',
             false,
-            { type: 'none' },
+            {},
         );
     });
 
@@ -152,7 +152,7 @@ describe('checkStorageAndUpdateBadge', () => {
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'Timed Out - Switch to HTML Mode',
             false,
-            { type: 'none' },
+            {},
         );
     });
 
@@ -182,7 +182,7 @@ describe('checkStorageAndUpdateBadge', () => {
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'Failed Detection (HTTP 500) - Switch to HTML Mode',
             false,
-            { type: 'none' },
+            {},
         );
     });
 
@@ -451,9 +451,7 @@ describe('checkStorageAndUpdateBadge', () => {
 
         // In HTML mode, should still call detection for cache, but use HTML mode title
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalled();
-        expect(mockUpdateContextMenu).toHaveBeenCalledWith('Create Recipe from HTML', true, {
-            type: 'none',
-        });
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith('Create Recipe from HTML', true, {});
     });
 
     it('should handle error outcome from detection', async () => {
@@ -481,7 +479,7 @@ describe('checkStorageAndUpdateBadge', () => {
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'Failed Detection - Switch to HTML Mode',
             false,
-            { type: 'none' },
+            {},
         );
     });
 
@@ -550,8 +548,7 @@ describe('checkStorageAndUpdateBadge', () => {
 
             const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
             expect(cached?.duplicateDetection).toEqual({
-                type: 'url',
-                match: {
+                urlMatch: {
                     id: '123',
                     name: 'Chicken Carbonara',
                     slug: 'chicken-carbonara',
@@ -591,9 +588,8 @@ describe('checkStorageAndUpdateBadge', () => {
 
             const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
             expect(cached?.duplicateDetection).toEqual({
-                type: 'name',
                 searchQuery: 'Chicken Pasta',
-                matches: [
+                nameMatches: [
                     { id: '456', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
                     { id: '789', name: 'Chicken Alfredo', slug: 'chicken-alfredo' },
                 ],
@@ -628,7 +624,7 @@ describe('checkStorageAndUpdateBadge', () => {
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
-            expect(cached?.duplicateDetection).toEqual({ type: 'none' });
+            expect(cached?.duplicateDetection).toEqual({});
         });
 
         it('should not run duplicate detection for non-recipe outcomes', async () => {
@@ -681,8 +677,8 @@ describe('checkStorageAndUpdateBadge', () => {
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
-            // Should fall back to 'none' on error
-            expect(cached?.duplicateDetection).toEqual({ type: 'none' });
+            // Should fall back to empty result on error
+            expect(cached?.duplicateDetection).toEqual({});
         });
     });
 });

@@ -111,14 +111,17 @@ describe('updateContextMenu', () => {
     });
 
     it('should create main menu and no duplicate menus when type is none', () => {
-        updateContextMenu('Create Recipe from URL', true, { type: 'none' });
+        updateContextMenu('Create Recipe from URL', true, {});
 
         // Main menu should be created
-        expect(chrome.contextMenus.update).toHaveBeenCalledWith(
-            'runCreateRecipe',
-            { title: 'Create Recipe from URL', enabled: true },
-            expect.any(Function),
-        );
+        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
+        expect(createCalls.length).toBe(1);
+        expect(createCalls[0][0]).toEqual({
+            id: 'runCreateRecipe',
+            title: '➕ Create Recipe from URL',
+            enabled: true,
+            contexts: ['page'],
+        });
 
         // Duplicate removal should be called
         expect(chrome.contextMenus.remove).toHaveBeenCalledWith(
@@ -129,67 +132,120 @@ describe('updateContextMenu', () => {
             'viewDuplicatesByName',
             expect.any(Function),
         );
-
-        // No duplicate menu items created beyond the removal calls
-        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
-        expect(createCalls.length).toBe(0);
     });
 
     it('should create URL duplicate warning menu when exact match found', () => {
         updateContextMenu('Create Recipe from URL', true, {
-            type: 'url',
-            match: { id: '123', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
+            urlMatch: { id: '123', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
         });
 
-        // Main menu should be created
-        expect(chrome.contextMenus.update).toHaveBeenCalled();
+        // Check menu creation calls
+        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
+        expect(createCalls.length).toBe(2);
 
-        // Duplicate URL menu should be created
-        expect(chrome.contextMenus.create).toHaveBeenCalledWith(
-            {
-                id: 'viewDuplicateUrl',
-                title: '⚠️ Exact match: "Chicken Carbonara"',
-                enabled: true,
-                contexts: ['page'],
-            },
-            expect.any(Function),
-        );
+        // First should be main menu
+        expect(createCalls[0][0]).toEqual({
+            id: 'runCreateRecipe',
+            title: '➕ Create Recipe from URL',
+            enabled: true,
+            contexts: ['page'],
+        });
+
+        // Second should be duplicate URL menu
+        expect(createCalls[1][0]).toEqual({
+            id: 'viewDuplicateUrl',
+            title: '⚠️ Already exists: "Chicken Carbonara"',
+            enabled: true,
+            contexts: ['page'],
+        });
     });
 
     it('should create name duplicate warning menu when similar recipes found', () => {
         updateContextMenu('Create Recipe from URL', true, {
-            type: 'name',
-            matches: [
+            nameMatches: [
                 { id: '456', name: 'Chicken Pasta', slug: 'chicken-pasta' },
                 { id: '789', name: 'Creamy Chicken', slug: 'creamy-chicken' },
             ],
             searchQuery: 'Chicken Carbonara',
         });
 
-        // Main menu should be created
-        expect(chrome.contextMenus.update).toHaveBeenCalled();
+        // Check menu creation calls
+        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
+        expect(createCalls.length).toBe(4); // Main + name parent + 2 children
 
-        // Duplicate name menu should be created
-        expect(chrome.contextMenus.create).toHaveBeenCalledWith(
-            {
-                id: 'viewDuplicatesByName',
-                title: '💡 Similar recipes (2)',
-                enabled: true,
-                contexts: ['page'],
-            },
-            expect.any(Function),
-        );
+        // First should be main menu
+        expect(createCalls[0][0]).toEqual({
+            id: 'runCreateRecipe',
+            title: '➕ Create Recipe from URL',
+            enabled: true,
+            contexts: ['page'],
+        });
+
+        // Second should be duplicate name menu (plural)
+        expect(createCalls[1][0]).toEqual({
+            id: 'viewDuplicatesByName',
+            title: '🔍 Found 2 similar recipes',
+            enabled: true,
+            contexts: ['page'],
+        });
+    });
+
+    it('should use singular form when only one similar recipe found', () => {
+        updateContextMenu('Create Recipe from URL', true, {
+            nameMatches: [{ id: '456', name: 'Chicken Pasta', slug: 'chicken-pasta' }],
+            searchQuery: 'Chicken Carbonara',
+        });
+
+        // Check menu creation calls
+        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
+
+        // Should have main menu + name menu + 1 child
+        expect(createCalls.length).toBe(3);
+
+        // Duplicate name menu should use singular form
+        expect(createCalls[1][0]).toEqual({
+            id: 'viewDuplicatesByName',
+            title: '🔍 Found 1 similar recipe',
+            enabled: true,
+            contexts: ['page'],
+        });
+    });
+
+    it('should show both URL match and name matches when both exist', () => {
+        updateContextMenu('Create Recipe from URL', true, {
+            urlMatch: { id: '123', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
+            nameMatches: [
+                { id: '456', name: 'Chicken Pasta', slug: 'chicken-pasta' },
+                { id: '789', name: 'Creamy Chicken', slug: 'creamy-chicken' },
+            ],
+            searchQuery: 'Chicken Carbonara',
+        });
+
+        // Check menu creation calls
+        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
+        expect(createCalls.length).toBe(5); // Main + URL + name parent + 2 children
+
+        // First should be main menu
+        expect(createCalls[0][0].id).toBe('runCreateRecipe');
+
+        // Second should be URL duplicate
+        expect(createCalls[1][0].id).toBe('viewDuplicateUrl');
+
+        // Third should be name duplicate menu
+        expect(createCalls[2][0].id).toBe('viewDuplicatesByName');
     });
 
     it('should handle disabled main menu', () => {
-        updateContextMenu('No Recipe - Switch to HTML Mode', false, { type: 'none' });
+        updateContextMenu('No Recipe - Switch to HTML Mode', false, {});
 
         // Main menu should be created with disabled state
-        expect(chrome.contextMenus.update).toHaveBeenCalledWith(
-            'runCreateRecipe',
-            { title: 'No Recipe - Switch to HTML Mode', enabled: false },
-            expect.any(Function),
-        );
+        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
+        expect(createCalls[0][0]).toEqual({
+            id: 'runCreateRecipe',
+            title: '➕ No Recipe - Switch to HTML Mode',
+            enabled: false,
+            contexts: ['page'],
+        });
     });
 });
 

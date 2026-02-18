@@ -165,9 +165,9 @@ async function handleViewDuplicate(url: string, menuId: string) {
 
         const duplicateInfo = cached.duplicateDetection!;
 
-        if (menuId === DUPLICATE_URL_MENU_ID && duplicateInfo.type === 'url') {
+        if (menuId === DUPLICATE_URL_MENU_ID && duplicateInfo.urlMatch) {
             // Open the exact match recipe page
-            const recipeUrl = `${mealieServer}/g/${mealieGroupSlug}/r/${duplicateInfo.match.slug}`;
+            const recipeUrl = `${mealieServer}/g/${mealieGroupSlug}/r/${duplicateInfo.urlMatch.slug}`;
             await logEvent({
                 level: 'info',
                 feature: 'duplicate-detect',
@@ -175,12 +175,12 @@ async function handleViewDuplicate(url: string, menuId: string) {
                 phase: 'success',
                 message: 'Opening exact match recipe',
                 data: {
-                    recipeName: duplicateInfo.match.name,
-                    recipeSlug: duplicateInfo.match.slug,
+                    recipeName: duplicateInfo.urlMatch.name,
+                    recipeSlug: duplicateInfo.urlMatch.slug,
                 },
             });
             void chrome.tabs.create({ url: recipeUrl });
-        } else if (duplicateInfo.type === 'name' && cached.recipeName) {
+        } else if (menuId === DUPLICATE_NAME_MENU_ID && cached.recipeName) {
             // Open search page with recipe name
             const searchUrl = `${mealieServer}/g/${mealieGroupSlug}/recipes/all?page=1&orderBy=created_at&orderDirection=desc&search=${encodeURIComponent(cached.recipeName)}`;
             await logEvent({

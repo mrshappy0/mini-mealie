@@ -3,10 +3,11 @@ const DETECTION_CACHE_MAX_SIZE = 100;
 let lastCheckId = 0;
 type DetectionOutcome = 'recipe' | 'not-recipe' | 'timeout' | 'http-error' | 'error';
 
-export type DuplicateDetectionResult =
-    | { type: 'none' }
-    | { type: 'url'; match: RecipeSummary }
-    | { type: 'name'; matches: RecipeSummary[]; searchQuery: string };
+export type DuplicateDetectionResult = {
+    urlMatch?: RecipeSummary;
+    nameMatches?: RecipeSummary[];
+    searchQuery?: string;
+};
 
 type CachedDetection = {
     checkedAt: number;
@@ -72,10 +73,13 @@ async function checkForDuplicates(
     server: string,
     token: string,
 ): Promise<DuplicateDetectionResult> {
+    const result: DuplicateDetectionResult = {};
+
     try {
-        // Try exact URL match first (high confidence)
+        // Check both URL match AND name matches (don't return early)
         const urlMatch = await findRecipeByURL(url, server, token);
         if (urlMatch) {
+            result.urlMatch = urlMatch;
             await logEvent({
                 level: 'info',
                 feature: 'duplicate-detect',
@@ -84,13 +88,14 @@ async function checkForDuplicates(
                 message: 'Found exact URL match',
                 data: { url: sanitizeUrl(url), recipeName: urlMatch.name },
             });
-            return { type: 'url', match: urlMatch };
         }
 
-        // Fall back to name search if we have a recipe name (lower confidence)
+        // Also check for name matches if we have a recipe name
         if (recipeName) {
             const nameMatches = await searchRecipesByName(recipeName, server, token);
             if (nameMatches.length > 0) {
+                result.nameMatches = nameMatches;
+                result.searchQuery = recipeName;
                 await logEvent({
                     level: 'info',
                     feature: 'duplicate-detect',
@@ -99,20 +104,22 @@ async function checkForDuplicates(
                     message: `Found ${nameMatches.length} similar recipes by name`,
                     data: { recipeName, matchCount: nameMatches.length },
                 });
-                return { type: 'name', matches: nameMatches, searchQuery: recipeName };
             }
         }
 
-        // No duplicates found
-        await logEvent({
-            level: 'info',
-            feature: 'duplicate-detect',
-            action: 'checkDuplicates',
-            phase: 'success',
-            message: 'No duplicates found',
-            data: { url: sanitizeUrl(url) },
-        });
-        return { type: 'none' };
+        // Log if no duplicates found
+        if (!result.urlMatch && !result.nameMatches) {
+            await logEvent({
+                level: 'info',
+                feature: 'duplicate-detect',
+                action: 'checkDuplicates',
+                phase: 'success',
+                message: 'No duplicates found',
+                data: { url: sanitizeUrl(url) },
+            });
+        }
+
+        return result;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         await logEvent({
@@ -124,7 +131,7 @@ async function checkForDuplicates(
             data: { url: sanitizeUrl(url) },
         });
         // On error, don't block - just return no duplicates
-        return { type: 'none' };
+        return {};
     }
 }
 
@@ -180,7 +187,7 @@ export const checkStorageAndUpdateBadge = async () => {
             const isUrlMode = mode === RecipeCreateMode.URL;
 
             let title = isUrlMode ? 'No Recipe - Switch to HTML Mode' : 'Create Recipe from HTML';
-            let duplicateInfo: DuplicateDetectionResult = { type: 'none' };
+            let duplicateInfo: DuplicateDetectionResult = {};
 
             if (url) {
                 // Skip internal browser and extension pages
