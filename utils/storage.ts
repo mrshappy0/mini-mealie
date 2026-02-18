@@ -161,12 +161,7 @@ export const checkStorageAndUpdateBadge = async () => {
 
     chrome.storage.sync.get(
         [...storageKeys],
-        async ({
-            mealieServer,
-            mealieApiToken,
-            mealieGroupSlug,
-            recipeCreateMode,
-        }: StorageData) => {
+        async ({ mealieServer, mealieApiToken, recipeCreateMode }: StorageData) => {
             if (checkId !== lastCheckId) return;
 
             if (!mealieServer || !mealieApiToken) {
@@ -298,7 +293,7 @@ export const checkStorageAndUpdateBadge = async () => {
             // Use updateContextMenu with duplicate info
             const enabled =
                 title === 'Create Recipe from URL' || title === 'Create Recipe from HTML';
-            updateContextMenu(title, enabled, duplicateInfo, mealieServer, mealieGroupSlug);
+            updateContextMenu(title, enabled, duplicateInfo);
         },
     );
 };
