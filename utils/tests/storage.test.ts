@@ -101,8 +101,6 @@ describe('checkStorageAndUpdateBadge', () => {
             'No Recipe - Switch to HTML Mode',
             false,
             { type: 'none' },
-            'https://mealie.tld',
-            undefined,
         );
     });
 
@@ -129,8 +127,6 @@ describe('checkStorageAndUpdateBadge', () => {
             'Create Recipe from URL',
             true,
             expect.any(Object),
-            'https://mealie.tld',
-            undefined,
         );
     });
 
@@ -157,8 +153,6 @@ describe('checkStorageAndUpdateBadge', () => {
             'Timed Out - Switch to HTML Mode',
             false,
             { type: 'none' },
-            'https://mealie.tld',
-            undefined,
         );
     });
 
@@ -189,8 +183,6 @@ describe('checkStorageAndUpdateBadge', () => {
             'Failed Detection (HTTP 500) - Switch to HTML Mode',
             false,
             { type: 'none' },
-            'https://mealie.tld',
-            undefined,
         );
     });
 
@@ -459,13 +451,9 @@ describe('checkStorageAndUpdateBadge', () => {
 
         // In HTML mode, should still call detection for cache, but use HTML mode title
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalled();
-        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
-            'Create Recipe from HTML',
-            true,
-            { type: 'none' },
-            'https://mealie.tld',
-            undefined,
-        );
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith('Create Recipe from HTML', true, {
+            type: 'none',
+        });
     });
 
     it('should handle error outcome from detection', async () => {
@@ -494,8 +482,6 @@ describe('checkStorageAndUpdateBadge', () => {
             'Failed Detection - Switch to HTML Mode',
             false,
             { type: 'none' },
-            'https://mealie.tld',
-            undefined,
         );
     });
 
