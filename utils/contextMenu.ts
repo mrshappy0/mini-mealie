@@ -104,8 +104,6 @@ export const updateContextMenu = (
     createTitle: string,
     createEnabled: boolean,
     duplicateInfo: DuplicateInfo,
-    mealieServer?: string,
-    groupSlug?: string,
 ) => {
     // Always create/update the main menu item
     addContextMenu(createTitle, createEnabled);
@@ -117,7 +115,7 @@ export const updateContextMenu = (
     const canCreate = typeof chrome.contextMenus.create === 'function';
     if (!canCreate) return;
 
-    if (duplicateInfo.type === 'url' && mealieServer && groupSlug) {
+    if (duplicateInfo.type === 'url') {
         // Exact URL match - high confidence warning
         const { match } = duplicateInfo;
         chrome.contextMenus.create(

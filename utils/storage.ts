@@ -286,7 +286,6 @@ export const checkStorageAndUpdateBadge = async () => {
                             mealieServer,
                             mealieApiToken,
                         );
-                        console.log('Duplicate detection result:', duplicateDetection);
                         if (checkId !== lastCheckId) return;
                         cacheEntry.duplicateDetection = duplicateDetection;
                         duplicateInfo = duplicateDetection;
