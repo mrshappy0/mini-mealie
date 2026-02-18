@@ -1,4 +1,61 @@
+import normalizeUrlLib from 'normalize-url';
+
 export type CreateRecipeResult = 'success' | 'failure';
+
+/**
+ * Normalize a URL for duplicate detection matching.
+ * Removes tracking parameters, www prefix, trailing slashes, and fragments.
+ * Uses the normalize-url library for comprehensive and secure URL normalization.
+ */
+export function normalizeUrl(url: string): string {
+    try {
+        // First validate it's a proper URL with protocol
+        // normalize-url will happily add http:// to invalid URLs
+        new URL(url);
+
+        return normalizeUrlLib(url, {
+            stripHash: true,
+            stripWWW: true,
+            removeQueryParameters: [
+                // UTM parameters
+                'utm_source',
+                'utm_medium',
+                'utm_campaign',
+                'utm_term',
+                'utm_content',
+                'utm_id',
+                'utm_source_platform',
+                'utm_creative_format',
+                'utm_marketing_tactic',
+                // Click tracking
+                'fbclid',
+                'gclid',
+                'msclkid',
+                'dclid',
+                // Analytics
+                '_ga',
+                '_gl',
+                '_ke',
+                'mc_cid',
+                'mc_eid',
+                // Social media
+                'igshid',
+                'twclid',
+                // Email tracking
+                'mkt_tok',
+                // Misc tracking
+                'ref',
+                'referrer',
+            ],
+            removeTrailingSlash: true,
+            removeSingleSlash: false,
+            sortQueryParameters: true,
+        });
+    } catch {
+        // If URL parsing fails, return the original URL
+        return url;
+    }
+}
 
 type FetchLikeResponse = {
     ok: boolean;
@@ -187,7 +244,7 @@ export const testScrapeUrl = async (
 };
 
 export type TestScrapeUrlDetailedResult =
-    | { outcome: 'recipe' }
+    | { outcome: 'recipe'; recipeName?: string }
     | { outcome: 'not-recipe' }
     | { outcome: 'timeout'; timeoutMs: number }
     | { outcome: 'http-error'; status: number; details?: string }
@@ -228,7 +285,10 @@ export const testScrapeUrlDetailed = async (
         // If we got JSON already from safeReadResponseText, responseText may be stringified JSON.
         try {
             const data = JSON.parse(responseText) as { name?: unknown };
-            return data?.name ? { outcome: 'recipe' } : { outcome: 'not-recipe' };
+            if (data?.name && typeof data.name === 'string') {
+                return { outcome: 'recipe', recipeName: data.name };
+            }
+            return { outcome: 'not-recipe' };
         } catch {
             // Non-JSON response; treat as "not-recipe" rather than error.
             return { outcome: 'not-recipe' };
@@ -247,3 +307,162 @@ export const testScrapeUrlDetailed = async (
         clearTimeout(timeoutId);
     }
 };
+
+/**
+ * Find a recipe by exact orgURL match.
+ * Returns null if no match found or on error.
+ *
+ * Note: Mealie stores orgURL as-is (with www, trailing slashes, etc).
+ * We fetch recent recipes and normalize both sides for comparison.
+ */
+export async function findRecipeByURL(
+    url: string,
+    server: string,
+    token: string,
+): Promise<RecipeSummary | null> {
+    const { logEvent, sanitizeUrl } = await import('./logging');
+
+    try {
+        const normalizedUrl = normalizeUrl(url);
+
+        // Fetch recent recipes (more likely to match) and filter client-side
+        // This works around Mealie's exact string matching in queryFilter
+        const apiUrl = new URL('/api/recipes', server);
+        apiUrl.searchParams.set('perPage', '100'); // Fetch more to increase match chance
+        apiUrl.searchParams.set('orderBy', 'dateUpdated');
+        apiUrl.searchParams.set('orderDirection', 'desc');
+
+        const res = (await fetch(apiUrl.href, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        })) as FetchLikeResponse;
+
+        if (!res.ok) {
+            await logEvent({
+                level: 'warn',
+                feature: 'duplicate-detect',
+                action: 'findByUrl',
+                phase: 'failure',
+                message: `Failed to query recipes by URL (HTTP ${res.status})`,
+                data: { url: sanitizeUrl(url) },
+            });
+            return null;
+        }
+
+        const responseText = await safeReadResponseText(res);
+        const data = JSON.parse(responseText) as { items?: RecipeSummary[] };
+
+        // Filter recipes client-side by normalizing both URLs
+        const recipes = data.items ?? [];
+        for (const recipe of recipes) {
+            if (!recipe.orgURL) continue;
+
+            const recipeNormalizedUrl = normalizeUrl(recipe.orgURL);
+
+            if (recipeNormalizedUrl === normalizedUrl) {
+                await logEvent({
+                    level: 'info',
+                    feature: 'duplicate-detect',
+                    action: 'findByUrl',
+                    phase: 'success',
+                    message: 'Found exact URL match',
+                    data: {
+                        url: sanitizeUrl(url),
+                        recipeName: recipe.name,
+                        recipeSlug: recipe.slug,
+                    },
+                });
+                return recipe;
+            }
+        }
+
+        await logEvent({
+            level: 'info',
+            feature: 'duplicate-detect',
+            action: 'findByUrl',
+            phase: 'success',
+            message: 'No URL match found',
+            data: { url: sanitizeUrl(url) },
+        });
+        return null;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await logEvent({
+            level: 'error',
+            feature: 'duplicate-detect',
+            action: 'findByUrl',
+            phase: 'failure',
+            message: `Error searching for recipe by URL: ${errorMessage}`,
+            data: { url: sanitizeUrl(url) },
+        });
+        return null;
+    }
+}
+
+/**
+ * Search for recipes by name (fuzzy match).
+ * Returns top 5 matches sorted by relevance.
+ * Returns empty array on error.
+ */
+export async function searchRecipesByName(
+    name: string,
+    server: string,
+    token: string,
+): Promise<RecipeSummary[]> {
+    const { logEvent } = await import('./logging');
+
+    try {
+        // Construct the API query with search parameter
+        const apiUrl = new URL('/api/recipes', server);
+        apiUrl.searchParams.set('search', name);
+        apiUrl.searchParams.set('perPage', '5');
+
+        const res = (await fetch(apiUrl.href, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        })) as FetchLikeResponse;
+
+        if (!res.ok) {
+            await logEvent({
+                level: 'warn',
+                feature: 'duplicate-detect',
+                action: 'searchByName',
+                phase: 'failure',
+                message: `Failed to search recipes by name (HTTP ${res.status})`,
+                data: { recipeName: name },
+            });
+            return [];
+        }
+
+        const responseText = await safeReadResponseText(res);
+        const data = JSON.parse(responseText) as { items?: RecipeSummary[] };
+
+        const matches = data.items ?? [];
+
+        await logEvent({
+            level: 'info',
+            feature: 'duplicate-detect',
+            action: 'searchByName',
+            phase: 'success',
+            message: `Found ${matches.length} similar recipes`,
+            data: { recipeName: name, matchCount: matches.length },
+        });
+
+        return matches;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await logEvent({
+            level: 'error',
+            feature: 'duplicate-detect',
+            action: 'searchByName',
+            phase: 'failure',
+            message: `Error searching recipes by name: ${errorMessage}`,
+            data: { recipeName: name },
+        });
+        return [];
+    }
+}

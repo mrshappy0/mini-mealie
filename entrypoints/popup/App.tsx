@@ -80,6 +80,7 @@ function App() {
                 mealieServer: inputServer,
                 mealieApiToken: inputToken,
                 mealieUsername: result.username,
+                mealieGroupSlug: result.group,
                 ladderEnabled: false,
             },
             () => {

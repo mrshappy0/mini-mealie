@@ -10,7 +10,8 @@ export type LogFeature =
     | 'recipe-detect'
     | 'html-capture'
     | 'network'
-    | 'storage';
+    | 'storage'
+    | 'duplicate-detect';
 
 export type LogEvent = {
     id: string;

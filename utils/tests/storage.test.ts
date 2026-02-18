@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WxtVitest } from 'wxt/testing';
 
 import { clearBadge, showBadge } from '../badge';
-import { addContextMenu, removeContextMenu } from '../contextMenu';
+import { removeContextMenu, updateContextMenu } from '../contextMenu';
 import { testScrapeUrlDetailed } from '../network';
 import { checkStorageAndUpdateBadge, clearDetectionCache } from '../storage';
 
@@ -28,8 +28,8 @@ vi.mock('../badge', () => ({
 }));
 
 vi.mock('../contextMenu', () => ({
-    addContextMenu: vi.fn(() => Promise.resolve()),
     removeContextMenu: vi.fn(() => Promise.resolve()),
+    updateContextMenu: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('../network', () => ({
@@ -62,14 +62,14 @@ describe('checkStorageAndUpdateBadge', () => {
         const mockShowBadge = vi.mocked(showBadge);
         const mockRemoveContextMenu = vi.mocked(removeContextMenu);
         const mockClearBadge = vi.mocked(clearBadge);
-        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
 
         await checkStorageAndUpdateBadge();
 
         expect(mockShowBadge).toHaveBeenCalledWith('❌');
         expect(mockRemoveContextMenu).toHaveBeenCalledTimes(1);
         expect(mockClearBadge).not.toHaveBeenCalled();
-        expect(mockAddContextMenu).not.toHaveBeenCalled();
+        expect(mockUpdateContextMenu).not.toHaveBeenCalled();
     });
 
     it('should clear badge and add context menu if mealieServer and mealieApiToken exist', async () => {
@@ -83,7 +83,7 @@ describe('checkStorageAndUpdateBadge', () => {
 
         const mockedShowBadge = vi.mocked(showBadge);
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
-        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
 
         await checkStorageAndUpdateBadge();
 
@@ -96,8 +96,12 @@ describe('checkStorageAndUpdateBadge', () => {
             'mock-token',
         );
         expect(mockedShowBadge).not.toHaveBeenCalled();
-        expect(mockAddContextMenu).toHaveBeenCalledTimes(1);
-        expect(mockAddContextMenu).toHaveBeenCalledWith('No Recipe - Switch to HTML Mode');
+        expect(mockUpdateContextMenu).toHaveBeenCalledTimes(1);
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
+            'No Recipe - Switch to HTML Mode',
+            false,
+            {},
+        );
     });
 
     it('should set "Recipe Detected" title when scraper detects a recipe', async () => {
@@ -114,12 +118,16 @@ describe('checkStorageAndUpdateBadge', () => {
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'recipe' });
 
-        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
 
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(mockAddContextMenu).toHaveBeenCalledWith('Create Recipe from URL');
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
+            'Create Recipe from URL',
+            true,
+            expect.any(Object),
+        );
     });
 
     it('should set a timeout title when scraper check times out', async () => {
@@ -136,12 +144,16 @@ describe('checkStorageAndUpdateBadge', () => {
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'timeout', timeoutMs: 4500 });
 
-        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
 
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(mockAddContextMenu).toHaveBeenCalledWith('Timed Out - Switch to HTML Mode');
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
+            'Timed Out - Switch to HTML Mode',
+            false,
+            {},
+        );
     });
 
     it('should set an http-error title with status when scraper check fails', async () => {
@@ -162,13 +174,15 @@ describe('checkStorageAndUpdateBadge', () => {
             details: 'Internal',
         });
 
-        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
 
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(mockAddContextMenu).toHaveBeenCalledWith(
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'Failed Detection (HTTP 500) - Switch to HTML Mode',
+            false,
+            {},
         );
     });
 
@@ -254,7 +268,7 @@ describe('checkStorageAndUpdateBadge', () => {
             vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url }]);
 
             await checkStorageAndUpdateBadge();
-            await Promise.resolve();
+            await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for async operations
 
             currentTime += 100; // Increment time for each entry
         }
@@ -269,7 +283,7 @@ describe('checkStorageAndUpdateBadge', () => {
         vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url: oldestUrl }]);
 
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for async operations
 
         // Should fetch again because the oldest entry was evicted
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(106);
@@ -280,7 +294,7 @@ describe('checkStorageAndUpdateBadge', () => {
         vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url: recentUrl }]);
 
         await checkStorageAndUpdateBadge();
-        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for async operations
 
         // Should still be 106 because url-100 is still cached
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(106);
@@ -424,7 +438,7 @@ describe('checkStorageAndUpdateBadge', () => {
 
         vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
 
-        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
 
         // Mock successful recipe detection
@@ -437,7 +451,7 @@ describe('checkStorageAndUpdateBadge', () => {
 
         // In HTML mode, should still call detection for cache, but use HTML mode title
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalled();
-        expect(mockAddContextMenu).toHaveBeenCalledWith('Create Recipe from HTML');
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith('Create Recipe from HTML', true, {});
     });
 
     it('should handle error outcome from detection', async () => {
@@ -457,11 +471,214 @@ describe('checkStorageAndUpdateBadge', () => {
             message: 'Network failure',
         });
 
-        const mockAddContextMenu = vi.mocked(addContextMenu);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
 
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        expect(mockAddContextMenu).toHaveBeenCalledWith('Failed Detection - Switch to HTML Mode');
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
+            'Failed Detection - Switch to HTML Mode',
+            false,
+            {},
+        );
+    });
+
+    describe('Duplicate Detection Integration', () => {
+        beforeEach(() => {
+            // Mock network functions for duplicate detection
+            vi.mock('../network', () => ({
+                testScrapeUrlDetailed: vi.fn(() => Promise.resolve({ outcome: 'not-recipe' })),
+                findRecipeByURL: vi.fn(() => Promise.resolve(null)),
+                searchRecipesByName: vi.fn(() => Promise.resolve([])),
+            }));
+        });
+
+        it('should cache recipeName when recipe is detected', async () => {
+            const { detectionCache } = await import('../storage');
+
+            vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+                (_keys, callback: (items: Record<string, string>) => void) => {
+                    callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+                },
+            );
+
+            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+
+            const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+            mockTestScrapeUrlDetailed.mockResolvedValueOnce({
+                outcome: 'recipe',
+                recipeName: 'Chicken Carbonara',
+            });
+
+            await checkStorageAndUpdateBadge();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
+            expect(cached).toBeDefined();
+            expect(cached?.recipeName).toBe('Chicken Carbonara');
+        });
+
+        it('should cache duplicateDetection with URL match', async () => {
+            const { detectionCache } = await import('../storage');
+            const { findRecipeByURL } = await import('../network');
+
+            vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+                (_keys, callback: (items: Record<string, string>) => void) => {
+                    callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+                },
+            );
+
+            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+
+            const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+            mockTestScrapeUrlDetailed.mockResolvedValueOnce({
+                outcome: 'recipe',
+                recipeName: 'Chicken Carbonara',
+            });
+
+            const mockFindRecipeByURL = vi.mocked(findRecipeByURL);
+            mockFindRecipeByURL.mockResolvedValueOnce({
+                id: '123',
+                name: 'Chicken Carbonara',
+                slug: 'chicken-carbonara',
+            });
+
+            await checkStorageAndUpdateBadge();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
+            expect(cached?.duplicateDetection).toEqual({
+                urlMatch: {
+                    id: '123',
+                    name: 'Chicken Carbonara',
+                    slug: 'chicken-carbonara',
+                },
+            });
+        });
+
+        it('should cache duplicateDetection with name matches', async () => {
+            const { detectionCache } = await import('../storage');
+            const { findRecipeByURL, searchRecipesByName } = await import('../network');
+
+            vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+                (_keys, callback: (items: Record<string, string>) => void) => {
+                    callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+                },
+            );
+
+            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+
+            const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+            mockTestScrapeUrlDetailed.mockResolvedValueOnce({
+                outcome: 'recipe',
+                recipeName: 'Chicken Pasta',
+            });
+
+            const mockFindRecipeByURL = vi.mocked(findRecipeByURL);
+            mockFindRecipeByURL.mockResolvedValueOnce(null);
+
+            const mockSearchRecipesByName = vi.mocked(searchRecipesByName);
+            mockSearchRecipesByName.mockResolvedValueOnce([
+                { id: '456', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
+                { id: '789', name: 'Chicken Alfredo', slug: 'chicken-alfredo' },
+            ]);
+
+            await checkStorageAndUpdateBadge();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
+            expect(cached?.duplicateDetection).toEqual({
+                searchQuery: 'Chicken Pasta',
+                nameMatches: [
+                    { id: '456', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
+                    { id: '789', name: 'Chicken Alfredo', slug: 'chicken-alfredo' },
+                ],
+            });
+        });
+
+        it('should cache duplicateDetection as none when no matches found', async () => {
+            const { detectionCache } = await import('../storage');
+            const { findRecipeByURL, searchRecipesByName } = await import('../network');
+
+            vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+                (_keys, callback: (items: Record<string, string>) => void) => {
+                    callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+                },
+            );
+
+            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+
+            const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+            mockTestScrapeUrlDetailed.mockResolvedValueOnce({
+                outcome: 'recipe',
+                recipeName: 'Unique Recipe',
+            });
+
+            const mockFindRecipeByURL = vi.mocked(findRecipeByURL);
+            mockFindRecipeByURL.mockResolvedValueOnce(null);
+
+            const mockSearchRecipesByName = vi.mocked(searchRecipesByName);
+            mockSearchRecipesByName.mockResolvedValueOnce([]);
+
+            await checkStorageAndUpdateBadge();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
+            expect(cached?.duplicateDetection).toEqual({});
+        });
+
+        it('should not run duplicate detection for non-recipe outcomes', async () => {
+            const { detectionCache } = await import('../storage');
+            const { findRecipeByURL } = await import('../network');
+
+            vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+                (_keys, callback: (items: Record<string, string>) => void) => {
+                    callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+                },
+            );
+
+            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+
+            const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+            mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'not-recipe' });
+
+            const mockFindRecipeByURL = vi.mocked(findRecipeByURL);
+
+            await checkStorageAndUpdateBadge();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
+            expect(cached?.duplicateDetection).toBeUndefined();
+            expect(mockFindRecipeByURL).not.toHaveBeenCalled();
+        });
+
+        it('should handle duplicate detection errors gracefully', async () => {
+            const { detectionCache } = await import('../storage');
+            const { findRecipeByURL } = await import('../network');
+
+            vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+                (_keys, callback: (items: Record<string, string>) => void) => {
+                    callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+                },
+            );
+
+            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+
+            const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+            mockTestScrapeUrlDetailed.mockResolvedValueOnce({
+                outcome: 'recipe',
+                recipeName: 'Test Recipe',
+            });
+
+            const mockFindRecipeByURL = vi.mocked(findRecipeByURL);
+            mockFindRecipeByURL.mockRejectedValueOnce(new Error('Network error'));
+
+            await checkStorageAndUpdateBadge();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const cached = detectionCache.get('https://recipe.org/mock-recipe-url');
+            // Should fall back to empty result on error
+            expect(cached?.duplicateDetection).toEqual({});
+        });
     });
 });
