@@ -111,13 +111,7 @@ describe('updateContextMenu', () => {
     });
 
     it('should create main menu and no duplicate menus when type is none', () => {
-        updateContextMenu(
-            'Create Recipe from URL',
-            true,
-            { type: 'none' },
-            'https://mealie.local',
-            'my-group',
-        );
+        updateContextMenu('Create Recipe from URL', true, { type: 'none' });
 
         // Main menu should be created
         expect(chrome.contextMenus.update).toHaveBeenCalledWith(
@@ -142,16 +136,10 @@ describe('updateContextMenu', () => {
     });
 
     it('should create URL duplicate warning menu when exact match found', () => {
-        updateContextMenu(
-            'Create Recipe from URL',
-            true,
-            {
-                type: 'url',
-                match: { id: '123', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
-            },
-            'https://mealie.local',
-            'my-group',
-        );
+        updateContextMenu('Create Recipe from URL', true, {
+            type: 'url',
+            match: { id: '123', name: 'Chicken Carbonara', slug: 'chicken-carbonara' },
+        });
 
         // Main menu should be created
         expect(chrome.contextMenus.update).toHaveBeenCalled();
@@ -169,20 +157,14 @@ describe('updateContextMenu', () => {
     });
 
     it('should create name duplicate warning menu when similar recipes found', () => {
-        updateContextMenu(
-            'Create Recipe from URL',
-            true,
-            {
-                type: 'name',
-                matches: [
-                    { id: '456', name: 'Chicken Pasta', slug: 'chicken-pasta' },
-                    { id: '789', name: 'Creamy Chicken', slug: 'creamy-chicken' },
-                ],
-                searchQuery: 'Chicken Carbonara',
-            },
-            'https://mealie.local',
-            'my-group',
-        );
+        updateContextMenu('Create Recipe from URL', true, {
+            type: 'name',
+            matches: [
+                { id: '456', name: 'Chicken Pasta', slug: 'chicken-pasta' },
+                { id: '789', name: 'Creamy Chicken', slug: 'creamy-chicken' },
+            ],
+            searchQuery: 'Chicken Carbonara',
+        });
 
         // Main menu should be created
         expect(chrome.contextMenus.update).toHaveBeenCalled();
@@ -199,34 +181,8 @@ describe('updateContextMenu', () => {
         );
     });
 
-    it('should not create URL menu when server or groupSlug is missing', () => {
-        updateContextMenu(
-            'Create Recipe from URL',
-            true,
-            {
-                type: 'url',
-                match: { id: '123', name: 'Test Recipe', slug: 'test-recipe' },
-            },
-            undefined,
-            undefined,
-        );
-
-        // Duplicate removal should still be called
-        expect(chrome.contextMenus.remove).toHaveBeenCalled();
-
-        // No duplicate menu items created
-        const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
-        expect(createCalls.length).toBe(0);
-    });
-
     it('should handle disabled main menu', () => {
-        updateContextMenu(
-            'No Recipe - Switch to HTML Mode',
-            false,
-            { type: 'none' },
-            'https://mealie.local',
-            'my-group',
-        );
+        updateContextMenu('No Recipe - Switch to HTML Mode', false, { type: 'none' });
 
         // Main menu should be created with disabled state
         expect(chrome.contextMenus.update).toHaveBeenCalledWith(
