@@ -97,8 +97,6 @@ export const removeAllDuplicateMenus = () => {
  * @param createTitle - Title for the main "Create Recipe" menu item
  * @param createEnabled - Whether the create action is enabled
  * @param duplicateInfo - Information about detected duplicates
- * @param mealieServer - Mealie server URL (for constructing recipe links)
- * @param groupSlug - User's group slug (for constructing recipe links)
  */
 export const updateContextMenu = (
     createTitle: string,
