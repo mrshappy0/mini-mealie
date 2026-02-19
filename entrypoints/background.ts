@@ -34,8 +34,16 @@ export default defineBackground(() => {
 
     // Watch for changes in storage to update badge and context menu
     chrome.storage.onChanged.addListener((changes, area) => {
-        if (area === 'sync' && (changes.mealieServer || changes.mealieApiToken)) {
-            scheduleUpdate();
+        if (area === 'sync') {
+            if (changes.mealieServer || changes.mealieApiToken) {
+                scheduleUpdate();
+            }
+            // Clear cache and immediately update when mode changes
+            // (no delay) to ensure context menu updates instantly
+            if (changes.recipeCreateMode) {
+                clearDetectionCache();
+                void checkStorageAndUpdateBadge();
+            }
         }
     });
 
@@ -73,6 +81,19 @@ export default defineBackground(() => {
         switch (menuId) {
             case RUN_CREATE_RECIPE_MENU_ID:
                 runCreateRecipe(tab);
+                break;
+
+            case SWITCH_TO_HTML_MODE_ID:
+                // Switch to HTML mode when user clicks error suggestion
+                chrome.storage.sync.set({ recipeCreateMode: RecipeCreateMode.HTML }, async () => {
+                    await logEvent({
+                        level: 'info',
+                        feature: 'recipe-create',
+                        action: 'switchMode',
+                        phase: 'success',
+                        message: 'Switched to HTML mode from context menu',
+                    });
+                });
                 break;
 
             case DUPLICATE_URL_MENU_ID:

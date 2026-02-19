@@ -186,7 +186,17 @@ export const checkStorageAndUpdateBadge = async () => {
                 : RecipeCreateMode.URL;
             const isUrlMode = mode === RecipeCreateMode.URL;
 
-            let title = isUrlMode ? 'No Recipe - Switch to HTML Mode' : 'Create Recipe from HTML';
+            // In HTML mode, always show static title and enable
+            // No detection or duplicate checking needed
+            if (!isUrlMode) {
+                updateContextMenu('Create Recipe from HTML', true, {}, false);
+                return;
+            }
+
+            // From here on, we're in URL mode only
+            let title = 'No Recipe - Switch to HTML Mode';
+            const enabled = true; // Always enabled
+            let isErrorSuggestion = true; // Default to error state
             let duplicateInfo: DuplicateDetectionResult = {};
 
             if (url) {
@@ -207,8 +217,9 @@ export const checkStorageAndUpdateBadge = async () => {
                     cached.checkedAt = now;
                     // Generate title based on current mode and cached outcome
                     title = getTitleForOutcome(cached.outcome, cached.status, isUrlMode);
-                    // Use cached duplicate detection if available
-                    if (cached.duplicateDetection) {
+                    isErrorSuggestion = cached.outcome !== 'recipe';
+                    // Use cached duplicate detection if available and recipe was detected
+                    if (cached.outcome === 'recipe' && cached.duplicateDetection) {
                         duplicateInfo = cached.duplicateDetection;
                     }
                 } else {
@@ -276,7 +287,10 @@ export const checkStorageAndUpdateBadge = async () => {
                     if (result.outcome === 'http-error') {
                         cacheEntry.status = result.status;
                     }
+
+                    // Only check for duplicates if recipe was detected (in URL mode)
                     if (result.outcome === 'recipe') {
+                        isErrorSuggestion = false;
                         // Store recipe name if available
                         if (result.recipeName) {
                             cacheEntry.recipeName = result.recipeName;
@@ -292,15 +306,14 @@ export const checkStorageAndUpdateBadge = async () => {
                         cacheEntry.duplicateDetection = duplicateDetection;
                         duplicateInfo = duplicateDetection;
                     }
+
                     detectionCache.set(url, cacheEntry);
                     title = getTitleForOutcome(result.outcome, cacheEntry.status, isUrlMode);
                 }
             }
 
-            // Use updateContextMenu with duplicate info
-            const enabled =
-                title === 'Create Recipe from URL' || title === 'Create Recipe from HTML';
-            updateContextMenu(title, enabled, duplicateInfo);
+            // Always use updateContextMenu with duplicate info
+            updateContextMenu(title, enabled, duplicateInfo, isErrorSuggestion);
         },
     );
 };
