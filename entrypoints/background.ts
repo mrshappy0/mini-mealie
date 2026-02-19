@@ -56,10 +56,7 @@ export default defineBackground(() => {
     chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
         if (changeInfo.url) {
             // Skip internal browser and extension pages
-            if (
-                changeInfo.url.startsWith('chrome://') ||
-                changeInfo.url.startsWith('chrome-extension://')
-            ) {
+            if (isRestrictedUrl(changeInfo.url)) {
                 return;
             }
             scheduleUpdate();
