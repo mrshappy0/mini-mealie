@@ -1,5 +1,19 @@
 const DETECTION_CACHE_TTL_MS = 30_000;
 const DETECTION_CACHE_MAX_SIZE = 100;
+
+/**
+ * Browser protocols that prevent content script injection.
+ * Used to skip pages where the extension cannot function.
+ */
+export const RESTRICTED_PROTOCOLS = [
+    'chrome:',
+    'chrome-extension:',
+    'chrome-untrusted:',
+    'about:',
+    'data:',
+    'file:',
+];
+
 let lastCheckId = 0;
 type DetectionOutcome = 'recipe' | 'not-recipe' | 'timeout' | 'http-error' | 'error';
 
@@ -25,6 +39,32 @@ export const detectionCache = new Map<string, CachedDetection>();
  */
 export function clearDetectionCache() {
     detectionCache.clear();
+}
+
+/**
+ * Check if a URL uses a restricted protocol that prevents script injection.
+ * Returns true for chrome://, chrome-extension://, about:, data:, file:, etc.
+ * @param url - The URL to check
+ * @returns true if the URL is restricted, false otherwise
+ */
+export function isRestrictedUrl(url: string): boolean {
+    try {
+        const urlObj = new URL(url);
+        return RESTRICTED_PROTOCOLS.includes(urlObj.protocol);
+    } catch {
+        // Invalid URL - treat as restricted
+        return true;
+    }
+}
+
+/**
+ * Disable all menus and clear the badge.
+ * Used when on restricted pages or when extension is not configured.
+ */
+function disableAllMenus(): void {
+    showBadge('');
+    removeContextMenu();
+    removeAllDuplicateMenus();
 }
 
 /**
@@ -163,6 +203,155 @@ function getTitleForOutcome(
     }
 }
 
+/**
+ * Result from processing recipe detection (cached or fresh).
+ */
+type DetectionProcessingResult = {
+    title: string;
+    isErrorSuggestion: boolean;
+    duplicateInfo: DuplicateDetectionResult;
+};
+
+/**
+ * Process cached detection result and return menu state.
+ * Updates cache timestamp for LRU behavior.
+ */
+function processCachedDetection(
+    cached: CachedDetection,
+    isUrlMode: boolean,
+): DetectionProcessingResult {
+    // Update timestamp for true LRU behavior
+    cached.checkedAt = Date.now();
+
+    const title = getTitleForOutcome(cached.outcome, cached.status, isUrlMode);
+    const isErrorSuggestion = cached.outcome !== 'recipe';
+
+    // Use cached duplicate detection if available and recipe was detected
+    let duplicateInfo: DuplicateDetectionResult = {};
+    if (cached.outcome === 'recipe' && cached.duplicateDetection) {
+        duplicateInfo = cached.duplicateDetection;
+    }
+
+    return { title, isErrorSuggestion, duplicateInfo };
+}
+
+/**
+ * Perform fresh recipe detection, duplicate checking, and cache the results.
+ * Returns null if the operation was cancelled (due to a newer check starting).
+ */
+async function processFreshDetection(
+    url: string,
+    now: number,
+    checkId: number,
+    mealieServer: string,
+    mealieApiToken: string,
+    isUrlMode: boolean,
+): Promise<DetectionProcessingResult | null> {
+    const result = await testScrapeUrlDetailed(url, mealieServer, mealieApiToken);
+    if (checkId !== lastCheckId) return null;
+
+    await logDetectionResult(result, url);
+
+    // Cache the outcome and generate title based on current mode
+    const cacheEntry: CachedDetection = {
+        checkedAt: now,
+        outcome: result.outcome,
+    };
+    if (result.outcome === 'http-error') {
+        cacheEntry.status = result.status;
+    }
+
+    let isErrorSuggestion = true;
+    let duplicateInfo: DuplicateDetectionResult = {};
+
+    // Only check for duplicates if recipe was detected (in URL mode)
+    if (result.outcome === 'recipe') {
+        isErrorSuggestion = false;
+        // Store recipe name if available
+        if (result.recipeName) {
+            cacheEntry.recipeName = result.recipeName;
+        }
+        // Check for duplicates
+        const duplicateDetection = await checkForDuplicates(
+            url,
+            result.recipeName,
+            mealieServer,
+            mealieApiToken,
+        );
+        if (checkId !== lastCheckId) return null;
+        cacheEntry.duplicateDetection = duplicateDetection;
+        duplicateInfo = duplicateDetection;
+    }
+
+    detectionCache.set(url, cacheEntry);
+    const title = getTitleForOutcome(result.outcome, cacheEntry.status, isUrlMode);
+
+    return { title, isErrorSuggestion, duplicateInfo };
+}
+
+/**
+ * Log the detection result based on the outcome.
+ * @param result - The detailed scrape result
+ * @param url - The URL that was tested
+ */
+async function logDetectionResult(
+    result: Awaited<ReturnType<typeof testScrapeUrlDetailed>>,
+    url: string,
+): Promise<void> {
+    switch (result.outcome) {
+        case 'recipe':
+            await logEvent({
+                level: 'info',
+                feature: 'recipe-detect',
+                action: 'testScrape',
+                phase: 'success',
+                message: 'Recipe detected on page',
+                data: { url: sanitizeUrl(url) },
+            });
+            break;
+        case 'not-recipe':
+            await logEvent({
+                level: 'info',
+                feature: 'recipe-detect',
+                action: 'testScrape',
+                phase: 'failure',
+                message: 'No recipe found on page',
+                data: { url: sanitizeUrl(url) },
+            });
+            break;
+        case 'timeout':
+            await logEvent({
+                level: 'warn',
+                feature: 'recipe-detect',
+                action: 'testScrape',
+                phase: 'failure',
+                message: `Recipe detection timed out (${result.timeoutMs}ms)`,
+                data: { url: sanitizeUrl(url), timeoutMs: result.timeoutMs },
+            });
+            break;
+        case 'http-error':
+            await logEvent({
+                level: 'warn',
+                feature: 'recipe-detect',
+                action: 'testScrape',
+                phase: 'failure',
+                message: `Recipe detection failed with HTTP ${result.status}`,
+                data: { url: sanitizeUrl(url), status: result.status },
+            });
+            break;
+        case 'error':
+            await logEvent({
+                level: 'error',
+                feature: 'recipe-detect',
+                action: 'testScrape',
+                phase: 'failure',
+                message: `Recipe detection error: ${result.message}`,
+                data: { url: sanitizeUrl(url) },
+            });
+            break;
+    }
+}
+
 export const checkStorageAndUpdateBadge = async () => {
     const checkId = ++lastCheckId;
 
@@ -186,121 +375,55 @@ export const checkStorageAndUpdateBadge = async () => {
                 : RecipeCreateMode.URL;
             const isUrlMode = mode === RecipeCreateMode.URL;
 
-            let title = isUrlMode ? 'No Recipe - Switch to HTML Mode' : 'Create Recipe from HTML';
+            // Skip internal browser and extension pages (applies to both URL and HTML modes)
+            // Script injection fails on these pages due to browser security restrictions
+            if (url && isRestrictedUrl(url)) {
+                disableAllMenus();
+                return;
+            }
+
+            // In HTML mode, always show static title and enable
+            // No detection or duplicate checking needed
+            if (!isUrlMode) {
+                updateContextMenu('Create Recipe from HTML', true, {}, false);
+                return;
+            }
+
+            // From here on, we're in URL mode only
+            let title = 'No Recipe - Switch to HTML Mode';
+            const enabled = true; // Always enabled
+            let isErrorSuggestion = true; // Default to error state
             let duplicateInfo: DuplicateDetectionResult = {};
 
             if (url) {
-                // Skip internal browser and extension pages
-                if (url.startsWith('chrome://') || url.startsWith('chrome-extension://')) {
-                    showBadge('');
-                    removeContextMenu();
-                    removeAllDuplicateMenus();
-                    return;
-                }
-
                 pruneDetectionCache();
 
                 const cached = detectionCache.get(url);
                 const now = Date.now();
+
+                let detectionResult: DetectionProcessingResult | null = null;
+
                 if (cached && now - cached.checkedAt < DETECTION_CACHE_TTL_MS) {
-                    // Update timestamp for true LRU behavior
-                    cached.checkedAt = now;
-                    // Generate title based on current mode and cached outcome
-                    title = getTitleForOutcome(cached.outcome, cached.status, isUrlMode);
-                    // Use cached duplicate detection if available
-                    if (cached.duplicateDetection) {
-                        duplicateInfo = cached.duplicateDetection;
-                    }
+                    detectionResult = processCachedDetection(cached, isUrlMode);
                 } else {
-                    const result = await testScrapeUrlDetailed(url, mealieServer, mealieApiToken);
-                    if (checkId !== lastCheckId) return;
-
-                    switch (result.outcome) {
-                        case 'recipe':
-                            await logEvent({
-                                level: 'info',
-                                feature: 'recipe-detect',
-                                action: 'testScrape',
-                                phase: 'success',
-                                message: 'Recipe detected on page',
-                                data: { url: sanitizeUrl(url) },
-                            });
-                            break;
-                        case 'not-recipe':
-                            await logEvent({
-                                level: 'info',
-                                feature: 'recipe-detect',
-                                action: 'testScrape',
-                                phase: 'failure',
-                                message: 'No recipe found on page',
-                                data: { url: sanitizeUrl(url) },
-                            });
-                            break;
-                        case 'timeout':
-                            await logEvent({
-                                level: 'warn',
-                                feature: 'recipe-detect',
-                                action: 'testScrape',
-                                phase: 'failure',
-                                message: `Recipe detection timed out (${result.timeoutMs}ms)`,
-                                data: { url: sanitizeUrl(url), timeoutMs: result.timeoutMs },
-                            });
-                            break;
-                        case 'http-error':
-                            await logEvent({
-                                level: 'warn',
-                                feature: 'recipe-detect',
-                                action: 'testScrape',
-                                phase: 'failure',
-                                message: `Recipe detection failed with HTTP ${result.status}`,
-                                data: { url: sanitizeUrl(url), status: result.status },
-                            });
-                            break;
-                        case 'error':
-                            await logEvent({
-                                level: 'error',
-                                feature: 'recipe-detect',
-                                action: 'testScrape',
-                                phase: 'failure',
-                                message: `Recipe detection error: ${result.message}`,
-                                data: { url: sanitizeUrl(url) },
-                            });
-                            break;
-                    }
-
-                    // Cache the outcome and generate title based on current mode
-                    const cacheEntry: CachedDetection = {
-                        checkedAt: now,
-                        outcome: result.outcome,
-                    };
-                    if (result.outcome === 'http-error') {
-                        cacheEntry.status = result.status;
-                    }
-                    if (result.outcome === 'recipe') {
-                        // Store recipe name if available
-                        if (result.recipeName) {
-                            cacheEntry.recipeName = result.recipeName;
-                        }
-                        // Check for duplicates
-                        const duplicateDetection = await checkForDuplicates(
-                            url,
-                            result.recipeName,
-                            mealieServer,
-                            mealieApiToken,
-                        );
-                        if (checkId !== lastCheckId) return;
-                        cacheEntry.duplicateDetection = duplicateDetection;
-                        duplicateInfo = duplicateDetection;
-                    }
-                    detectionCache.set(url, cacheEntry);
-                    title = getTitleForOutcome(result.outcome, cacheEntry.status, isUrlMode);
+                    detectionResult = await processFreshDetection(
+                        url,
+                        now,
+                        checkId,
+                        mealieServer,
+                        mealieApiToken,
+                        isUrlMode,
+                    );
+                    if (!detectionResult) return; // Cancelled
                 }
+
+                title = detectionResult.title;
+                isErrorSuggestion = detectionResult.isErrorSuggestion;
+                duplicateInfo = detectionResult.duplicateInfo;
             }
 
-            // Use updateContextMenu with duplicate info
-            const enabled =
-                title === 'Create Recipe from URL' || title === 'Create Recipe from HTML';
-            updateContextMenu(title, enabled, duplicateInfo);
+            // Always use updateContextMenu with duplicate info
+            updateContextMenu(title, enabled, duplicateInfo, isErrorSuggestion);
         },
     );
 };

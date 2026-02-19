@@ -99,8 +99,9 @@ describe('checkStorageAndUpdateBadge', () => {
         expect(mockUpdateContextMenu).toHaveBeenCalledTimes(1);
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'No Recipe - Switch to HTML Mode',
-            false,
+            true,
             {},
+            true,
         );
     });
 
@@ -127,6 +128,7 @@ describe('checkStorageAndUpdateBadge', () => {
             'Create Recipe from URL',
             true,
             expect.any(Object),
+            false,
         );
     });
 
@@ -151,8 +153,9 @@ describe('checkStorageAndUpdateBadge', () => {
 
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'Timed Out - Switch to HTML Mode',
-            false,
+            true,
             {},
+            true,
         );
     });
 
@@ -181,8 +184,9 @@ describe('checkStorageAndUpdateBadge', () => {
 
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'Failed Detection (HTTP 500) - Switch to HTML Mode',
-            false,
+            true,
             {},
+            true,
         );
     });
 
@@ -449,9 +453,14 @@ describe('checkStorageAndUpdateBadge', () => {
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // In HTML mode, should still call detection for cache, but use HTML mode title
-        expect(mockTestScrapeUrlDetailed).toHaveBeenCalled();
-        expect(mockUpdateContextMenu).toHaveBeenCalledWith('Create Recipe from HTML', true, {});
+        // In HTML mode, no detection happens - just returns early with static title
+        expect(mockTestScrapeUrlDetailed).not.toHaveBeenCalled();
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
+            'Create Recipe from HTML',
+            true,
+            {},
+            false,
+        );
     });
 
     it('should handle error outcome from detection', async () => {
@@ -478,8 +487,9 @@ describe('checkStorageAndUpdateBadge', () => {
 
         expect(mockUpdateContextMenu).toHaveBeenCalledWith(
             'Failed Detection - Switch to HTML Mode',
-            false,
+            true,
             {},
+            true,
         );
     });
 

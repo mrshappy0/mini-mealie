@@ -9,8 +9,6 @@ export default defineWebExtConfig({
     startUrls: [
         'https://www.allrecipes.com/recipe/286369/cheesy-ground-beef-and-potatoes/',
         'https://www.katheats.com/homemade-nutty-granola-recipe',
+        'https://example.com', // Non-recipe page for testing detection behavior
     ],
-
-    // Optional: Uncomment to auto-open DevTools
-    // openDevtools: true,
 });

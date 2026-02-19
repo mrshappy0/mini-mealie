@@ -57,6 +57,29 @@ function App() {
         );
     }, [protocol]);
 
+    // Listen for storage changes (e.g., when context menu switches mode)
+    useEffect(() => {
+        const handleStorageChange = (
+            changes: { [key: string]: chrome.storage.StorageChange },
+            areaName: chrome.storage.AreaName,
+        ) => {
+            if (areaName !== 'sync') return;
+
+            if (changes.recipeCreateMode?.newValue) {
+                const newMode = changes.recipeCreateMode.newValue;
+                if (isRecipeCreateMode(newMode)) {
+                    setRecipeCreateMode(newMode);
+                }
+            }
+        };
+
+        chrome.storage.onChanged.addListener(handleStorageChange);
+
+        return () => {
+            chrome.storage.onChanged.removeListener(handleStorageChange);
+        };
+    }, []);
+
     useEffect(() => {
         const isDisabled = inputServer.trim() === '' || inputToken.trim() === '';
         setIsSaveDisabled(isDisabled);
