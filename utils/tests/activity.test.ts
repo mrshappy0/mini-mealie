@@ -15,6 +15,7 @@ vi.mock('../contextMenu', () => ({
 
 vi.mock('../storage', () => ({
     checkStorageAndUpdateBadge: vi.fn(),
+    invalidateDetectionCacheForUrl: vi.fn(),
 }));
 
 const { addContextMenu } = await import('../contextMenu');

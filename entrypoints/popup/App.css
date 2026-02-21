@@ -9,15 +9,16 @@
 #root {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem;
     text-align: center;
     background-color: var(--mealie-black);
     color: var(--mealie-white);
+    overflow: hidden;
 }
 
 .logo {
-    height: 6em;
-    padding: 1.5em;
+    height: 5em;
+    padding: 1em;
     will-change: filter;
     transition: filter 150ms ease-in-out;
 }
@@ -69,9 +70,9 @@
 }
 
 .recipe-mode-card {
-    padding: 0em 0em 0.75em 0em;
+    padding: 0em 0em 0.5em 0em;
     border-radius: 10px;
-    margin-bottom: 1em;
+    margin-bottom: 0.75em;
 }
 
 .recipe-mode-title {
@@ -172,6 +173,8 @@
 
 .read-the-docs {
     color: #888;
+    margin-bottom: 0.25em;
+    margin-top: 0.5em;
 }
 
 .buy-me-a-coffee-button:hover {
@@ -184,8 +187,9 @@
 }
 
 .buy-me-a-coffee-container {
-    text-align: center;
-    margin-top: 3em;
+    text-align: right;
+    margin-top: 0.75em;
+    padding-top: 0;
 }
 
 .buy-me-a-coffee-button img.coffee-icon {
@@ -197,10 +201,7 @@
 }
 
 .coffee-button-wrapper {
-    position: fixed;
-    bottom: 1em;
-    right: 1em;
-    z-index: 10;
+    display: inline-block;
 }
 
 .buy-me-a-coffee-button {
@@ -334,4 +335,26 @@ input:checked + .slider::before {
 
 .checkbox-label:hover span {
     color: var(--mealie-hover);
+}
+
+.activity-log {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+    text-align: center;
+    display: block;
+    width: 100%;
+    clear: both;
+}
+
+.activity-log-link {
+    background: transparent;
+    border: none;
+    color: var(--mealie-orange);
+    cursor: pointer;
+    padding: 0.3em 0.5em;
+    font-size: 0.9em;
+}
+
+.activity-log-link:hover {
+    text-decoration: underline;
 }

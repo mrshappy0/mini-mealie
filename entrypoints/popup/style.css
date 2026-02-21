@@ -19,6 +19,10 @@
     -webkit-text-size-adjust: 100%;
 }
 
+html {
+    overflow: hidden;
+}
+
 a {
     font-weight: 500;
     color: var(--mealie-orange);
@@ -36,6 +40,7 @@ body {
     min-height: 100vh;
     background-color: var(--mealie-black);
     color: var(--mealie-white);
+    overflow: hidden;
 }
 
 h1 {

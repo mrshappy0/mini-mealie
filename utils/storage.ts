@@ -42,6 +42,15 @@ export function clearDetectionCache() {
 }
 
 /**
+ * Invalidate the detection cache for a specific URL.
+ * Used after recipe creation to ensure duplicate detection reflects the new state.
+ * @param url - The URL to invalidate
+ */
+export function invalidateDetectionCacheForUrl(url: string) {
+    detectionCache.delete(url);
+}
+
+/**
  * Check if a URL uses a restricted protocol that prevents script injection.
  * Returns true for chrome://, chrome-extension://, about:, data:, file:, etc.
  * @param url - The URL to check
