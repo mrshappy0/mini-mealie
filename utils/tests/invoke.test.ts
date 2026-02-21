@@ -20,6 +20,7 @@ vi.mock('../network', () => ({
 
 vi.mock('../storage', () => ({
     detectionCache: new Map(),
+    invalidateDetectionCacheForUrl: vi.fn(),
 }));
 
 describe('invoke', () => {

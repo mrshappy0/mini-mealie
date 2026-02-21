@@ -89,6 +89,10 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         data: { url: sanitizeUrl(tab.url) },
                     });
 
+                    if (success) {
+                        invalidateDetectionCacheForUrl(tab.url);
+                    }
+
                     await endActivity(
                         success ? '✅' : '❌',
                         success ? 'Recipe created successfully' : 'Recipe creation failed',

@@ -8,6 +8,8 @@ vi.mock('../badge', () => ({
     clearBadge: vi.fn(),
 }));
 
+const { showBadge } = await import('../badge');
+
 vi.mock('../activity', async () => {
     const badge = await import('../badge');
     const storage = await import('../storage');
@@ -28,6 +30,7 @@ vi.mock('../activity', async () => {
 vi.mock('../storage', () => ({
     checkStorageAndUpdateBadge: vi.fn(),
     detectionCache: new Map(),
+    invalidateDetectionCacheForUrl: vi.fn(),
 }));
 
 vi.mock('../logging', () => ({

@@ -5,8 +5,6 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import miniMealieLogo from '/mini-mealie.svg';
 import { isRecipeCreateMode, RecipeCreateMode } from '@/utils/types/storageTypes';
 
-import { ActivityLog } from './ActivityLog';
-
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState('');
@@ -339,6 +337,21 @@ function App() {
                 <BuyMeACoffeeButton />
             </div>
         </>
+    );
+}
+
+function ActivityLog() {
+    const handleOpenLogs = () => {
+        // TODO: investigate if we can await this call
+        void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
+    };
+
+    return (
+        <div className="activity-log">
+            <button className="activity-log-link" onClick={handleOpenLogs}>
+                Recent Activity ▶
+            </button>
+        </div>
     );
 }
 
