@@ -208,4 +208,54 @@ describe('invoke', () => {
             expect(beginActivity).toHaveBeenCalled();
         });
     });
+
+    describe('runCreateRecipe - cache invalidation', () => {
+        it('should invalidate detection cache for URL on successful creation', async () => {
+            const { invalidateDetectionCacheForUrl, detectionCache } = await import('../storage');
+            detectionCache.clear();
+
+            const mockUrl = 'https://example.com/recipe';
+
+            vi.mocked(chrome.storage.sync.get).mockImplementation((_keys, callback) => {
+                callback?.({
+                    mealieServer: 'https://mealie.local',
+                    mealieApiToken: 'token',
+                    recipeCreateMode: RecipeCreateMode.URL,
+                });
+            });
+
+            const { createRecipeFromURL } = await import('../network');
+            vi.mocked(createRecipeFromURL).mockResolvedValue('success');
+
+            runCreateRecipe({ id: 123, url: mockUrl } as chrome.tabs.Tab);
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            expect(invalidateDetectionCacheForUrl).toHaveBeenCalledWith(mockUrl);
+        });
+
+        it('should not invalidate detection cache when URL creation fails', async () => {
+            const { invalidateDetectionCacheForUrl, detectionCache } = await import('../storage');
+            detectionCache.clear();
+
+            const mockUrl = 'https://example.com/recipe';
+
+            vi.mocked(chrome.storage.sync.get).mockImplementation((_keys, callback) => {
+                callback?.({
+                    mealieServer: 'https://mealie.local',
+                    mealieApiToken: 'token',
+                    recipeCreateMode: RecipeCreateMode.URL,
+                });
+            });
+
+            const { createRecipeFromURL } = await import('../network');
+            vi.mocked(createRecipeFromURL).mockResolvedValue('error');
+
+            runCreateRecipe({ id: 123, url: mockUrl } as chrome.tabs.Tab);
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            expect(invalidateDetectionCacheForUrl).not.toHaveBeenCalled();
+        });
+    });
 });
