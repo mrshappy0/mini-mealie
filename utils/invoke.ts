@@ -4,9 +4,11 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
         async ({
             mealieServer,
             mealieApiToken,
+            mealieGroupSlug,
             recipeCreateMode,
             importTags,
             importCategories,
+            openAfterImport,
         }) => {
             if (!mealieServer || !mealieApiToken) {
                 void logEvent({
@@ -76,7 +78,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         importTags ?? true,
                         importCategories ?? true,
                     );
-                    const success = result === 'success';
+                    const success = result !== 'failure';
 
                     void logEvent({
                         level: success ? 'info' : 'warn',
@@ -97,6 +99,30 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         success ? '✅' : '❌',
                         success ? 'Recipe created successfully' : 'Recipe creation failed',
                     );
+
+                    if (result !== 'failure' && openAfterImport) {
+                        const recipeUrl =
+                            mealieGroupSlug && result.slug
+                                ? `${mealieServer}/g/${mealieGroupSlug}/r/${result.slug}`
+                                : undefined;
+                        void logEvent({
+                            level: recipeUrl ? 'info' : 'warn',
+                            feature: 'recipe-create',
+                            action: 'openAfterImport',
+                            phase: recipeUrl ? 'success' : 'failure',
+                            message: recipeUrl
+                                ? 'Opening recipe in new tab'
+                                : 'Cannot open recipe: missing slug or group',
+                            data: {
+                                slug: result.slug,
+                                mealieGroupSlug,
+                                recipeUrl,
+                            },
+                        });
+                        if (recipeUrl) {
+                            void chrome.tabs.create({ url: recipeUrl });
+                        }
+                    }
                     return;
                 }
 
@@ -162,7 +188,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         importTags ?? true,
                         importCategories ?? true,
                     );
-                    const success = result === 'success';
+                    const success = result !== 'failure';
 
                     void logEvent({
                         level: success ? 'info' : 'warn',
@@ -179,6 +205,30 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         success ? '✅' : '❌',
                         success ? 'Recipe created successfully' : 'Recipe creation failed',
                     );
+
+                    if (result !== 'failure' && openAfterImport) {
+                        const recipeUrl =
+                            mealieGroupSlug && result.slug
+                                ? `${mealieServer}/g/${mealieGroupSlug}/r/${result.slug}`
+                                : undefined;
+                        void logEvent({
+                            level: recipeUrl ? 'info' : 'warn',
+                            feature: 'recipe-create',
+                            action: 'openAfterImport',
+                            phase: recipeUrl ? 'success' : 'failure',
+                            message: recipeUrl
+                                ? 'Opening recipe in new tab'
+                                : 'Cannot open recipe: missing slug or group',
+                            data: {
+                                slug: result.slug,
+                                mealieGroupSlug,
+                                recipeUrl,
+                            },
+                        });
+                        if (recipeUrl) {
+                            void chrome.tabs.create({ url: recipeUrl });
+                        }
+                    }
                     return;
                 }
             }

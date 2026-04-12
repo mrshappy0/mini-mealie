@@ -17,6 +17,7 @@ export const storageKeys = [
     'suggestHtmlMode',
     'importTags',
     'importCategories',
+    'openAfterImport',
 ] as const;
 
 export type StorageData = {
@@ -28,4 +29,5 @@ export type StorageData = {
     suggestHtmlMode?: boolean;
     importTags?: boolean;
     importCategories?: boolean;
+    openAfterImport?: boolean;
 };

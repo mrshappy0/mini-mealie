@@ -20,6 +20,7 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [importTags, setImportTags] = useState(true);
     const [importCategories, setImportCategories] = useState(true);
+    const [openAfterImport, setOpenAfterImport] = useState(false);
 
     useEffect(() => {
         chrome.storage.sync.get<StorageData>(
@@ -31,6 +32,7 @@ function App() {
                 recipeCreateMode: storedRecipeCreateMode,
                 importTags: storedImportTags,
                 importCategories: storedImportCategories,
+                openAfterImport: storedOpenAfterImport,
             }: StorageData) => {
                 if (mealieServer) setMealieServer(mealieServer);
                 setInputServer(protocol);
@@ -41,6 +43,7 @@ function App() {
                 }
                 setImportTags(storedImportTags ?? true);
                 setImportCategories(storedImportCategories ?? true);
+                setOpenAfterImport(storedOpenAfterImport ?? false);
 
                 // Check if we should suggest HTML mode
                 chrome.storage.local.get(['suggestHtmlMode'], ({ suggestHtmlMode }) => {
@@ -101,7 +104,7 @@ function App() {
                 mealieServer: inputServer,
                 mealieApiToken: inputToken,
                 mealieUsername: result.username,
-                mealieGroupSlug: result.group,
+                mealieGroupSlug: result.group.toLowerCase(),
                 ladderEnabled: false,
             },
             () => {
@@ -147,6 +150,7 @@ function App() {
             setRecipeCreateMode(RecipeCreateMode.URL);
             setImportTags(true);
             setImportCategories(true);
+            setOpenAfterImport(false);
         });
     };
 
@@ -171,6 +175,13 @@ function App() {
         setImportCategories(newValue);
         // TODO: investigate if we can await this call
         void chrome.storage.sync.set({ importCategories: newValue });
+    };
+
+    const handleOpenAfterImportChange = () => {
+        const newValue = !openAfterImport;
+        setOpenAfterImport(newValue);
+        // TODO: investigate if we can await this call
+        void chrome.storage.sync.set({ openAfterImport: newValue });
     };
     return (
         <>
@@ -319,6 +330,14 @@ function App() {
                                     onChange={handleImportCategoriesChange}
                                 />
                                 <span>Import categories from recipe</span>
+                            </label>
+                            <label className="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    checked={openAfterImport}
+                                    onChange={handleOpenAfterImportChange}
+                                />
+                                <span>Open recipe after import</span>
                             </label>
                         </div>
 
