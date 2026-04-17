@@ -368,5 +368,55 @@ describe('invoke', () => {
 
             expect(chrome.tabs.create).not.toHaveBeenCalled();
         });
+
+        it('should open recipe tab after successful HTML import when openAfterImport is enabled', async () => {
+            const { detectionCache } = await import('../storage');
+            detectionCache.clear();
+
+            vi.mocked(chrome.storage.sync.get).mockImplementation((_keys, callback) => {
+                callback?.({
+                    mealieServer: 'https://mealie.local',
+                    mealieApiToken: 'token',
+                    mealieGroupSlug: 'my-group',
+                    recipeCreateMode: RecipeCreateMode.HTML,
+                    openAfterImport: true,
+                });
+            });
+
+            const { createRecipeFromHTML } = await import('../network');
+            vi.mocked(createRecipeFromHTML).mockResolvedValue({ slug: 'chicken-soup' });
+
+            runCreateRecipe({ id: 123, url: 'https://example.com/recipe' } as chrome.tabs.Tab);
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            expect(chrome.tabs.create).toHaveBeenCalledWith({
+                url: 'https://mealie.local/g/my-group/r/chicken-soup',
+            });
+        });
+
+        it('should not open recipe tab when HTML import fails', async () => {
+            const { detectionCache } = await import('../storage');
+            detectionCache.clear();
+
+            vi.mocked(chrome.storage.sync.get).mockImplementation((_keys, callback) => {
+                callback?.({
+                    mealieServer: 'https://mealie.local',
+                    mealieApiToken: 'token',
+                    mealieGroupSlug: 'my-group',
+                    recipeCreateMode: RecipeCreateMode.HTML,
+                    openAfterImport: true,
+                });
+            });
+
+            const { createRecipeFromHTML } = await import('../network');
+            vi.mocked(createRecipeFromHTML).mockResolvedValue('failure');
+
+            runCreateRecipe({ id: 123, url: 'https://example.com/recipe' } as chrome.tabs.Tab);
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            expect(chrome.tabs.create).not.toHaveBeenCalled();
+        });
     });
 });
