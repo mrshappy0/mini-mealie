@@ -103,7 +103,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     if (result !== 'failure' && openAfterImport) {
                         const recipeUrl =
                             mealieGroupSlug && result.slug
-                                ? `${mealieServer}/g/${mealieGroupSlug}/r/${result.slug}`
+                                ? `${mealieServer.replace(/\/$/, '')}/g/${encodeURIComponent(mealieGroupSlug)}/r/${encodeURIComponent(result.slug)}`
                                 : undefined;
                         void logEvent({
                             level: recipeUrl ? 'info' : 'warn',
@@ -116,7 +116,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                             data: {
                                 slug: result.slug,
                                 mealieGroupSlug,
-                                recipeUrl,
+                                recipeUrl: recipeUrl ? sanitizeUrl(recipeUrl) : undefined,
                             },
                         });
                         if (recipeUrl) {
@@ -209,7 +209,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     if (result !== 'failure' && openAfterImport) {
                         const recipeUrl =
                             mealieGroupSlug && result.slug
-                                ? `${mealieServer}/g/${mealieGroupSlug}/r/${result.slug}`
+                                ? `${mealieServer.replace(/\/$/, '')}/g/${encodeURIComponent(mealieGroupSlug)}/r/${encodeURIComponent(result.slug)}`
                                 : undefined;
                         void logEvent({
                             level: recipeUrl ? 'info' : 'warn',
@@ -222,7 +222,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                             data: {
                                 slug: result.slug,
                                 mealieGroupSlug,
-                                recipeUrl,
+                                recipeUrl: recipeUrl ? sanitizeUrl(recipeUrl) : undefined,
                             },
                         });
                         if (recipeUrl) {
