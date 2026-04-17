@@ -1,6 +1,6 @@
 import normalizeUrlLib from 'normalize-url';
 
-export type CreateRecipeResult = 'success' | 'failure';
+export type CreateRecipeResult = { slug: string } | 'failure';
 
 /**
  * Normalize a URL for duplicate detection matching.
@@ -130,10 +130,14 @@ export async function createRecipeFromURL(
             );
         }
 
+        let slug = '';
         if (typeof response.json === 'function') {
-            await response.json();
+            const data = await response.json();
+            if (typeof data === 'string') {
+                slug = data;
+            }
         }
-        return 'success';
+        return { slug };
     } catch (error) {
         console.error('Error scraping recipe (URL mode):', error);
         return 'failure';
@@ -168,10 +172,14 @@ export async function createRecipeFromHTML(
             );
         }
 
+        let slug = '';
         if (typeof response.json === 'function') {
-            await response.json();
+            const data = await response.json();
+            if (typeof data === 'string') {
+                slug = data;
+            }
         }
-        return 'success';
+        return { slug };
     } catch (error) {
         console.error('Error scraping recipe (HTML mode):', error);
         return 'failure';

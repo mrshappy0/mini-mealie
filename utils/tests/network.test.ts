@@ -41,8 +41,8 @@ vi.mock('../logging', () => ({
 const mockHtml = '<html><body>Recipe</body></html>';
 
 const mockConfig = {
-    createRecipeFromHTMLResult: 'success' as 'success' | 'failure',
-    createRecipeFromURLResult: 'success' as 'success' | 'failure',
+    createRecipeFromHTMLResult: { slug: 'test-slug' } as { slug: string } | 'failure',
+    createRecipeFromURLResult: { slug: 'test-slug' } as { slug: string } | 'failure',
 };
 
 // Microtask checkpoint ensuring async badge updates complete before assertions.
@@ -64,8 +64,8 @@ vi.mock('../network', async () => {
 
 beforeEach(() => {
     vi.clearAllMocks();
-    mockConfig.createRecipeFromHTMLResult = 'success';
-    mockConfig.createRecipeFromURLResult = 'success';
+    mockConfig.createRecipeFromHTMLResult = { slug: 'test-slug' };
+    mockConfig.createRecipeFromURLResult = { slug: 'test-slug' };
 
     global.chrome = {
         storage: {
@@ -210,11 +210,11 @@ describe('createRecipeFromHTML edge cases', () => {
             'https://example.com',
         );
 
-        expect(result).toBe('success');
+        expect(result).toEqual({ slug: '' });
     });
 
     it('should call response.json() when available on success', async () => {
-        const jsonMock = vi.fn().mockResolvedValueOnce({ id: '456', name: 'HTML Recipe' });
+        const jsonMock = vi.fn().mockResolvedValueOnce('html-recipe-slug');
         global.fetch = vi.fn().mockResolvedValueOnce({
             ok: true,
             status: 201,
@@ -230,7 +230,7 @@ describe('createRecipeFromHTML edge cases', () => {
             'https://example.com',
         );
 
-        expect(result).toBe('success');
+        expect(result).toEqual({ slug: 'html-recipe-slug' });
         expect(jsonMock).toHaveBeenCalled();
     });
 
@@ -271,11 +271,11 @@ describe('createRecipeFromURL edge cases', () => {
             'mock-token',
         );
 
-        expect(result).toBe('success');
+        expect(result).toEqual({ slug: '' });
     });
 
     it('should call response.json() when available on success', async () => {
-        const jsonMock = vi.fn().mockResolvedValueOnce({ id: '123', name: 'Recipe' });
+        const jsonMock = vi.fn().mockResolvedValueOnce('url-recipe-slug');
         global.fetch = vi.fn().mockResolvedValueOnce({
             ok: true,
             status: 200,
@@ -290,7 +290,7 @@ describe('createRecipeFromURL edge cases', () => {
             'mock-token',
         );
 
-        expect(result).toBe('success');
+        expect(result).toEqual({ slug: 'url-recipe-slug' });
         expect(jsonMock).toHaveBeenCalled();
     });
 
@@ -512,7 +512,7 @@ describe('runCreateRecipe', () => {
     });
 
     it('should show ❌ badge if mealieApiToken is missing', async () => {
-        mockConfig.createRecipeFromHTMLResult = 'success';
+        mockConfig.createRecipeFromHTMLResult = { slug: 'test-slug' };
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
                 mealieServer: mockServer,
@@ -529,7 +529,7 @@ describe('runCreateRecipe', () => {
     });
 
     it('should call createRecipeFromURL by default when mealieServer and mealieApiToken are present', async () => {
-        mockConfig.createRecipeFromURLResult = 'success';
+        mockConfig.createRecipeFromURLResult = { slug: 'test-slug' };
 
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
@@ -555,11 +555,11 @@ describe('runCreateRecipe', () => {
 
         const createRecipeFromURLMock = vi.mocked(createRecipeFromURL);
         const result = await createRecipeFromURLMock.mock.results[0].value;
-        expect(result).toBe('success');
+        expect(result).toEqual({ slug: 'test-slug' });
     });
 
     it("should call createRecipeFromHTML when recipeCreateMode is 'html'", async () => {
-        mockConfig.createRecipeFromHTMLResult = 'success';
+        mockConfig.createRecipeFromHTMLResult = { slug: 'test-slug' };
 
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
@@ -611,7 +611,7 @@ describe('runCreateRecipe', () => {
     });
 
     it('should show ✅ badge if the script execution result is success', async () => {
-        mockConfig.createRecipeFromURLResult = 'success';
+        mockConfig.createRecipeFromURLResult = { slug: 'test-slug' };
 
         chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
             callback({
