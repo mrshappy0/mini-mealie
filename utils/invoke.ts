@@ -4,7 +4,6 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
         async ({
             mealieServer,
             mealieApiToken,
-            mealieGroupSlug,
             recipeCreateMode,
             importTags,
             importCategories,
@@ -101,7 +100,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     );
 
                     if (result !== 'failure' && openAfterImport) {
-                        maybeOpenRecipeAfterImport(mealieServer, mealieGroupSlug, result.slug);
+                        await maybeOpenRecipeAfterImport(mealieServer, mealieApiToken, result.slug);
                     }
                     return;
                 }
@@ -187,7 +186,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                     );
 
                     if (result !== 'failure' && openAfterImport) {
-                        maybeOpenRecipeAfterImport(mealieServer, mealieGroupSlug, result.slug);
+                        await maybeOpenRecipeAfterImport(mealieServer, mealieApiToken, result.slug);
                     }
                     return;
                 }
@@ -196,15 +195,31 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
     );
 }
 
-function maybeOpenRecipeAfterImport(
+async function maybeOpenRecipeAfterImport(
     mealieServer: string,
-    mealieGroupSlug: string | undefined,
+    mealieApiToken: string | undefined,
     slug: string,
 ) {
+    if (!mealieApiToken || !slug) {
+        void logEvent({
+            level: 'warn',
+            feature: 'recipe-create',
+            action: 'openAfterImport',
+            phase: 'failure',
+            message: 'Cannot open recipe: missing token or slug',
+            data: { slug },
+        });
+        return;
+    }
+
+    const user = await getUser(mealieServer, mealieApiToken);
+    const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
+
     const recipeUrl =
-        mealieGroupSlug && slug
-            ? `${mealieServer.replace(/\/$/, '')}/g/${encodeURIComponent(mealieGroupSlug)}/r/${encodeURIComponent(slug)}`
+        groupSlug && slug
+            ? `${mealieServer.replace(/\/$/, '')}/g/${encodeURIComponent(groupSlug)}/r/${encodeURIComponent(slug)}`
             : undefined;
+
     void logEvent({
         level: recipeUrl ? 'info' : 'warn',
         feature: 'recipe-create',
@@ -212,13 +227,14 @@ function maybeOpenRecipeAfterImport(
         phase: recipeUrl ? 'success' : 'failure',
         message: recipeUrl
             ? 'Opening recipe in new tab'
-            : 'Cannot open recipe: missing slug or group',
+            : 'Cannot open recipe: failed to fetch group slug',
         data: {
             slug,
-            mealieGroupSlug,
+            groupSlug,
             recipeUrl: recipeUrl ? sanitizeUrl(recipeUrl) : undefined,
         },
     });
+
     if (recipeUrl) {
         void chrome.tabs.create({ url: recipeUrl });
     }

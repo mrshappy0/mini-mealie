@@ -3,6 +3,7 @@ export interface User {
     email: string;
     fullName: string;
     group: string;
+    groupSlug: string;
     household: string;
     username: string;
 }
