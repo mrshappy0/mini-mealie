@@ -21,38 +21,10 @@ export async function initDevEnvironment(): Promise<void> {
     }
 
     // Check if storage already has values (don't overwrite user changes during dev)
-    const existingData = await chrome.storage.sync.get([
-        'mealieServer',
-        'mealieApiToken',
-        'mealieGroupSlug',
-    ]);
+    const existingData = await chrome.storage.sync.get(['mealieServer', 'mealieApiToken']);
 
-    // If we have all required data, skip initialization
-    if (existingData.mealieServer && existingData.mealieApiToken && existingData.mealieGroupSlug) {
-        console.log('[DevInit] Storage already populated with group slug - skipping');
-        return;
-    }
-
-    // If we have credentials but missing group slug, fetch it
-    if (existingData.mealieServer && existingData.mealieApiToken && !existingData.mealieGroupSlug) {
-        console.log('[DevInit] Storage missing group slug - fetching user profile');
-        try {
-            const { getUser } = await import('./network');
-            const userResult = await getUser(
-                existingData.mealieServer,
-                existingData.mealieApiToken,
-            );
-
-            if ('username' in userResult) {
-                await chrome.storage.sync.set({
-                    mealieUsername: userResult.username,
-                    mealieGroupSlug: userResult.group,
-                });
-                console.log('[DevInit] Added group slug to storage:', userResult.group);
-            }
-        } catch (error) {
-            console.error('[DevInit] Error fetching group slug:', error);
-        }
+    if (existingData.mealieServer && existingData.mealieApiToken) {
+        console.log('[DevInit] Storage already populated - skipping');
         return;
     }
 
@@ -71,30 +43,21 @@ export async function initDevEnvironment(): Promise<void> {
         username: username || '(not set)',
     });
 
-    // Fetch user profile to get group slug
     try {
         const { getUser } = await import('./network');
         const userResult = await getUser(server, token);
 
         if ('username' in userResult) {
-            // Populate storage with credentials and group slug
-            const storageData: Record<string, string> = {
+            await chrome.storage.sync.set({
                 mealieServer: server,
                 mealieApiToken: token,
                 mealieUsername: userResult.username,
-                mealieGroupSlug: userResult.group,
-            };
-
-            // Write to chrome.storage.sync
-            await chrome.storage.sync.set(storageData);
-
-            console.log('[DevInit] Storage pre-populated successfully with group slug:', {
+            });
+            console.log('[DevInit] Storage pre-populated successfully:', {
                 username: userResult.username,
-                group: userResult.group,
             });
         } else {
             console.warn('[DevInit] Failed to fetch user profile:', userResult.errorMessage);
-            // Fall back to setting credentials without group slug
             const storageData: Record<string, string> = {
                 mealieServer: server,
                 mealieApiToken: token,
@@ -104,8 +67,13 @@ export async function initDevEnvironment(): Promise<void> {
                 storageData.mealieUsername = username;
             }
 
+            const wroteUsername = Boolean(username);
             await chrome.storage.sync.set(storageData);
-            console.log('[DevInit] Storage pre-populated (without group slug)');
+            console.log(
+                wroteUsername
+                    ? '[DevInit] Storage pre-populated (with unverified username from .env.local)'
+                    : '[DevInit] Storage pre-populated (without username)',
+            );
         }
     } catch (error) {
         console.error('[DevInit] Error during initialization:', error);

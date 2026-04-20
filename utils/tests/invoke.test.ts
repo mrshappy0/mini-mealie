@@ -16,6 +16,16 @@ vi.mock('../logging', () => ({
 vi.mock('../network', () => ({
     createRecipeFromURL: vi.fn().mockResolvedValue({ slug: 'test-slug' }),
     createRecipeFromHTML: vi.fn().mockResolvedValue({ slug: 'test-slug' }),
+    getUser: vi.fn().mockResolvedValue({
+        username: 'testuser',
+        groupSlug: 'my-group',
+        group: 'My Group',
+        householdSlug: 'my-household',
+        household: 'My Household',
+        email: 'test@example.com',
+        fullName: 'Test User',
+        admin: false,
+    }),
 }));
 
 vi.mock('../storage', () => ({
@@ -273,7 +283,6 @@ describe('invoke', () => {
                 callback?.({
                     mealieServer: 'https://mealie.local',
                     mealieApiToken: 'token',
-                    mealieGroupSlug: 'my-group',
                     recipeCreateMode: RecipeCreateMode.URL,
                     openAfterImport: true,
                 });
@@ -301,7 +310,6 @@ describe('invoke', () => {
                 callback?.({
                     mealieServer: 'https://mealie.local',
                     mealieApiToken: 'token',
-                    mealieGroupSlug: 'my-group',
                     recipeCreateMode: RecipeCreateMode.URL,
                     openAfterImport: false,
                 });
@@ -327,7 +335,6 @@ describe('invoke', () => {
                 callback?.({
                     mealieServer: 'https://mealie.local',
                     mealieApiToken: 'token',
-                    mealieGroupSlug: 'my-group',
                     recipeCreateMode: RecipeCreateMode.URL,
                     openAfterImport: true,
                 });
@@ -353,7 +360,6 @@ describe('invoke', () => {
                 callback?.({
                     mealieServer: 'https://mealie.local',
                     mealieApiToken: 'token',
-                    mealieGroupSlug: 'my-group',
                     recipeCreateMode: RecipeCreateMode.URL,
                     openAfterImport: true,
                 });
@@ -377,7 +383,6 @@ describe('invoke', () => {
                 callback?.({
                     mealieServer: 'https://mealie.local',
                     mealieApiToken: 'token',
-                    mealieGroupSlug: 'my-group',
                     recipeCreateMode: RecipeCreateMode.HTML,
                     openAfterImport: true,
                 });
@@ -403,7 +408,6 @@ describe('invoke', () => {
                 callback?.({
                     mealieServer: 'https://mealie.local',
                     mealieApiToken: 'token',
-                    mealieGroupSlug: 'my-group',
                     recipeCreateMode: RecipeCreateMode.HTML,
                     openAfterImport: true,
                 });

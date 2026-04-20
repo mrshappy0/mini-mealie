@@ -110,27 +110,40 @@ export default defineBackground(() => {
  * Opens the recipe page directly in Mealie.
  */
 async function handleViewSpecificDuplicate(slug: string) {
-    // Get server and group slug from storage
     chrome.storage.sync.get([...storageKeys], async (data) => {
-        const { mealieServer, mealieGroupSlug } = data;
+        const { mealieServer, mealieApiToken } = data;
 
-        if (!mealieServer || !mealieGroupSlug) {
+        if (!mealieServer || !mealieApiToken) {
             await logEvent({
                 level: 'warn',
                 feature: 'duplicate-detect',
                 action: 'viewSpecificDuplicate',
                 phase: 'failure',
-                message: 'Missing server or group slug',
+                message: 'Missing server or token',
                 data: {
                     hasMealieServer: !!mealieServer,
-                    hasMealieGroupSlug: !!mealieGroupSlug,
+                    hasMealieApiToken: !!mealieApiToken,
                 },
             });
             return;
         }
 
-        // Open the specific recipe page
-        const recipeUrl = `${mealieServer}/g/${mealieGroupSlug}/r/${slug}`;
+        const normalizedMealieServer = mealieServer.replace(/\/+$/, '');
+        const user = await getUser(mealieServer, mealieApiToken);
+        const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
+
+        if (!groupSlug) {
+            await logEvent({
+                level: 'warn',
+                feature: 'duplicate-detect',
+                action: 'viewSpecificDuplicate',
+                phase: 'failure',
+                message: 'Failed to fetch group slug',
+            });
+            return;
+        }
+
+        const recipeUrl = `${normalizedMealieServer}/g/${groupSlug}/r/${slug}`;
         await logEvent({
             level: 'info',
             feature: 'duplicate-detect',
@@ -162,21 +175,35 @@ async function handleViewDuplicate(url: string, menuId: string) {
         return;
     }
 
-    // Get server and group slug from storage
     chrome.storage.sync.get([...storageKeys], async (data) => {
-        const { mealieServer, mealieGroupSlug } = data;
+        const { mealieServer, mealieApiToken } = data;
 
-        if (!mealieServer || !mealieGroupSlug) {
+        if (!mealieServer || !mealieApiToken) {
             await logEvent({
                 level: 'warn',
                 feature: 'duplicate-detect',
                 action: 'viewDuplicate',
                 phase: 'failure',
-                message: 'Missing server or group slug',
+                message: 'Missing server or token',
                 data: {
                     hasMealieServer: !!mealieServer,
-                    hasMealieGroupSlug: !!mealieGroupSlug,
+                    hasMealieApiToken: !!mealieApiToken,
                 },
+            });
+            return;
+        }
+
+        const normalizedServer = mealieServer.replace(/\/+$/, '');
+        const user = await getUser(mealieServer, mealieApiToken);
+        const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
+
+        if (!groupSlug) {
+            await logEvent({
+                level: 'warn',
+                feature: 'duplicate-detect',
+                action: 'viewDuplicate',
+                phase: 'failure',
+                message: 'Failed to fetch group slug',
             });
             return;
         }
@@ -184,8 +211,7 @@ async function handleViewDuplicate(url: string, menuId: string) {
         const duplicateInfo = cached.duplicateDetection!;
 
         if (menuId === DUPLICATE_URL_MENU_ID && duplicateInfo.urlMatch) {
-            // Open the exact match recipe page
-            const recipeUrl = `${mealieServer}/g/${mealieGroupSlug}/r/${duplicateInfo.urlMatch.slug}`;
+            const recipeUrl = `${normalizedServer}/g/${encodeURIComponent(groupSlug)}/r/${encodeURIComponent(duplicateInfo.urlMatch.slug)}`;
             await logEvent({
                 level: 'info',
                 feature: 'duplicate-detect',
@@ -199,8 +225,7 @@ async function handleViewDuplicate(url: string, menuId: string) {
             });
             void chrome.tabs.create({ url: recipeUrl });
         } else if (menuId === DUPLICATE_NAME_MENU_ID && cached.recipeName) {
-            // Open search page with recipe name
-            const searchUrl = `${mealieServer}/g/${mealieGroupSlug}/recipes/all?page=1&orderBy=created_at&orderDirection=desc&search=${encodeURIComponent(cached.recipeName)}`;
+            const searchUrl = `${normalizedServer}/g/${encodeURIComponent(groupSlug)}/recipes/all?page=1&orderBy=created_at&orderDirection=desc&search=${encodeURIComponent(cached.recipeName)}`;
             await logEvent({
                 level: 'info',
                 feature: 'duplicate-detect',

@@ -104,7 +104,6 @@ function App() {
                 mealieServer: inputServer,
                 mealieApiToken: inputToken,
                 mealieUsername: result.username,
-                mealieGroupSlug: typeof result.group === 'string' ? result.group.toLowerCase() : '',
                 ladderEnabled: false,
             },
             () => {
