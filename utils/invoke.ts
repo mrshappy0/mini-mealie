@@ -213,7 +213,8 @@ async function maybeOpenRecipeAfterImport(
     }
 
     const user = await getUser(mealieServer, mealieApiToken);
-    const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
+    const groupSlug = 'username' in user ? user.groupSlug : undefined;
+    const errorMessage = 'username' in user ? undefined : user.errorMessage;
 
     const recipeUrl =
         groupSlug && slug
@@ -231,6 +232,7 @@ async function maybeOpenRecipeAfterImport(
         data: {
             slug,
             groupSlug,
+            errorMessage,
             recipeUrl: recipeUrl ? sanitizeUrl(recipeUrl) : undefined,
         },
     });

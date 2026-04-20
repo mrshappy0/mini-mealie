@@ -67,8 +67,13 @@ export async function initDevEnvironment(): Promise<void> {
                 storageData.mealieUsername = username;
             }
 
+            const wroteUsername = Boolean(username);
             await chrome.storage.sync.set(storageData);
-            console.log('[DevInit] Storage pre-populated (without username)');
+            console.log(
+                wroteUsername
+                    ? '[DevInit] Storage pre-populated (with unverified username from .env.local)'
+                    : '[DevInit] Storage pre-populated (without username)',
+            );
         }
     } catch (error) {
         console.error('[DevInit] Error during initialization:', error);

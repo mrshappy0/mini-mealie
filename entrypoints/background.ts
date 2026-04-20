@@ -128,6 +128,7 @@ async function handleViewSpecificDuplicate(slug: string) {
             return;
         }
 
+        const normalizedMealieServer = mealieServer.replace(/\/+$/, '');
         const user = await getUser(mealieServer, mealieApiToken);
         const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
 
@@ -142,7 +143,7 @@ async function handleViewSpecificDuplicate(slug: string) {
             return;
         }
 
-        const recipeUrl = `${mealieServer}/g/${groupSlug}/r/${slug}`;
+        const recipeUrl = `${normalizedMealieServer}/g/${groupSlug}/r/${slug}`;
         await logEvent({
             level: 'info',
             feature: 'duplicate-detect',
@@ -192,6 +193,7 @@ async function handleViewDuplicate(url: string, menuId: string) {
             return;
         }
 
+        const normalizedServer = mealieServer.replace(/\/+$/, '');
         const user = await getUser(mealieServer, mealieApiToken);
         const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
 
@@ -209,7 +211,7 @@ async function handleViewDuplicate(url: string, menuId: string) {
         const duplicateInfo = cached.duplicateDetection!;
 
         if (menuId === DUPLICATE_URL_MENU_ID && duplicateInfo.urlMatch) {
-            const recipeUrl = `${mealieServer}/g/${groupSlug}/r/${duplicateInfo.urlMatch.slug}`;
+            const recipeUrl = `${normalizedServer}/g/${encodeURIComponent(groupSlug)}/r/${encodeURIComponent(duplicateInfo.urlMatch.slug)}`;
             await logEvent({
                 level: 'info',
                 feature: 'duplicate-detect',
@@ -223,7 +225,7 @@ async function handleViewDuplicate(url: string, menuId: string) {
             });
             void chrome.tabs.create({ url: recipeUrl });
         } else if (menuId === DUPLICATE_NAME_MENU_ID && cached.recipeName) {
-            const searchUrl = `${mealieServer}/g/${groupSlug}/recipes/all?page=1&orderBy=created_at&orderDirection=desc&search=${encodeURIComponent(cached.recipeName)}`;
+            const searchUrl = `${normalizedServer}/g/${encodeURIComponent(groupSlug)}/recipes/all?page=1&orderBy=created_at&orderDirection=desc&search=${encodeURIComponent(cached.recipeName)}`;
             await logEvent({
                 level: 'info',
                 feature: 'duplicate-detect',
