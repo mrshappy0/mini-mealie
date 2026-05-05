@@ -254,7 +254,7 @@ For questions or collaboration requests, contact:
 
 [contributors-shield]: https://img.shields.io/github/contributors/mrshappy0/mini-mealie.svg?style=for-the-badge
 [contributors-url]: https://github.com/mrshappy0/mini-mealie/graphs/contributors
-[stars-shield]: https://img.shields.io/github/stars/mrshappy0/mini-mealie.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fmrshappy0%2Fmini-mealie&query=stargazers_count&style=for-the-badge&label=stars&color=blue&logo=github
 [stars-url]: https://github.com/mrshappy0/mini-mealie/stargazers
 [issues-shield]: https://img.shields.io/github/issues-raw/mrshappy0/mini-mealie.svg?style=for-the-badge
 [issues-url]: https://github.com/mrshappy0/mini-mealie/issues
