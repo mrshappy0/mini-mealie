@@ -7,7 +7,8 @@
     color: #ffffff;
     background-color: #1c1c1c;
 
-    --mealie-orange: #ec7e19 --mealie-black: #1c1c1c;
+    --mealie-orange: #ec7e19;
+    --mealie-black: #1c1c1c;
     --mealie-white: #ffffff;
     --mealie-grey: #2d2d2d;
     --mealie-hover: #f59849;

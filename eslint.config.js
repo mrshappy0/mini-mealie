@@ -62,6 +62,8 @@ export default [
         rules: {
             ...css.configs.recommended.rules,
             'css/require-baseline': 'off',
+            'css/use-baseline': 'off',
+            'css/font-family-fallbacks': 'off',
         },
     },
     { ...pluginSecurity.configs.recommended, files: ['**/*.{js,ts,jsx,tsx}'] },

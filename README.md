@@ -6,7 +6,7 @@
 [![Issues][issues-shield]][issues-url]
 [![AGPL License][license-shield]][license-url]
 [![Coverage Status][coverage-shield]][coverage-url]
-[![Commitizen friendly][commitizen-shield]][commitizen-url]
+[![Conventional Commits][conventional-commits-shield]][conventional-commits-url]
 [![Chrome Web Store][chrome-web-store-shield]][chrome-web-store-url]
 [![Buy Me a Coffee][coffee-shield]](#-support-me)
 
@@ -40,7 +40,7 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 - Dependencies:
     - **WXT** (Web Extension Toolkit)
     - **React** v19.x
-    - **TypeScript** 5.7.3
+    - **TypeScript** 5.9.x
 
 ---
 
@@ -69,7 +69,6 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     ```
 
     **Why `.env.local`?**
-
     - ✅ Pre-populates your Mealie server URL and API token during development
     - ✅ No need to re-login every time you restart the dev browser
     - ✅ Persistent Chrome profile remembers your settings
@@ -84,7 +83,6 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     ```
 
     This will:
-
     - Start the WXT dev server
     - Open Chrome with the extension loaded in a persistent profile (`.wxt/chrome-data`)
     - Auto-open a recipe page for testing (https://www.allrecipes.com/recipe/286369/)
@@ -190,13 +188,11 @@ If URL mode fails to detect a recipe:
 ### Pull Request Process
 
 1. **Branches**:
-
     - **`main`**: Stable production build.
     - Develop new features or fixes in a feature branch.
     - Open a pull request (PR) pointing to `main`.
 
 2. **Review**:
-
     - Request a review from a repository admin.
 
 3. **Release Management**:
@@ -226,6 +222,7 @@ Typical flow:
     - Passing of ESLint tests.
     - Successful completion of unit tests.
     - Adequate test coverage is maintained.
+    - All commits conform to Conventional Commits (enforced by CI commitlint check).
 - All issues must be resolved prior to requesting a review.
 - Pull requests require approval from at least one reviewer.
 
@@ -258,12 +255,12 @@ For questions or collaboration requests, contact:
 [stars-url]: https://github.com/mrshappy0/mini-mealie/stargazers
 [issues-shield]: https://img.shields.io/github/issues-raw/mrshappy0/mini-mealie.svg?style=for-the-badge
 [issues-url]: https://github.com/mrshappy0/mini-mealie/issues
-[license-shield]: https://img.shields.io/github/license/mrshappy0/mini-mealie.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=for-the-badge
 [license-url]: https://github.com/mrshappy0/mini-mealie/blob/main/LICENSE
 [coverage-shield]: https://img.shields.io/endpoint?url=https://adam-shappy.com/mini-mealie/coverage-badge.json&style=for-the-badge
 [coverage-url]: https://adam-shappy.com/mini-mealie/coverage-badge.json
-[commitizen-shield]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?style=for-the-badge
-[commitizen-url]: http://commitizen.github.io/cz-cli/
+[conventional-commits-shield]: https://img.shields.io/badge/Conventional%20Commits-enabled-%23FE5196?logo=conventionalcommits&logoColor=white&style=for-the-badge
+[conventional-commits-url]: https://conventionalcommits.org/
 [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF813F.svg?style=for-the-badge&logo=buy-me-a-coffee
 [release-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/release.yml?branch=main&style=for-the-badge&label=release
 [release-url]: https://github.com/mrshappy0/mini-mealie/actions/workflows/release.yml

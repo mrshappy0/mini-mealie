@@ -19,52 +19,45 @@
         "coverage": "vitest run --coverage",
         "vitest-ui": "vitest run --ui",
         "html-coverage": "pnpm vitest --ui --coverage.enabled=true",
-        "commitlint": "commitlint --edit",
-        "commit": "cz"
+        "commitlint": "commitlint --edit"
     },
     "dependencies": {
-        "@react-email/components": "^0.3.2",
+        "@react-email/components": "^0.3.3",
         "normalize-url": "^8.1.1",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "resend": "^4.6.0"
+        "react": "^19.2.5",
+        "react-dom": "^19.2.5",
+        "resend": "^4.8.0"
     },
     "devDependencies": {
         "@commitlint/cli": "^19.8.1",
         "@commitlint/config-conventional": "^19.8.1",
-        "@eslint/css": "^0.5.0",
-        "@eslint/js": "^9.22.0",
+        "@eslint/css": "^0.14.1",
+        "@eslint/js": "^9.39.4",
         "@html-eslint/parser": "^0.35.2",
         "@semantic-release/git": "^10.0.1",
         "@types/chrome": "^0.0.280",
-        "@types/eslint-plugin-security": "^3.0.0",
-        "@types/react": "^19.0.1",
-        "@types/react-dom": "^19.0.2",
-        "@vitest/coverage-v8": "^3.0.8",
-        "@vitest/ui": "^3.0.8",
-        "@wxt-dev/module-react": "^1.1.2",
-        "commitizen": "^4.3.1",
-        "cz-conventional-changelog": "^3.3.0",
-        "eslint": "^9.22.0",
-        "eslint-config-prettier": "^10.1.1",
+        "@types/eslint-plugin-security": "^3.0.1",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitest/coverage-v8": "^3.2.4",
+        "@vitest/ui": "^3.2.4",
+        "@wxt-dev/module-react": "^1.2.2",
+        "eslint": "^9.39.4",
+        "eslint-config-prettier": "^10.1.8",
         "eslint-formatter-compact": "^8.40.0",
-        "eslint-plugin-prettier": "^5.2.3",
-        "eslint-plugin-react": "^7.37.4",
+        "eslint-plugin-prettier": "^5.5.5",
+        "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-security": "^3.0.1",
         "eslint-plugin-simple-import-sort": "^12.1.1",
-        "globals": "^16.0.0",
-        "prettier": "^3.5.3",
-        "semantic-release": "^24.2.5",
-        "tsx": "^4.20.3",
-        "typescript": "^5.6.3",
-        "typescript-eslint": "^8.26.1",
-        "vitest": "^3.0.8",
-        "wxt": "^0.20.7"
+        "globals": "^16.5.0",
+        "prettier": "^3.8.3",
+        "semantic-release": "^24.2.9",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.59.2",
+        "vitest": "^3.2.4",
+        "wxt": "^0.20.25"
     },
     "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
-    "config": {
-        "commitizen": {
-            "path": "./node_modules/cz-conventional-changelog"
-        }
-    }
+    "pnpm": {}
 }
