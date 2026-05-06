@@ -258,11 +258,11 @@ For questions or collaboration requests, contact:
 [stars-url]: https://github.com/mrshappy0/mini-mealie/stargazers
 [issues-shield]: https://img.shields.io/github/issues-raw/mrshappy0/mini-mealie.svg?style=for-the-badge
 [issues-url]: https://github.com/mrshappy0/mini-mealie/issues
-[license-shield]: https://img.shields.io/github/license/mrshappy0/mini-mealie.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=for-the-badge
 [license-url]: https://github.com/mrshappy0/mini-mealie/blob/main/LICENSE
 [coverage-shield]: https://img.shields.io/endpoint?url=https://adam-shappy.com/mini-mealie/coverage-badge.json&style=for-the-badge
 [coverage-url]: https://adam-shappy.com/mini-mealie/coverage-badge.json
-[conventional-commits-shield]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge
+[conventional-commits-shield]: https://img.shields.io/badge/Conventional%20Commits-enabled-%23FE5196?logo=conventionalcommits&logoColor=white&style=for-the-badge
 [conventional-commits-url]: https://conventionalcommits.org/
 [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF813F.svg?style=for-the-badge&logo=buy-me-a-coffee
 [release-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/release.yml?branch=main&style=for-the-badge&label=release
