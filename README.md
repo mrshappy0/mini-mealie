@@ -6,7 +6,7 @@
 [![Issues][issues-shield]][issues-url]
 [![AGPL License][license-shield]][license-url]
 [![Coverage Status][coverage-shield]][coverage-url]
-[![Commitizen friendly][commitizen-shield]][commitizen-url]
+[![Conventional Commits][conventional-commits-shield]][conventional-commits-url]
 [![Chrome Web Store][chrome-web-store-shield]][chrome-web-store-url]
 [![Buy Me a Coffee][coffee-shield]](#-support-me)
 
@@ -262,8 +262,8 @@ For questions or collaboration requests, contact:
 [license-url]: https://github.com/mrshappy0/mini-mealie/blob/main/LICENSE
 [coverage-shield]: https://img.shields.io/endpoint?url=https://adam-shappy.com/mini-mealie/coverage-badge.json&style=for-the-badge
 [coverage-url]: https://adam-shappy.com/mini-mealie/coverage-badge.json
-[commitizen-shield]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?style=for-the-badge
-[commitizen-url]: http://commitizen.github.io/cz-cli/
+[conventional-commits-shield]: https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge
+[conventional-commits-url]: https://conventionalcommits.org/
 [coffee-shield]: https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF813F.svg?style=for-the-badge&logo=buy-me-a-coffee
 [release-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/release.yml?branch=main&style=for-the-badge&label=release
 [release-url]: https://github.com/mrshappy0/mini-mealie/actions/workflows/release.yml

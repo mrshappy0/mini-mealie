@@ -19,8 +19,7 @@
         "coverage": "vitest run --coverage",
         "vitest-ui": "vitest run --ui",
         "html-coverage": "pnpm vitest --ui --coverage.enabled=true",
-        "commitlint": "commitlint --edit",
-        "commit": "cz"
+        "commitlint": "commitlint --edit"
     },
     "dependencies": {
         "@react-email/components": "^0.3.3",
@@ -43,8 +42,6 @@
         "@vitest/coverage-v8": "^3.2.4",
         "@vitest/ui": "^3.2.4",
         "@wxt-dev/module-react": "^1.2.2",
-        "commitizen": "^4.3.1",
-        "cz-conventional-changelog": "^3.3.0",
         "eslint": "^9.39.4",
         "eslint-config-prettier": "^10.1.8",
         "eslint-formatter-compact": "^8.40.0",
@@ -62,15 +59,5 @@
         "wxt": "^0.20.25"
     },
     "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
-    "pnpm": {
-        "overrides": {
-            "lodash": "^4.18.0",
-            "tmp": "^0.2.4"
-        }
-    },
-    "config": {
-        "commitizen": {
-            "path": "./node_modules/cz-conventional-changelog"
-        }
-    }
+    "pnpm": {}
 }
