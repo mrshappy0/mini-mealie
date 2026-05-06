@@ -40,7 +40,7 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
 - Dependencies:
     - **WXT** (Web Extension Toolkit)
     - **React** v19.x
-    - **TypeScript** 5.7.3
+    - **TypeScript** 5.9.x
 
 ---
 
@@ -69,7 +69,6 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     ```
 
     **Why `.env.local`?**
-
     - ✅ Pre-populates your Mealie server URL and API token during development
     - ✅ No need to re-login every time you restart the dev browser
     - ✅ Persistent Chrome profile remembers your settings
@@ -84,7 +83,6 @@ Mini Mealie is a Chrome extension built using WXT and React, designed to speed u
     ```
 
     This will:
-
     - Start the WXT dev server
     - Open Chrome with the extension loaded in a persistent profile (`.wxt/chrome-data`)
     - Auto-open a recipe page for testing (https://www.allrecipes.com/recipe/286369/)
@@ -190,13 +188,11 @@ If URL mode fails to detect a recipe:
 ### Pull Request Process
 
 1. **Branches**:
-
     - **`main`**: Stable production build.
     - Develop new features or fixes in a feature branch.
     - Open a pull request (PR) pointing to `main`.
 
 2. **Review**:
-
     - Request a review from a repository admin.
 
 3. **Release Management**:
@@ -226,6 +222,7 @@ Typical flow:
     - Passing of ESLint tests.
     - Successful completion of unit tests.
     - Adequate test coverage is maintained.
+    - All commits conform to Conventional Commits (enforced by CI commitlint check).
 - All issues must be resolved prior to requesting a review.
 - Pull requests require approval from at least one reviewer.
 
