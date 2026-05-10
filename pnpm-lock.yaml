@@ -70,8 +70,8 @@ importers:
         specifier: ^10.1.8
         version: 10.1.8(eslint@9.39.4(jiti@2.7.0))
       eslint-formatter-compact:
-        specifier: ^8.40.0
-        version: 8.40.0
+        specifier: ^9.0.1
+        version: 9.0.1
       eslint-plugin-prettier:
         specifier: ^5.5.5
         version: 5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0))(prettier@3.8.3)
@@ -1910,9 +1910,9 @@ packages:
     peerDependencies:
       eslint: '>=7.0.0'
 
-  eslint-formatter-compact@8.40.0:
-    resolution: {integrity: sha512-cwGUs113TgmTQXecx5kfRjB7m0y2wkDLSadPTE2pK6M/wO4N8PjmUaoWOFNCP9MHgsiZwgqd5bZFnDCnszC56Q==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  eslint-formatter-compact@9.0.1:
+    resolution: {integrity: sha512-mBAti2tb403dQGMyilQTYHU80stem3N7jdtKW+tmn5gj3JNF7ki0rgCZtJFw4iMayTH862FTUIqCdp70ug0S0Q==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   eslint-plugin-prettier@5.5.5:
     resolution: {integrity: sha512-hscXkbqUZ2sPithAuLm5MXL+Wph+U7wHngPBv9OMWwlP8iaflyxpjTYZkmdgB4/vPIhemRlBEoLrH7UC1n7aUw==}
@@ -6307,7 +6307,7 @@ snapshots:
     dependencies:
       eslint: 9.39.4(jiti@2.7.0)
 
-  eslint-formatter-compact@8.40.0: {}
+  eslint-formatter-compact@9.0.1: {}
 
   eslint-plugin-prettier@5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0))(prettier@3.8.3):
     dependencies:
