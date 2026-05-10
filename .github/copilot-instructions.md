@@ -46,6 +46,7 @@ Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execu
 - Use **Conventional Commits**.
     - Local helper: `pnpm commitlint` validates a message; the `.githooks/commit-msg` hook runs commitlint automatically on every commit.
     - CI enforces this on all PRs via `.github/workflows/commitlint.yml` — PRs with non-conventional commits cannot merge.
+    - Keep commit message body lines ≤ 100 characters. Agent-generated commits (those containing `Agent-Logs-Url:`) are automatically skipped by commitlint, so long trailers in agent commit bodies won't fail CI.
 - Releases are driven by commit history and semantic versioning via **semantic-release**.
     - On merges to `main`, GitHub Actions runs `npx semantic-release` (see `.github/workflows/release.yml` and `.releaserc`).
     - When a GitHub Release is published, CI zips the extension (`pnpm zip`) and submits it to the Chrome Web Store (see `.github/workflows/submit.yml`).
