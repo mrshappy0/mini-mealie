@@ -22,8 +22,8 @@
         "commitlint": "commitlint --edit"
     },
     "dependencies": {
-        "@react-email/components": "^0.3.3",
-        "normalize-url": "^8.1.1",
+        "@react-email/components": "^1.0.12",
+        "normalize-url": "^9.0.0",
         "react": "^19.2.5",
         "react-dom": "^19.2.5",
         "resend": "^4.8.0"
@@ -31,11 +31,11 @@
     "devDependencies": {
         "@commitlint/cli": "^19.8.1",
         "@commitlint/config-conventional": "^19.8.1",
-        "@eslint/css": "^0.14.1",
+        "@eslint/css": "^1.2.0",
         "@eslint/js": "^9.39.4",
         "@html-eslint/parser": "^0.35.2",
         "@semantic-release/git": "^10.0.1",
-        "@types/chrome": "^0.0.280",
+        "@types/chrome": "^0.1.42",
         "@types/eslint-plugin-security": "^3.0.1",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
@@ -44,7 +44,7 @@
         "@wxt-dev/module-react": "^1.2.2",
         "eslint": "^9.39.4",
         "eslint-config-prettier": "^10.1.8",
-        "eslint-formatter-compact": "^8.40.0",
+        "eslint-formatter-compact": "^9.0.1",
         "eslint-plugin-prettier": "^5.5.5",
         "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-security": "^3.0.1",
