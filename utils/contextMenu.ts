@@ -59,7 +59,7 @@ export const removeContextMenu = () => {
 
     // Test environments sometimes only mock removeAll.
     if (!canRemove && canRemoveAll) {
-        chrome.contextMenus.removeAll();
+        void chrome.contextMenus.removeAll();
         return;
     }
 
