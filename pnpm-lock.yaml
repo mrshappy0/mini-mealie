@@ -43,8 +43,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(semantic-release@24.2.9(typescript@5.9.3))
       '@types/chrome':
-        specifier: ^0.0.280
-        version: 0.0.280
+        specifier: ^0.1.42
+        version: 0.1.42
       '@types/eslint-plugin-security':
         specifier: ^3.0.1
         version: 3.0.1
@@ -1051,8 +1051,8 @@ packages:
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
 
-  '@types/chrome@0.0.280':
-    resolution: {integrity: sha512-AotSmZrL9bcZDDmSI1D9dE7PGbhOur5L0cKxXd7IqbVizQWCY4gcvupPUVsQ4FfDj3V2tt/iOpomT9EY0s+w1g==}
+  '@types/chrome@0.1.42':
+    resolution: {integrity: sha512-tdT2roFqGecZZDjA9fUEAINb2STxSPifHMDvY6EfRjNRCjdrs/0FwKt5RCIA9MKMd1arAYZZL3nwEkp6ZLZu2w==}
 
   '@types/conventional-commits-parser@5.0.2':
     resolution: {integrity: sha512-BgT2szDXnVypgpNxOK8aL5SGjUdaQbC++WZNjF1Qge3Og2+zhHj+RWhmehLhYyvQwqAmvezruVfOf8+3m74W+g==}
@@ -5296,7 +5296,7 @@ snapshots:
       '@types/deep-eql': 4.0.2
       assertion-error: 2.0.1
 
-  '@types/chrome@0.0.280':
+  '@types/chrome@0.1.42':
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
