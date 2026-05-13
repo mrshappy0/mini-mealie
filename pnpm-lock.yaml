@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@react-email/components':
         specifier: ^1.0.12
-        version: 1.0.12(react-dom@19.2.5(react@19.2.6))(react@19.2.6)
+        version: 1.0.12(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       normalize-url:
         specifier: ^9.0.0
         version: 9.0.0
@@ -18,11 +18,11 @@ importers:
         specifier: ^19.2.6
         version: 19.2.6
       react-dom:
-        specifier: ^19.2.5
-        version: 19.2.5(react@19.2.6)
+        specifier: ^19.2.6
+        version: 19.2.6(react@19.2.6)
       resend:
         specifier: ^4.8.0
-        version: 4.8.0(react-dom@19.2.5(react@19.2.6))(react@19.2.6)
+        version: 4.8.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
     devDependencies:
       '@commitlint/cli':
         specifier: ^19.8.1
@@ -3593,10 +3593,10 @@ packages:
     resolution: {integrity: sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw==}
     hasBin: true
 
-  react-dom@19.2.5:
-    resolution: {integrity: sha512-J5bAZz+DXMMwW/wV3xzKke59Af6CHY7G4uYLN1OvBcKEsWOs4pQExj86BBKamxl/Ik5bx9whOrvBlSDfWzgSag==}
+  react-dom@19.2.6:
+    resolution: {integrity: sha512-0prMI+hvBbPjsWnxDLxlCGyM8PN6UuWjEUCYmZhO67xIV9Xasa/r/vDnq+Xyq4Lo27g8QSbO5YzARu0D1Sps3g==}
     peerDependencies:
-      react: ^19.2.5
+      react: ^19.2.6
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -5015,7 +5015,7 @@ snapshots:
     dependencies:
       react: 19.2.6
 
-  '@react-email/components@1.0.12(react-dom@19.2.5(react@19.2.6))(react@19.2.6)':
+  '@react-email/components@1.0.12(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       '@react-email/body': 0.3.0(react@19.2.6)
       '@react-email/button': 0.2.1(react@19.2.6)
@@ -5032,7 +5032,7 @@ snapshots:
       '@react-email/link': 0.0.13(react@19.2.6)
       '@react-email/markdown': 0.0.18(react@19.2.6)
       '@react-email/preview': 0.0.14(react@19.2.6)
-      '@react-email/render': 2.0.6(react-dom@19.2.5(react@19.2.6))(react@19.2.6)
+      '@react-email/render': 2.0.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@react-email/row': 0.0.13(react@19.2.6)
       '@react-email/section': 0.0.17(react@19.2.6)
       '@react-email/tailwind': 2.0.7(@react-email/body@0.3.0(react@19.2.6))(@react-email/button@0.2.1(react@19.2.6))(@react-email/code-block@0.2.1(react@19.2.6))(@react-email/code-inline@0.0.6(react@19.2.6))(@react-email/container@0.0.16(react@19.2.6))(@react-email/heading@0.0.16(react@19.2.6))(@react-email/hr@0.0.12(react@19.2.6))(@react-email/img@0.0.12(react@19.2.6))(@react-email/link@0.0.13(react@19.2.6))(@react-email/preview@0.0.14(react@19.2.6))(@react-email/text@0.1.6(react@19.2.6))(react@19.2.6)
@@ -5082,20 +5082,20 @@ snapshots:
     dependencies:
       react: 19.2.6
 
-  '@react-email/render@1.1.2(react-dom@19.2.5(react@19.2.6))(react@19.2.6)':
+  '@react-email/render@1.1.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       html-to-text: 9.0.5
       prettier: 3.8.3
       react: 19.2.6
-      react-dom: 19.2.5(react@19.2.6)
+      react-dom: 19.2.6(react@19.2.6)
       react-promise-suspense: 0.3.4
 
-  '@react-email/render@2.0.6(react-dom@19.2.5(react@19.2.6))(react@19.2.6)':
+  '@react-email/render@2.0.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
       html-to-text: 9.0.5
       prettier: 3.8.3
       react: 19.2.6
-      react-dom: 19.2.5(react@19.2.6)
+      react-dom: 19.2.6(react@19.2.6)
 
   '@react-email/row@0.0.13(react@19.2.6)':
     dependencies:
@@ -7936,7 +7936,7 @@ snapshots:
       minimist: 1.2.8
       strip-json-comments: 2.0.1
 
-  react-dom@19.2.5(react@19.2.6):
+  react-dom@19.2.6(react@19.2.6):
     dependencies:
       react: 19.2.6
       scheduler: 0.27.0
@@ -8011,9 +8011,9 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
-  resend@4.8.0(react-dom@19.2.5(react@19.2.6))(react@19.2.6):
+  resend@4.8.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
     dependencies:
-      '@react-email/render': 1.1.2(react-dom@19.2.5(react@19.2.6))(react@19.2.6)
+      '@react-email/render': 1.1.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
     transitivePeerDependencies:
       - react
       - react-dom
