@@ -5,6 +5,19 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import miniMealieLogo from '/mini-mealie.svg';
 import { isRecipeCreateMode, RecipeCreateMode } from '@/utils/types/storageTypes';
 
+/**
+ * Returns the URL only when it uses a safe http/https protocol,
+ * otherwise returns '#' to prevent javascript: URL injection.
+ */
+function toSafeHref(url: string): string {
+    try {
+        const { protocol } = new URL(url);
+        return protocol === 'https:' || protocol === 'http:' ? url : '#';
+    } catch {
+        return '#';
+    }
+}
+
 function App() {
     const [protocol, setProtocol] = useState<Protocol>(Protocol.HTTPS);
     const [mealieServer, setMealieServer] = useState('');
@@ -186,7 +199,7 @@ function App() {
         <>
             <div>
                 <a
-                    href={mealieServer ? mealieServer : '#'}
+                    href={toSafeHref(mealieServer)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`logo ${mealieServer && mealieApiToken ? 'active' : ''}`}
