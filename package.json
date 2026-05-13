@@ -22,7 +22,6 @@
         "commitlint": "commitlint --edit"
     },
     "dependencies": {
-        "@react-email/components": "^1.0.12",
         "normalize-url": "^9.0.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
