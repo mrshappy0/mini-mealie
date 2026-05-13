@@ -84,11 +84,10 @@ async function readEvents(): Promise<LogEvent[]> {
             return;
         }
         chrome.storage.local.get([EVENT_LOG_STORAGE_KEY], (items: Record<string, unknown>) => {
-            const events = Object.hasOwn(items, EVENT_LOG_STORAGE_KEY)
-                ? items[EVENT_LOG_STORAGE_KEY]
-                : undefined;
-            if (Array.isArray(events)) {
-                resolve(events as LogEvent[]);
+            // eslint-disable-next-line security/detect-object-injection
+            const rawEvents = Object.hasOwn(items, EVENT_LOG_STORAGE_KEY) ? items[EVENT_LOG_STORAGE_KEY] : undefined; // prettier-ignore
+            if (Array.isArray(rawEvents)) {
+                resolve(rawEvents as LogEvent[]);
             } else {
                 resolve([]);
             }
