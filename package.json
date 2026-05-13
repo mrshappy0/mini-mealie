@@ -28,8 +28,8 @@
         "resend": "^4.8.0"
     },
     "devDependencies": {
-        "@commitlint/cli": "^19.8.1",
-        "@commitlint/config-conventional": "^19.8.1",
+        "@commitlint/cli": "^21.0.1",
+        "@commitlint/config-conventional": "^21.0.1",
         "@eslint/css": "^1.2.0",
         "@eslint/js": "^9.39.4",
         "@html-eslint/parser": "^0.60.0",
