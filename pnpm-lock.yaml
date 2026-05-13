@@ -48,6 +48,12 @@ importers:
       '@types/eslint-plugin-security':
         specifier: ^3.0.1
         version: 3.0.1
+      '@types/filesystem':
+        specifier: ^0.0.36
+        version: 0.0.36
+      '@types/har-format':
+        specifier: ^1.2.16
+        version: 1.2.16
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14

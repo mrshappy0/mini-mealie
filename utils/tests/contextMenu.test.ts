@@ -65,8 +65,8 @@ describe('Context Menu Utility (update/remove path)', () => {
     });
 
     it('should create the context menu if update fails', () => {
-        chrome.contextMenus.update = vi.fn((_id, _props, callback) => {
-            chrome.runtime.lastError = {
+        (chrome.contextMenus as any).update = vi.fn((_id: any, _props: any, callback: any) => {
+            (chrome.runtime as any).lastError = {
                 message: 'No such menu item',
             } as unknown as chrome.runtime.LastError;
             callback?.();

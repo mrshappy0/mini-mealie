@@ -110,7 +110,7 @@ export default defineBackground(() => {
  * Opens the recipe page directly in Mealie.
  */
 async function handleViewSpecificDuplicate(slug: string) {
-    chrome.storage.sync.get([...storageKeys], async (data) => {
+    chrome.storage.sync.get<StorageData>([...storageKeys], async (data) => {
         const { mealieServer, mealieApiToken } = data;
 
         if (!mealieServer || !mealieApiToken) {
@@ -175,7 +175,7 @@ async function handleViewDuplicate(url: string, menuId: string) {
         return;
     }
 
-    chrome.storage.sync.get([...storageKeys], async (data) => {
+    chrome.storage.sync.get<StorageData>([...storageKeys], async (data) => {
         const { mealieServer, mealieApiToken } = data;
 
         if (!mealieServer || !mealieApiToken) {

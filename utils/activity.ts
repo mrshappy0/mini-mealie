@@ -150,9 +150,9 @@ export async function getActivityState(): Promise<ActivityState | null> {
     if (typeof chrome === 'undefined' || !chrome.storage?.local) return null;
 
     return new Promise((resolve) => {
-        chrome.storage.local.get([ACTIVITY_STORAGE_KEY], (items) => {
+        chrome.storage.local.get([ACTIVITY_STORAGE_KEY], (items: Record<string, unknown>) => {
             const state = Object.hasOwn(items, ACTIVITY_STORAGE_KEY)
-                ? (items as Record<string, unknown>)[ACTIVITY_STORAGE_KEY as keyof typeof items]
+                ? items[ACTIVITY_STORAGE_KEY]
                 : undefined;
             if (state && typeof state === 'object' && 'activeCount' in state) {
                 resolve(state as ActivityState);

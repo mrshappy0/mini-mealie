@@ -83,9 +83,9 @@ async function readEvents(): Promise<LogEvent[]> {
             resolve([]);
             return;
         }
-        chrome.storage.local.get([EVENT_LOG_STORAGE_KEY], (items) => {
+        chrome.storage.local.get([EVENT_LOG_STORAGE_KEY], (items: Record<string, unknown>) => {
             const events = Object.hasOwn(items, EVENT_LOG_STORAGE_KEY)
-                ? (items as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY as keyof typeof items]
+                ? items[EVENT_LOG_STORAGE_KEY]
                 : undefined;
             if (Array.isArray(events)) {
                 resolve(events as LogEvent[]);
