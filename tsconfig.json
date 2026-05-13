@@ -4,7 +4,8 @@
         "strict": true,
         "noImplicitAny": true,
         "allowImportingTsExtensions": true,
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "types": ["chrome"]
     },
     "typescript.preferences.importModuleSpecifier": "shortest",
     "typescript.preferences.autoImportFileExcludePatterns": ["node_modules"]

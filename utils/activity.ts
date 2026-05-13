@@ -150,12 +150,11 @@ export async function getActivityState(): Promise<ActivityState | null> {
     if (typeof chrome === 'undefined' || !chrome.storage?.local) return null;
 
     return new Promise((resolve) => {
-        chrome.storage.local.get([ACTIVITY_STORAGE_KEY], (items) => {
-            const state = Object.hasOwn(items, ACTIVITY_STORAGE_KEY)
-                ? (items as Record<string, unknown>)[ACTIVITY_STORAGE_KEY as keyof typeof items]
-                : undefined;
-            if (state && typeof state === 'object' && 'activeCount' in state) {
-                resolve(state as ActivityState);
+        chrome.storage.local.get([ACTIVITY_STORAGE_KEY], (items: Record<string, unknown>) => {
+            // eslint-disable-next-line security/detect-object-injection
+            const rawState = Object.hasOwn(items, ACTIVITY_STORAGE_KEY) ? items[ACTIVITY_STORAGE_KEY] : undefined; // prettier-ignore
+            if (rawState && typeof rawState === 'object' && 'activeCount' in rawState) {
+                resolve(rawState as ActivityState);
             } else {
                 resolve(null);
             }

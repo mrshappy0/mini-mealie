@@ -79,7 +79,9 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([mockActiveTab]) as unknown as void,
+        );
 
         const mockedShowBadge = vi.mocked(showBadge);
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
@@ -112,9 +114,12 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
-            { ...mockActiveTab, url: 'https://recipe.org/detected' },
-        ]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () =>
+                Promise.resolve([
+                    { ...mockActiveTab, url: 'https://recipe.org/detected' },
+                ]) as unknown as void,
+        );
 
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'recipe' });
@@ -139,9 +144,12 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
-            { ...mockActiveTab, url: 'https://recipe.org/timeout' },
-        ]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () =>
+                Promise.resolve([
+                    { ...mockActiveTab, url: 'https://recipe.org/timeout' },
+                ]) as unknown as void,
+        );
 
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'timeout', timeoutMs: 4500 });
@@ -166,9 +174,12 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
-            { ...mockActiveTab, url: 'https://recipe.org/http-error' },
-        ]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () =>
+                Promise.resolve([
+                    { ...mockActiveTab, url: 'https://recipe.org/http-error' },
+                ]) as unknown as void,
+        );
 
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         mockTestScrapeUrlDetailed.mockResolvedValueOnce({
@@ -199,7 +210,9 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url }]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url }]) as unknown as void,
+        );
         vi.spyOn(Date, 'now').mockReturnValue(1_000);
 
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
@@ -222,7 +235,9 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url }]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url }]) as unknown as void,
+        );
 
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         mockTestScrapeUrlDetailed.mockResolvedValue({ outcome: 'recipe' });
@@ -269,7 +284,9 @@ describe('checkStorageAndUpdateBadge', () => {
         for (let i = 0; i < 105; i++) {
             const url = `https://recipe.org/url-${i}`;
             dateSpy.mockReturnValue(currentTime);
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url }]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([{ ...mockActiveTab, url }]) as unknown as void,
+            );
 
             await checkStorageAndUpdateBadge();
             await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for async operations
@@ -284,7 +301,9 @@ describe('checkStorageAndUpdateBadge', () => {
         // The 5 oldest should be evicted when we added entries beyond 100
         const oldestUrl = 'https://recipe.org/url-0';
         dateSpy.mockReturnValue(currentTime);
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url: oldestUrl }]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: oldestUrl }]) as unknown as void,
+        );
 
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for async operations
@@ -295,7 +314,9 @@ describe('checkStorageAndUpdateBadge', () => {
         // Now access a URL that should still be cached (url-100 or later)
         const recentUrl = 'https://recipe.org/url-100';
         dateSpy.mockReturnValue(currentTime);
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url: recentUrl }]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: recentUrl }]) as unknown as void,
+        );
 
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for async operations
@@ -314,7 +335,9 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url }]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url }]) as unknown as void,
+        );
         vi.spyOn(Date, 'now').mockReturnValue(1_000);
 
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
@@ -343,7 +366,9 @@ describe('checkStorageAndUpdateBadge', () => {
         // Add 3 entries at the same time
         for (let i = 0; i < 3; i++) {
             const url = `https://recipe.org/multi-expire-${i}`;
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url }]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([{ ...mockActiveTab, url }]) as unknown as void,
+            );
 
             await checkStorageAndUpdateBadge();
             await Promise.resolve();
@@ -356,7 +381,9 @@ describe('checkStorageAndUpdateBadge', () => {
 
         // Add a new entry - this should trigger pruning of all 3 expired entries
         const newUrl = 'https://recipe.org/new-after-expiry';
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url: newUrl }]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: newUrl }]) as unknown as void,
+        );
 
         await checkStorageAndUpdateBadge();
         await Promise.resolve();
@@ -365,7 +392,9 @@ describe('checkStorageAndUpdateBadge', () => {
 
         // Now try to access one of the old URLs - it should fetch again
         const expiredUrl = 'https://recipe.org/multi-expire-0';
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ ...mockActiveTab, url: expiredUrl }]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: expiredUrl }]) as unknown as void,
+        );
 
         await checkStorageAndUpdateBadge();
         await Promise.resolve();
@@ -391,14 +420,18 @@ describe('checkStorageAndUpdateBadge', () => {
 
         // Cache url1 at time 1000
         dateSpy.mockReturnValue(1_000);
-        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
+        tabsQuerySpy.mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: url1 }]) as unknown as void,
+        );
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
 
         // Cache url2 at time 2000
         dateSpy.mockReturnValue(2_000);
-        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url2 }]);
+        tabsQuerySpy.mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: url2 }]) as unknown as void,
+        );
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(2);
@@ -406,7 +439,9 @@ describe('checkStorageAndUpdateBadge', () => {
         // Access url1 again at time 20000 (19s after initial cache)
         // This updates url1's timestamp to 20000
         dateSpy.mockReturnValue(20_000);
-        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
+        tabsQuerySpy.mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: url1 }]) as unknown as void,
+        );
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(2); // Still cached
@@ -417,13 +452,17 @@ describe('checkStorageAndUpdateBadge', () => {
         dateSpy.mockReturnValue(33_000);
 
         // Access url2 - should fetch because it expired
-        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url2 }]);
+        tabsQuerySpy.mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: url2 }]) as unknown as void,
+        );
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(3);
 
         // Access url1 - should still be cached because timestamp was updated to 20000
-        tabsQuerySpy.mockResolvedValue([{ ...mockActiveTab, url: url1 }]);
+        tabsQuerySpy.mockImplementation(
+            () => Promise.resolve([{ ...mockActiveTab, url: url1 }]) as unknown as void,
+        );
         await checkStorageAndUpdateBadge();
         await new Promise((resolve) => setTimeout(resolve, 100));
         expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(3); // Still 3, no new fetch
@@ -440,7 +479,9 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([mockActiveTab]) as unknown as void,
+        );
 
         const mockUpdateContextMenu = vi.mocked(updateContextMenu);
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
@@ -470,9 +511,12 @@ describe('checkStorageAndUpdateBadge', () => {
             },
         );
 
-        vi.spyOn(chrome.tabs, 'query').mockResolvedValue([
-            { ...mockActiveTab, url: 'https://recipe.org/error-test' },
-        ]);
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () =>
+                Promise.resolve([
+                    { ...mockActiveTab, url: 'https://recipe.org/error-test' },
+                ]) as unknown as void,
+        );
 
         const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
         mockTestScrapeUrlDetailed.mockResolvedValueOnce({
@@ -512,7 +556,9 @@ describe('checkStorageAndUpdateBadge', () => {
                 },
             );
 
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([mockActiveTab]) as unknown as void,
+            );
 
             const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
             mockTestScrapeUrlDetailed.mockResolvedValueOnce({
@@ -538,7 +584,9 @@ describe('checkStorageAndUpdateBadge', () => {
                 },
             );
 
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([mockActiveTab]) as unknown as void,
+            );
 
             const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
             mockTestScrapeUrlDetailed.mockResolvedValueOnce({
@@ -576,7 +624,9 @@ describe('checkStorageAndUpdateBadge', () => {
                 },
             );
 
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([mockActiveTab]) as unknown as void,
+            );
 
             const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
             mockTestScrapeUrlDetailed.mockResolvedValueOnce({
@@ -616,7 +666,9 @@ describe('checkStorageAndUpdateBadge', () => {
                 },
             );
 
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([mockActiveTab]) as unknown as void,
+            );
 
             const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
             mockTestScrapeUrlDetailed.mockResolvedValueOnce({
@@ -647,7 +699,9 @@ describe('checkStorageAndUpdateBadge', () => {
                 },
             );
 
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([mockActiveTab]) as unknown as void,
+            );
 
             const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
             mockTestScrapeUrlDetailed.mockResolvedValueOnce({ outcome: 'not-recipe' });
@@ -672,7 +726,9 @@ describe('checkStorageAndUpdateBadge', () => {
                 },
             );
 
-            vi.spyOn(chrome.tabs, 'query').mockResolvedValue([mockActiveTab]);
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () => Promise.resolve([mockActiveTab]) as unknown as void,
+            );
 
             const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
             mockTestScrapeUrlDetailed.mockResolvedValueOnce({

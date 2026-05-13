@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import { WxtVitest } from 'wxt/testing';
 
 export default defineConfig({
+    // @ts-expect-error: WxtVitest returns vite@8 PluginOption[] but vitest/config expects vite@7 Plugin types
     plugins: [WxtVitest()],
     test: {
         reporters: ['default', 'html'],
