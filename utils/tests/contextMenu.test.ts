@@ -65,12 +65,16 @@ describe('Context Menu Utility (update/remove path)', () => {
     });
 
     it('should create the context menu if update fails', () => {
-        (chrome.contextMenus as any).update = vi.fn((_id: any, _props: any, callback: any) => {
-            (chrome.runtime as any).lastError = {
-                message: 'No such menu item',
-            } as unknown as chrome.runtime.LastError;
-            callback?.();
-        });
+        chrome.contextMenus.update = vi.fn(
+            (_id: unknown, _props: unknown, callback: (() => void) | undefined) => {
+                Object.defineProperty(chrome.runtime, 'lastError', {
+                    value: { message: 'No such menu item' },
+                    configurable: true,
+                    writable: true,
+                });
+                callback?.();
+            },
+        ) as unknown as typeof chrome.contextMenus.update;
 
         addContextMenu('No Recipe Detected - Attempt to Add Recipe');
 
