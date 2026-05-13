@@ -11,8 +11,8 @@ import { isRecipeCreateMode, RecipeCreateMode } from '@/utils/types/storageTypes
  */
 function toSafeHref(url: string): string {
     try {
-        const { protocol } = new URL(url);
-        return protocol === 'https:' || protocol === 'http:' ? url : '#';
+        const parsed = new URL(url);
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : '#';
     } catch {
         return '#';
     }
