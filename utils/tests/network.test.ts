@@ -782,6 +782,52 @@ describe('getUser', () => {
         );
     });
 
+    it('should strip trailing slashes from server URL before calling API', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockUser,
+        });
+
+        await getUser('https://example.com/', mockToken);
+
+        expect(fetch).toHaveBeenCalledWith(
+            'https://example.com/api/users/self',
+            expect.any(Object),
+        );
+    });
+
+    it('should trim token whitespace for Authorization header', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockUser,
+        });
+
+        await getUser(mockUrl, `  ${mockToken}  `);
+
+        expect(fetch).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: `Bearer ${mockToken}`,
+                }),
+            }),
+        );
+    });
+
+    it('should return error when JSON profile has no username', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ email: 'x@y.z' }),
+        });
+
+        const result = await getUser(mockUrl, mockToken);
+
+        expect(result).toEqual({
+            errorMessage:
+                'Mealie response did not include a username — check your server URL and Mealie version.',
+        });
+    });
+
     it('should return an error message if the API returns a non-OK status', async () => {
         global.fetch = vi.fn().mockResolvedValueOnce({
             ok: false,
