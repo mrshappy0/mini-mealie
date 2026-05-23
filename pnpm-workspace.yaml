@@ -1,0 +1,9 @@
+# pnpm 11: project-level pnpm settings live here, not in package.json's "pnpm" field
+allowBuilds:
+  esbuild: true
+  spawn-sync: true
+
+packageExtensions:
+  "minimatch@10.2.5":
+    dependencies:
+      brace-expansion: "^5.0.6"
