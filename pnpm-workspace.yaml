@@ -3,6 +3,13 @@ allowBuilds:
   esbuild: true
   spawn-sync: true
 
+overrides:
+  # node-notifier@10.0.1 (via wxt → web-ext-run) pins uuid@^8.3.2 which is
+  # vulnerable to GHSA-w5hq-g745-h8pq. Scoped to node-notifier only so the
+  # rest of the tree resolves its own preferred uuid version. node-notifier
+  # only calls uuid.v4(), API-compatible across all major versions.
+  node-notifier>uuid: ">=11.1.1"
+
 packageExtensions:
   "minimatch@10.2.5":
     dependencies:
