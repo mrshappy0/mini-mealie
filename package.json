@@ -52,10 +52,10 @@
         "eslint-plugin-simple-import-sort": "^13.0.0",
         "globals": "^17.6.0",
         "prettier": "^3.8.3",
-        "semantic-release": "^24.2.9",
+        "semantic-release": "^25.0.5",
         "tsx": "^4.21.0",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.59.2",
+        "typescript-eslint": "^8.61.0",
         "vitest": "^3.2.6",
         "wxt": "^0.20.26"
     },
