@@ -1,3 +1,6 @@
+const getActionApi = () =>
+    typeof chrome !== 'undefined' ? (chrome.action ?? chrome.browserAction) : undefined;
+
 export type ActivityState = {
     activeCount: number;
     label?: string;
@@ -27,13 +30,14 @@ function startSpinner() {
         const frame = SPINNER_FRAMES[spinnerIndex % SPINNER_FRAMES.length];
         spinnerIndex++;
 
-        if (typeof chrome !== 'undefined' && chrome.action?.setBadgeText) {
+        const action = getActionApi();
+        if (action?.setBadgeText) {
             // TODO: investigate if should be awaited
-            void chrome.action.setBadgeText({ text: frame });
+            void action.setBadgeText({ text: frame });
         }
-        if (typeof chrome !== 'undefined' && chrome.action?.setBadgeBackgroundColor) {
+        if (action?.setBadgeBackgroundColor) {
             // TODO: investigate if should be awaited
-            void chrome.action.setBadgeBackgroundColor({ color: '#ec7e19' });
+            void action.setBadgeBackgroundColor({ color: '#ec7e19' });
         }
     }, SPINNER_INTERVAL_MS);
 }
@@ -45,9 +49,10 @@ function stopSpinner() {
     }
 
     // Reset badge background to default (black)
-    if (typeof chrome !== 'undefined' && chrome.action?.setBadgeBackgroundColor) {
+    const action = getActionApi();
+    if (action?.setBadgeBackgroundColor) {
         // TODO: investigate if should be awaited
-        void chrome.action.setBadgeBackgroundColor({ color: '#000000' });
+        void action.setBadgeBackgroundColor({ color: '#000000' });
     }
 }
 
@@ -84,9 +89,10 @@ export async function beginActivity(label: string, opId?: string): Promise<void>
     startedAt = startedAt ?? Date.now();
 
     // Update tooltip
-    if (typeof chrome !== 'undefined' && chrome.action?.setTitle) {
+    const action = getActionApi();
+    if (action?.setTitle) {
         // TODO: investigate if should be awaited
-        void chrome.action.setTitle({ title: label });
+        void action.setTitle({ title: label });
     }
 
     // Update context menu to show busy state and disable it
@@ -123,9 +129,12 @@ export async function endActivity(
         }
 
         // Update tooltip with result
-        if (tooltipMessage && typeof chrome !== 'undefined' && chrome.action?.setTitle) {
-            // TODO: investigate if should be awaited
-            void chrome.action.setTitle({ title: tooltipMessage });
+        if (tooltipMessage) {
+            const action = getActionApi();
+            if (action?.setTitle) {
+                // TODO: investigate if should be awaited
+                void action.setTitle({ title: tooltipMessage });
+            }
         }
 
         await clearActivityState();
