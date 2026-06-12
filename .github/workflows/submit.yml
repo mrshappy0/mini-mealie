@@ -37,6 +37,7 @@ jobs:
                   echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
             - name: Inject version into package.json
               run: |
+                  npm pkg set version=${{ steps.extract_version.outputs.VERSION }}
                   pnpm version ${{ steps.extract_version.outputs.VERSION }} --no-git-tag-version
 
             - name: Zip Chrome extension

@@ -1,7 +1,6 @@
 {
     "name": "mini-mealie",
     "description": "manifest.json description",
-    "version": "1.4.0",
     "private": true,
     "type": "module",
     "scripts": {
