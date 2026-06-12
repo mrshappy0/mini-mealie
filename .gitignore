@@ -33,6 +33,9 @@ coverage-report
 *.sln
 *.sw?
 
+# AI planning documents
+AI-planning/
+
 # Environment variables
 .env.local
 .env.*.local
