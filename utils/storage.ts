@@ -470,7 +470,9 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
 
     let tabsResult: chrome.tabs.Tab[];
     try {
-        tabsResult = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        tabsResult = await new Promise<chrome.tabs.Tab[]>((resolve) => {
+            chrome.tabs.query({ active: true, lastFocusedWindow: true }, resolve);
+        });
     } catch (err) {
         recordBadgeMenuRefresh({
             outcome: 'tabs_query_rejected',
