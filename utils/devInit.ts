@@ -1,3 +1,27 @@
+import { mirrorMealieCredentialsToLocal } from './storage';
+
+function persistDevCredentials(data: {
+    mealieServer: string;
+    mealieApiToken: string;
+    mealieUsername?: string;
+}): Promise<void> {
+    return new Promise((resolve) => {
+        chrome.storage.sync.set(
+            {
+                mealieServer: data.mealieServer,
+                mealieApiToken: data.mealieApiToken,
+                ...(data.mealieUsername !== undefined
+                    ? { mealieUsername: data.mealieUsername }
+                    : {}),
+            },
+            () => {
+                mirrorMealieCredentialsToLocal(data);
+                resolve();
+            },
+        );
+    });
+}
+
 /**
  * Pre-populate extension storage from environment variables during development.
  * Only runs in dev mode when env vars are present.
@@ -52,7 +76,7 @@ export async function initDevEnvironment(): Promise<void> {
         const userResult = await getUser(server, token);
 
         if ('username' in userResult) {
-            await chrome.storage.sync.set({
+            await persistDevCredentials({
                 mealieServer: server,
                 mealieApiToken: token,
                 mealieUsername: userResult.username,
@@ -62,17 +86,12 @@ export async function initDevEnvironment(): Promise<void> {
             });
         } else {
             console.warn('[DevInit] Failed to fetch user profile:', userResult.errorMessage);
-            const storageData: Record<string, string> = {
+            const wroteUsername = Boolean(username);
+            await persistDevCredentials({
                 mealieServer: server,
                 mealieApiToken: token,
-            };
-
-            if (username) {
-                storageData.mealieUsername = username;
-            }
-
-            const wroteUsername = Boolean(username);
-            await chrome.storage.sync.set(storageData);
+                ...(username ? { mealieUsername: username } : {}),
+            });
             console.log(
                 wroteUsername
                     ? '[DevInit] Storage pre-populated (with unverified username from .env.local)'
