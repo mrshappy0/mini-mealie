@@ -14,6 +14,7 @@ export default defineBackground(() => {
 
     // Check storage and update badge on startup
     chrome.runtime.onStartup.addListener(async () => {
+        console.log('[Background] onStartup fired');
         // Pre-populate dev environment if applicable
         await initDevEnvironment();
         scheduleUpdate();
@@ -21,6 +22,7 @@ export default defineBackground(() => {
 
     // Check storage and update badge when extension is installed or updated
     chrome.runtime.onInstalled.addListener(async () => {
+        console.log('[Background] onInstalled fired');
         // Pre-populate dev environment if applicable
         await initDevEnvironment();
         scheduleUpdate();

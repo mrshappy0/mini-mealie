@@ -5,8 +5,10 @@
  * This improves developer experience by avoiding manual login on every browser restart.
  */
 export async function initDevEnvironment(): Promise<void> {
+    console.log('[DevInit] Function called');
     // Only run in development mode
     if (!import.meta.env.DEV) {
+        console.log('[DevInit] Not in dev mode, exiting');
         return;
     }
 
