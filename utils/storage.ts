@@ -529,7 +529,7 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
         const cached = detectionCache.get(url);
         const now = Date.now();
 
-        let detectionResult: DetectionProcessingResult | null = null;
+        let detectionResult: DetectionProcessingResult | null;
 
         if (cached && now - cached.checkedAt < DETECTION_CACHE_TTL_MS) {
             detectionResult = processCachedDetection(cached, isUrlMode);

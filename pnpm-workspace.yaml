@@ -9,6 +9,13 @@ overrides:
   # rest of the tree resolves its own preferred uuid version. node-notifier
   # only calls uuid.v4(), API-compatible across all major versions.
   node-notifier>uuid: ">=11.1.1"
+  # GHSA-w7jw-789q-3m8p: shell-quote quote() newline escaping in .op values.
+  # fx-runner@1.4.0 pins shell-quote@1.7.3; fx-runner@1.5.0 already uses 1.8.4
+  # but web-ext-run@0.2.4 (no newer release) still depends on fx-runner@1.4.0.
+  fx-runner>shell-quote: ">=1.8.4"
+  # GHSA-ph9p-34f9-6g65: tmp path traversal via unsanitized prefix/postfix.
+  # web-ext-run@0.2.4 pins tmp@0.2.5; no newer web-ext-run release available.
+  web-ext-run>tmp: ">=0.2.6"
 
 packageExtensions:
   "minimatch@10.2.5":

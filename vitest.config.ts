@@ -2,8 +2,8 @@ import { defineConfig } from 'vitest/config';
 import { WxtVitest } from 'wxt/testing';
 
 export default defineConfig({
-    // @ts-expect-error: WxtVitest returns vite@8 PluginOption[] but vitest/config expects vite@7 Plugin types
-    plugins: [WxtVitest()],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    plugins: [WxtVitest() as any],
     test: {
         reporters: ['default', 'html'],
         coverage: {
