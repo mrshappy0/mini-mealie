@@ -16,6 +16,8 @@ export async function initDevEnvironment(): Promise<void> {
     const token = import.meta.env.WXT_MEALIE_API_TOKEN;
     const username = import.meta.env.WXT_MEALIE_USERNAME;
 
+    console.log('[DevInit] Env vars:', { hasServer: !!server, hasToken: !!token, username: username || '(none)' });
+
     // Only proceed if credentials are provided
     if (!server || !token) {
         console.log('[DevInit] No dev credentials found in .env.local - skipping pre-population');
@@ -23,7 +25,9 @@ export async function initDevEnvironment(): Promise<void> {
     }
 
     // Check if storage already has values (don't overwrite user changes during dev)
+    console.log('[DevInit] Checking storage...');
     const existingData = await chrome.storage.sync.get(['mealieServer', 'mealieApiToken']);
+    console.log('[DevInit] Storage check result:', { hasServer: !!existingData.mealieServer, hasToken: !!existingData.mealieApiToken });
 
     if (existingData.mealieServer && existingData.mealieApiToken) {
         console.log('[DevInit] Storage already populated - skipping');
