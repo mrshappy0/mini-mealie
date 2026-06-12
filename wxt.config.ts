@@ -6,14 +6,6 @@ import { defineConfig } from 'wxt';
 // See https://wxt.dev/api/config.html
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
-    /**
-     * WXT cannot auto-open Firefox when targeting MV3 (see wxt-dev/wxt#230). `pnpm dev:firefox`
-     * sets `WXT_WEB_EXT_DISABLED=true` so the dev server runs; load `.output/firefox-mv3-dev/`
-     * manually from about:debugging.
-     */
-    webExt: {
-        disabled: process.env.WXT_WEB_EXT_DISABLED === 'true',
-    },
     manifest: ({ browser }) => ({
         permissions: ['storage', 'activeTab', 'contextMenus', 'scripting'],
         host_permissions: ['<all_urls>'],
@@ -25,7 +17,7 @@ export default defineConfig({
                       gecko: {
                           // Required for chrome.storage.sync / browser.storage.sync under temporary
                           // loads (about:debugging). Without an explicit ID, Firefox disables sync storage.
-                          id: 'mini-mealie@mrshappy0.github.io',
+                          id: 'mini-mealie@shaplabs.net',
                           strict_min_version: '109.0',
                           // Mozilla AMO policy (effective 2025-11-03): every new add-on must
                           // declare what data leaves the browser. This extension sends the
