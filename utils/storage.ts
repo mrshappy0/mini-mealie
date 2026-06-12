@@ -471,7 +471,11 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
     let tabsResult: chrome.tabs.Tab[];
     try {
         tabsResult = await new Promise<chrome.tabs.Tab[]>((resolve) => {
-            chrome.tabs.query({ active: true, lastFocusedWindow: true }, resolve);
+            const result = chrome.tabs.query(
+                { active: true, lastFocusedWindow: true },
+                resolve,
+            ) as unknown;
+            if (result instanceof Promise) void result.then(resolve);
         });
     } catch (err) {
         recordBadgeMenuRefresh({
