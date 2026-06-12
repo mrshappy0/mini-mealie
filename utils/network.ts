@@ -2,6 +2,14 @@ import normalizeUrlLib from 'normalize-url';
 
 export type CreateRecipeResult = { slug: string } | 'failure';
 
+/** `/api/recipes` duplicate lookups had no timeout — a hung Mealie blocked URL-mode context menus. */
+const DUPLICATE_DETECT_FETCH_TIMEOUT_MS = 12_000;
+
+/** Trim and strip trailing slashes so `${base}/api/...` never becomes `//api/...`. */
+export function normalizeMealieServerBaseUrl(serverUrl: string): string {
+    return serverUrl.trim().replace(/\/+$/, '');
+}
+
 /**
  * Normalize a URL for duplicate detection matching.
  * Removes tracking parameters, www prefix, trailing slashes, and fragments.
@@ -198,13 +206,16 @@ export const getUser = async (
         action: 'getUser',
         phase: 'start',
         message: 'Fetching user profile',
-        data: { server: sanitizeUrl(url) },
+        data: { server: sanitizeUrl(normalizeMealieServerBaseUrl(url)) },
     });
 
     try {
-        const res = await fetch(`${url}/api/users/self`, {
+        const base = normalizeMealieServerBaseUrl(url);
+        const authToken = token.trim();
+
+        const res = await fetch(`${base}/api/users/self`, {
             headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${authToken}`,
                 'Content-Type': 'application/json',
             },
         });
@@ -213,16 +224,27 @@ export const getUser = async (
         }
         const user = await res.json();
 
+        if (
+            !user ||
+            typeof user !== 'object' ||
+            typeof (user as Record<string, unknown>).username !== 'string'
+        ) {
+            return {
+                errorMessage:
+                    'Mealie response did not include a username — check your server URL and Mealie version.',
+            };
+        }
+
         await logEvent({
             level: 'info',
             feature: 'auth',
             action: 'getUser',
             phase: 'success',
             message: 'User profile fetched',
-            data: { server: sanitizeUrl(url), username: user.username },
+            data: { server: sanitizeUrl(base), username: (user as User).username },
         });
 
-        return user;
+        return user as User;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
@@ -232,7 +254,7 @@ export const getUser = async (
             action: 'getUser',
             phase: 'failure',
             message: `Failed to fetch user: ${errorMessage}`,
-            data: { server: sanitizeUrl(url) },
+            data: { server: sanitizeUrl(normalizeMealieServerBaseUrl(url)) },
         });
 
         if (error instanceof Error) {
@@ -269,11 +291,13 @@ export const testScrapeUrlDetailed = async (
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-        const res = (await fetch(`${server}/api/recipes/test-scrape-url`, {
+        const mealieBase = normalizeMealieServerBaseUrl(server);
+
+        const res = (await fetch(`${mealieBase}/api/recipes/test-scrape-url`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${token.trim()}`,
             },
             body: JSON.stringify({ url }),
             signal: controller.signal,
@@ -340,12 +364,20 @@ export async function findRecipeByURL(
         apiUrl.searchParams.set('orderBy', 'dateUpdated');
         apiUrl.searchParams.set('orderDirection', 'desc');
 
-        const res = (await fetch(apiUrl.href, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        })) as FetchLikeResponse;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), DUPLICATE_DETECT_FETCH_TIMEOUT_MS);
+        let res: FetchLikeResponse;
+        try {
+            res = (await fetch(apiUrl.href, {
+                headers: {
+                    Authorization: `Bearer ${token.trim()}`,
+                    'Content-Type': 'application/json',
+                },
+                signal: controller.signal,
+            })) as FetchLikeResponse;
+        } finally {
+            clearTimeout(timeoutId);
+        }
 
         if (!res.ok) {
             await logEvent({
@@ -427,12 +459,20 @@ export async function searchRecipesByName(
         apiUrl.searchParams.set('search', name);
         apiUrl.searchParams.set('perPage', '5');
 
-        const res = (await fetch(apiUrl.href, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        })) as FetchLikeResponse;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), DUPLICATE_DETECT_FETCH_TIMEOUT_MS);
+        let res: FetchLikeResponse;
+        try {
+            res = (await fetch(apiUrl.href, {
+                headers: {
+                    Authorization: `Bearer ${token.trim()}`,
+                    'Content-Type': 'application/json',
+                },
+                signal: controller.signal,
+            })) as FetchLikeResponse;
+        } finally {
+            clearTimeout(timeoutId);
+        }
 
         if (!res.ok) {
             await logEvent({

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     addContextMenu,
+    RECIPE_MENU_CONTEXTS,
     removeAllDuplicateMenus,
     removeContextMenu,
     updateContextMenu,
@@ -14,6 +15,7 @@ beforeEach(() => {
             removeAll: vi.fn((callback) => callback && callback()),
             create: vi.fn(),
         },
+        runtime: { lastError: undefined },
     } as unknown as typeof chrome;
 });
 
@@ -26,7 +28,7 @@ describe('Context Menu Utility', () => {
             id: 'runCreateRecipe',
             title: 'No Recipe Detected - Attempt to Add Recipe',
             enabled: true,
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
     });
 
@@ -83,26 +85,17 @@ describe('Context Menu Utility (update/remove path)', () => {
                 id: 'runCreateRecipe',
                 title: 'No Recipe Detected - Attempt to Add Recipe',
                 enabled: true,
-                contexts: ['page'],
+                contexts: RECIPE_MENU_CONTEXTS,
             },
             expect.any(Function),
         );
     });
 
-    it('should remove the parent context menu and child items when supported', () => {
+    it('should clear all extension context menus when removeAll is available', () => {
         removeContextMenu();
 
-        // Should remove parent (which cascades to children)
-        expect(chrome.contextMenus.remove).toHaveBeenCalledWith(
-            'miniMealieParent',
-            expect.any(Function),
-        );
-
-        // Should also explicitly remove create menu item
-        expect(chrome.contextMenus.remove).toHaveBeenCalledWith(
-            'runCreateRecipe',
-            expect.any(Function),
-        );
+        expect(chrome.contextMenus.removeAll).toHaveBeenCalled();
+        expect(chrome.contextMenus.remove).not.toHaveBeenCalled();
     });
 });
 
@@ -124,6 +117,8 @@ describe('updateContextMenu', () => {
     it('should create main menu and no duplicate menus when type is none', () => {
         updateContextMenu('Create Recipe from URL', true, {}, false);
 
+        expect(chrome.contextMenus.removeAll).toHaveBeenCalled();
+
         // Should create parent menu + create menu (no duplicates)
         const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
         expect(createCalls.length).toBe(2);
@@ -132,7 +127,7 @@ describe('updateContextMenu', () => {
         expect(createCalls[0][0]).toEqual({
             id: 'miniMealieParent',
             title: 'Mini Mealie',
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Second should be create menu as child
@@ -141,18 +136,10 @@ describe('updateContextMenu', () => {
             parentId: 'miniMealieParent',
             title: 'Create Recipe from URL',
             enabled: true,
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
 
-        // Duplicate removal should be called
-        expect(chrome.contextMenus.remove).toHaveBeenCalledWith(
-            'viewDuplicateUrl',
-            expect.any(Function),
-        );
-        expect(chrome.contextMenus.remove).toHaveBeenCalledWith(
-            'viewDuplicatesByName',
-            expect.any(Function),
-        );
+        expect(chrome.contextMenus.remove).not.toHaveBeenCalled();
     });
 
     it('should create URL duplicate warning menu when exact match found', () => {
@@ -173,7 +160,7 @@ describe('updateContextMenu', () => {
         expect(createCalls[0][0]).toEqual({
             id: 'miniMealieParent',
             title: 'Mini Mealie',
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Second should be create menu
@@ -182,7 +169,7 @@ describe('updateContextMenu', () => {
             parentId: 'miniMealieParent',
             title: 'Create Recipe from URL',
             enabled: true,
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Third should be duplicate URL menu (sibling of create)
@@ -191,7 +178,7 @@ describe('updateContextMenu', () => {
             parentId: 'miniMealieParent',
             title: '⚠️ Already exists: "Chicken Carbonara"',
             enabled: true,
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
     });
 
@@ -217,7 +204,7 @@ describe('updateContextMenu', () => {
         expect(createCalls[0][0]).toEqual({
             id: 'miniMealieParent',
             title: 'Mini Mealie',
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Second should be create menu
@@ -226,7 +213,7 @@ describe('updateContextMenu', () => {
             parentId: 'miniMealieParent',
             title: 'Create Recipe from URL',
             enabled: true,
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Third should be duplicate name menu (plural, sibling of create)
@@ -235,7 +222,7 @@ describe('updateContextMenu', () => {
             parentId: 'miniMealieParent',
             title: '🔍 Found 2 similar recipes',
             enabled: true,
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
     });
 
@@ -262,7 +249,7 @@ describe('updateContextMenu', () => {
             parentId: 'miniMealieParent',
             title: '🔍 Found 1 similar recipe',
             enabled: true,
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
     });
 
@@ -313,7 +300,7 @@ describe('updateContextMenu', () => {
             parentId: 'miniMealieParent',
             title: 'No Recipe - Switch to HTML Mode',
             enabled: true, // Always enabled to allow clicking
-            contexts: ['page'],
+            contexts: RECIPE_MENU_CONTEXTS,
         });
     });
 });
