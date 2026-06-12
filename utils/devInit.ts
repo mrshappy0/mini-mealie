@@ -5,18 +5,14 @@
  * This improves developer experience by avoiding manual login on every browser restart.
  */
 export async function initDevEnvironment(): Promise<void> {
-    console.log('[DevInit] Function called');
     // Only run in development mode
     if (!import.meta.env.DEV) {
-        console.log('[DevInit] Not in dev mode, exiting');
         return;
     }
 
     const server = import.meta.env.WXT_MEALIE_SERVER;
     const token = import.meta.env.WXT_MEALIE_API_TOKEN;
     const username = import.meta.env.WXT_MEALIE_USERNAME;
-
-    console.log('[DevInit] Env vars:', { hasServer: !!server, hasToken: !!token, username: username || '(none)' });
 
     // Only proceed if credentials are provided
     if (!server || !token) {
@@ -25,12 +21,10 @@ export async function initDevEnvironment(): Promise<void> {
     }
 
     // Check if storage already has values (don't overwrite user changes during dev)
-    console.log('[DevInit] Checking storage...');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingData = (await new Promise((resolve) => {
         chrome.storage.sync.get(['mealieServer', 'mealieApiToken'], resolve as any);
     })) as Record<string, string>;
-    console.log('[DevInit] Storage check result:', { hasServer: !!existingData.mealieServer, hasToken: !!existingData.mealieApiToken });
 
     if (existingData.mealieServer && existingData.mealieApiToken) {
         console.log('[DevInit] Storage already populated - skipping');
