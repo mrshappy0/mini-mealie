@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import { WxtVitest } from 'wxt/testing';
 
 export default defineConfig({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plugins: [WxtVitest() as any],
     test: {
         reporters: ['default', 'html'],
