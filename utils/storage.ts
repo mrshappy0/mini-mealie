@@ -1,3 +1,5 @@
+import { logEvent } from './logging';
+
 const DETECTION_CACHE_TTL_MS = 30_000;
 const DETECTION_CACHE_MAX_SIZE = 100;
 
@@ -9,6 +11,7 @@ export const RESTRICTED_PROTOCOLS = [
     'chrome:',
     'chrome-extension:',
     'chrome-untrusted:',
+    'moz-extension:',
     'about:',
     'data:',
     'file:',
@@ -52,7 +55,7 @@ export function invalidateDetectionCacheForUrl(url: string) {
 
 /**
  * Check if a URL uses a restricted protocol that prevents script injection.
- * Returns true for chrome://, chrome-extension://, about:, data:, file:, etc.
+ * Returns true for chrome://, chrome-extension://, moz-extension://, about:, data:, file:, etc.
  * @param url - The URL to check
  * @returns true if the URL is restricted, false otherwise
  */
@@ -73,7 +76,6 @@ export function isRestrictedUrl(url: string): boolean {
 function disableAllMenus(): void {
     showBadge('');
     removeContextMenu();
-    removeAllDuplicateMenus();
 }
 
 /**
@@ -280,6 +282,12 @@ async function processFreshDetection(
         if (result.recipeName) {
             cacheEntry.recipeName = result.recipeName;
         }
+        // Show menu immediately after scrape — duplicate checks use unbounded Mealie fetches and
+        // previously blocked updateContextMenu until they finished (often forever if Mealie hung).
+        if (checkId === lastCheckId) {
+            const interimTitle = getTitleForOutcome(result.outcome, cacheEntry.status, isUrlMode);
+            updateContextMenu(interimTitle, true, {}, false);
+        }
         // Check for duplicates
         const duplicateDetection = await checkForDuplicates(
             url,
@@ -361,78 +369,243 @@ async function logDetectionResult(
     }
 }
 
-export const checkStorageAndUpdateBadge = async () => {
-    const checkId = ++lastCheckId;
+const MEALIE_CREDENTIAL_LOCAL_KEYS = ['mealieServer', 'mealieApiToken', 'mealieUsername'] as const;
 
-    chrome.storage.sync.get(
-        [...storageKeys],
-        async ({ mealieServer, mealieApiToken, recipeCreateMode }: StorageData) => {
-            if (checkId !== lastCheckId) return;
-
-            if (!mealieServer || !mealieApiToken) {
-                showBadge('❌');
-                removeContextMenu();
-                return;
-            }
-
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (checkId !== lastCheckId) return;
-
-            const { url } = tab ?? {};
-            const mode = isRecipeCreateMode(recipeCreateMode)
-                ? recipeCreateMode
-                : RecipeCreateMode.URL;
-            const isUrlMode = mode === RecipeCreateMode.URL;
-
-            // Skip internal browser and extension pages (applies to both URL and HTML modes)
-            // Script injection fails on these pages due to browser security restrictions
-            if (url && isRestrictedUrl(url)) {
-                disableAllMenus();
-                return;
-            }
-
-            // In HTML mode, always show static title and enable
-            // No detection or duplicate checking needed
-            if (!isUrlMode) {
-                updateContextMenu('Create Recipe from HTML', true, {}, false);
-                return;
-            }
-
-            // From here on, we're in URL mode only
-            let title = 'No Recipe - Switch to HTML Mode';
-            const enabled = true; // Always enabled
-            let isErrorSuggestion = true; // Default to error state
-            let duplicateInfo: DuplicateDetectionResult = {};
-
-            if (url) {
-                pruneDetectionCache();
-
-                const cached = detectionCache.get(url);
-                const now = Date.now();
-
-                let detectionResult: DetectionProcessingResult | null = null;
-
-                if (cached && now - cached.checkedAt < DETECTION_CACHE_TTL_MS) {
-                    detectionResult = processCachedDetection(cached, isUrlMode);
-                } else {
-                    detectionResult = await processFreshDetection(
-                        url,
-                        now,
-                        checkId,
-                        mealieServer,
-                        mealieApiToken,
-                        isUrlMode,
-                    );
-                    if (!detectionResult) return; // Cancelled
-                }
-
-                title = detectionResult.title;
-                isErrorSuggestion = detectionResult.isErrorSuggestion;
-                duplicateInfo = detectionResult.duplicateInfo;
-            }
-
-            // Always use updateContextMenu with duplicate info
-            updateContextMenu(title, enabled, duplicateInfo, isErrorSuggestion);
+/** Persist Mealie credentials to storage.local (Firefox/temporary profiles can lose sync-only writes). */
+export function mirrorMealieCredentialsToLocal(creds: {
+    mealieServer: string;
+    mealieApiToken: string;
+    mealieUsername?: string;
+}): void {
+    chrome.storage.local.set(
+        {
+            mealieServer: creds.mealieServer,
+            mealieApiToken: creds.mealieApiToken,
+            mealieUsername: creds.mealieUsername ?? '',
         },
+        () => void chrome.runtime.lastError,
     );
-};
+}
+
+export function clearMealieCredentialsLocal(): void {
+    chrome.storage.local.remove(
+        [...MEALIE_CREDENTIAL_LOCAL_KEYS],
+        () => void chrome.runtime.lastError,
+    );
+}
+
+/**
+ * When sync is missing credentials, merge from storage.local and back-fill sync.
+ * Used by popup hydration and badge/menu refresh (Firefox-friendly).
+ */
+export function mergeMealieCredentialsFromLocalIfNeeded(
+    syncData: StorageData,
+    onMerged: (data: StorageData) => void,
+): void {
+    if (syncData.mealieServer && syncData.mealieApiToken) {
+        onMerged(syncData);
+        return;
+    }
+
+    chrome.storage.local.get([...MEALIE_CREDENTIAL_LOCAL_KEYS], (local: Partial<StorageData>) => {
+        void chrome.runtime.lastError;
+
+        const merged: StorageData = {
+            ...syncData,
+            mealieServer: syncData.mealieServer ?? local.mealieServer,
+            mealieApiToken: syncData.mealieApiToken ?? local.mealieApiToken,
+            mealieUsername: syncData.mealieUsername ?? local.mealieUsername,
+        };
+
+        if (
+            merged.mealieServer &&
+            merged.mealieApiToken &&
+            (!syncData.mealieServer || !syncData.mealieApiToken)
+        ) {
+            chrome.storage.sync.set(
+                {
+                    mealieServer: merged.mealieServer,
+                    mealieApiToken: merged.mealieApiToken,
+                    mealieUsername: merged.mealieUsername,
+                },
+                () => void chrome.runtime.lastError,
+            );
+        }
+
+        onMerged(merged);
+    });
+}
+
+/** Always persisted to Activity Logs — root-cause signal when only `auth/getUser` appears from the popup. */
+const BADGE_MENU_LOG_SCHEMA = 2;
+
+function recordBadgeMenuRefresh(summary: Record<string, unknown>): void {
+    const outcome = typeof summary.outcome === 'string' ? summary.outcome : 'badgeMenuRefresh';
+    void Promise.resolve(
+        logEvent({
+            level: 'info',
+            feature: 'recipe-detect',
+            action: 'badgeMenuRefresh',
+            phase: 'success',
+            message: outcome,
+            data: { ...summary, schema: BADGE_MENU_LOG_SCHEMA },
+        }),
+    ).catch(() => undefined);
+}
+
+async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Promise<void> {
+    const { mealieServer, mealieApiToken, recipeCreateMode } = data;
+    if (checkId !== lastCheckId) return;
+
+    if (!mealieServer || !mealieApiToken) {
+        showBadge('❌');
+        removeContextMenu();
+        recordBadgeMenuRefresh({
+            outcome: 'skipped_no_credentials',
+            srv: Boolean(mealieServer),
+            tok: Boolean(mealieApiToken),
+        });
+        return;
+    }
+
+    let tabsResult: chrome.tabs.Tab[];
+    try {
+        tabsResult = await new Promise<chrome.tabs.Tab[]>((resolve) => {
+            const result = chrome.tabs.query(
+                { active: true, lastFocusedWindow: true },
+                resolve,
+            ) as unknown;
+            if (result instanceof Promise) void result.then(resolve);
+        });
+    } catch (err) {
+        recordBadgeMenuRefresh({
+            outcome: 'tabs_query_rejected',
+            error: err instanceof Error ? err.message : String(err),
+        });
+        return;
+    }
+    if (checkId !== lastCheckId) return;
+
+    const [tab] = tabsResult;
+    const { url } = tab ?? {};
+    const mode = isRecipeCreateMode(recipeCreateMode) ? recipeCreateMode : RecipeCreateMode.URL;
+    const isUrlMode = mode === RecipeCreateMode.URL;
+
+    // Skip internal browser and extension pages (applies to both URL and HTML modes)
+    // Script injection fails on these pages due to browser security restrictions
+    if (url && isRestrictedUrl(url)) {
+        disableAllMenus();
+        recordBadgeMenuRefresh({
+            outcome: 'skipped_restricted_tab',
+            url: sanitizeUrl(url),
+            recipeCreateMode: mode,
+            tabsReturned: tabsResult.length,
+        });
+        return;
+    }
+
+    // In HTML mode, always show static title and enable
+    // No detection or duplicate checking needed
+    if (!isUrlMode) {
+        updateContextMenu('Create Recipe from HTML', true, {}, false);
+        recordBadgeMenuRefresh({
+            outcome: 'html_mode_static_menu',
+            tabsReturned: tabsResult.length,
+            activeTabId: tab?.id,
+            hadTabUrl: Boolean(url),
+        });
+        return;
+    }
+
+    // From here on, we're in URL mode only
+    let title = 'No Recipe - Switch to HTML Mode';
+    const enabled = true; // Always enabled
+    let isErrorSuggestion = true; // Default to error state
+    let duplicateInfo: DuplicateDetectionResult = {};
+
+    if (url) {
+        pruneDetectionCache();
+
+        const cached = detectionCache.get(url);
+        const now = Date.now();
+
+        let detectionResult: DetectionProcessingResult | null = null;
+
+        if (cached && now - cached.checkedAt < DETECTION_CACHE_TTL_MS) {
+            detectionResult = processCachedDetection(cached, isUrlMode);
+        } else {
+            detectionResult = await processFreshDetection(
+                url,
+                now,
+                checkId,
+                mealieServer,
+                mealieApiToken,
+                isUrlMode,
+            );
+            if (!detectionResult) {
+                recordBadgeMenuRefresh({
+                    outcome: 'skipped_detection_superseded',
+                    hadTabUrl: Boolean(url),
+                    tabUrlHint: url ? sanitizeUrl(url) : undefined,
+                    tabsReturned: tabsResult.length,
+                });
+                return;
+            }
+        }
+
+        title = detectionResult.title;
+        isErrorSuggestion = detectionResult.isErrorSuggestion;
+        duplicateInfo = detectionResult.duplicateInfo;
+    }
+
+    // Always use updateContextMenu with duplicate info
+    updateContextMenu(title, enabled, duplicateInfo, isErrorSuggestion);
+    recordBadgeMenuRefresh({
+        outcome: 'menu_updated',
+        recipeCreateMode: RecipeCreateMode.URL,
+        menuTitle: title,
+        hadTabUrl: Boolean(url),
+        tabUrlHint: url ? sanitizeUrl(url) : undefined,
+        tabsReturned: tabsResult.length,
+        activeTabId: tab?.id,
+    });
+}
+
+/**
+ * Overlapping badge/menu refreshes each incremented `lastCheckId` before earlier scrapes finished,
+ * so `processFreshDetection` constantly returned null (cancelled) and the context menu never appeared.
+ * Serialize refreshes so only one check id is “live” during Mealie I/O.
+ */
+let refreshTail: Promise<void> = Promise.resolve();
+
+/** Reset serialized refresh state between Vitest cases (module singleton). */
+export function resetBadgeMenuRefreshQueueForTests(): void {
+    refreshTail = Promise.resolve();
+}
+
+async function runQueuedStorageCheck(): Promise<void> {
+    const checkId = ++lastCheckId;
+    await new Promise<void>((resolve) => {
+        chrome.storage.sync.get([...storageKeys], (syncData: StorageData) => {
+            void chrome.runtime?.lastError;
+            mergeMealieCredentialsFromLocalIfNeeded(syncData, (merged) => {
+                recordBadgeMenuRefresh({
+                    outcome: 'pipeline_job',
+                    step: 'merged_credentials',
+                    checkId,
+                    srv: Boolean(merged.mealieServer),
+                    tok: Boolean(merged.mealieApiToken),
+                    mode: merged.recipeCreateMode ?? null,
+                });
+                void runStorageCheckAfterMerge(checkId, merged).finally(() => resolve());
+            });
+        });
+    });
+}
+
+/** Queue a badge/context-menu refresh; resolves when this queued hop completes. */
+export function checkStorageAndUpdateBadge(): Promise<void> {
+    const job = refreshTail.then(() => runQueuedStorageCheck());
+    refreshTail = job.catch(() => undefined);
+    return job;
+}

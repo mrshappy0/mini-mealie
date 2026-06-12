@@ -18,7 +18,7 @@ export default defineConfig({
                           // Required for chrome.storage.sync / browser.storage.sync under temporary
                           // loads (about:debugging). Without an explicit ID, Firefox disables sync storage.
                           id: 'mini-mealie@shaplabs.net',
-                          strict_min_version: '109.0',
+                          strict_min_version: '142.0',
                           // Mozilla AMO policy (effective 2025-11-03): every new add-on must
                           // declare what data leaves the browser. This extension sends the
                           // user-supplied Mealie API token (authenticationInfo) and the active

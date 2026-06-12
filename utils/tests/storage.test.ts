@@ -4,7 +4,11 @@ import { WxtVitest } from 'wxt/testing';
 import { clearBadge, showBadge } from '../badge';
 import { removeContextMenu, updateContextMenu } from '../contextMenu';
 import { testScrapeUrlDetailed } from '../network';
-import { checkStorageAndUpdateBadge, clearDetectionCache } from '../storage';
+import {
+    checkStorageAndUpdateBadge,
+    clearDetectionCache,
+    resetBadgeMenuRefreshQueueForTests,
+} from '../storage';
 
 void WxtVitest();
 
@@ -46,6 +50,13 @@ describe('checkStorageAndUpdateBadge', () => {
         fakeBrowser.reset();
         vi.clearAllMocks();
         clearDetectionCache();
+        resetBadgeMenuRefreshQueueForTests();
+        // Incomplete sync credentials merge from local; default empty so tests stay deterministic.
+        vi.spyOn(chrome.storage.local, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string | undefined>) => void) => {
+                callback({});
+            },
+        );
     });
 
     afterEach(() => {
@@ -199,6 +210,43 @@ describe('checkStorageAndUpdateBadge', () => {
             {},
             true,
         );
+    });
+
+    describe('badge/menu refresh queue (regression: overlapping refreshes)', () => {
+        beforeEach(() => {
+            vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+                (_keys, callback: (items: Record<string, string>) => void) => {
+                    callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+                },
+            );
+            vi.spyOn(chrome.tabs, 'query').mockImplementation(
+                () =>
+                    Promise.resolve([
+                        { ...mockActiveTab, url: 'https://recipe.org/refresh-storm' },
+                    ]) as unknown as void,
+            );
+        });
+
+        it('serializes many overlapping refresh calls — each completes scrape and menu update', async () => {
+            const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+            const mockUpdateContextMenu = vi.mocked(updateContextMenu);
+
+            mockTestScrapeUrlDetailed.mockImplementation(
+                () =>
+                    new Promise((resolve) =>
+                        setTimeout(() => resolve({ outcome: 'not-recipe' }), 15),
+                    ),
+            );
+
+            const n = 12;
+            const jobs = Array.from({ length: n }, () => checkStorageAndUpdateBadge());
+            await Promise.all(jobs);
+
+            // Same tab URL ⇒ only the first hop runs a remote scrape; later hops use cache but must
+            // still rebuild the menu. Starvation from overlapping lastCheckId used to yield ~0 menus.
+            expect(mockTestScrapeUrlDetailed).toHaveBeenCalledTimes(1);
+            expect(mockUpdateContextMenu).toHaveBeenCalledTimes(n);
+        });
     });
 
     it('should cache detection results for the same URL', async () => {
