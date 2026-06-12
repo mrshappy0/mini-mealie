@@ -5,9 +5,6 @@ export default defineWebExtConfig({
     // This allows the extension to remember logins, settings, etc.
     chromiumArgs: ['--user-data-dir=./.wxt/chrome-data'],
 
-    // Firefox template profile (web-ext copies it each session; devInit.ts pre-populates credentials)
-    firefoxProfile: './.wxt/firefox-data',
-
     // Auto-open useful pages for development
     startUrls: [
         'https://www.allrecipes.com/recipe/286369/cheesy-ground-beef-and-potatoes/',
