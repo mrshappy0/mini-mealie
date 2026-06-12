@@ -578,6 +578,7 @@ export function resetBadgeMenuRefreshQueueForTests(): void {
 }
 
 async function runQueuedStorageCheck(): Promise<void> {
+    console.log('[Storage] runQueuedStorageCheck starting');
     const checkId = ++lastCheckId;
     await new Promise<void>((resolve) => {
         chrome.storage.sync.get([...storageKeys], (syncData: StorageData) => {
@@ -599,6 +600,7 @@ async function runQueuedStorageCheck(): Promise<void> {
 
 /** Queue a badge/context-menu refresh; resolves when this queued hop completes. */
 export function checkStorageAndUpdateBadge(): Promise<void> {
+    console.log('[Storage] checkStorageAndUpdateBadge called');
     const job = refreshTail.then(() => runQueuedStorageCheck());
     refreshTail = job.catch(() => undefined);
     return job;
