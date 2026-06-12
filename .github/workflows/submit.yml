@@ -37,9 +37,9 @@ jobs:
                   echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
             - name: Inject version into package.json
               run: |
-                  pnpm version ${{ steps.extract_version.outputs.VERSION }} --no-git-tag-version
+                  npm pkg set version=${{ steps.extract_version.outputs.VERSION }}
 
-            - name: Zip extensions
+            - name: Zip Chrome extension
               run: |
                   pnpm zip
 
@@ -53,3 +53,16 @@ jobs:
                   CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
                   CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
                   CHROME_SKIP_SUBMIT_REVIEW: true
+
+            - name: Zip Firefox extension
+              run: |
+                  pnpm zip:firefox
+
+            - name: Submit to Firefox Add-ons
+              if: ${{ env.FIREFOX_JWT_ISSUER != '' }}
+              run: |
+                  pnpm wxt submit \
+                    --firefox-zip .output/*-firefox.zip
+              env:
+                  FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+                  FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
