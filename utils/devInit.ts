@@ -21,10 +21,11 @@ export async function initDevEnvironment(): Promise<void> {
     }
 
     // Check if storage already has values (don't overwrite user changes during dev)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingData = (await new Promise((resolve) => {
-        chrome.storage.sync.get(['mealieServer', 'mealieApiToken'], resolve as any);
-    })) as Record<string, string>;
+    const existingData = await new Promise<Record<string, string>>((resolve) => {
+        chrome.storage.sync.get((items: { [key: string]: unknown }) => {
+            resolve(items as Record<string, string>);
+        });
+    });
 
     if (existingData.mealieServer && existingData.mealieApiToken) {
         console.log('[DevInit] Storage already populated - skipping');
