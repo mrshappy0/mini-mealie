@@ -188,10 +188,8 @@ export const updateContextMenu = (
     duplicateInfo: DuplicateInfo,
     isErrorSuggestion = false,
 ) => {
-    console.log('[ContextMenu] updateContextMenu called:', { createTitle, createEnabled });
     const canCreate = typeof chrome.contextMenus.create === 'function';
     const canRemoveAll = typeof chrome.contextMenus.removeAll === 'function';
-    console.log('[ContextMenu] API availability:', { canCreate, canRemoveAll });
     if (!canCreate || !canRemoveAll) return;
 
     const menuId = isErrorSuggestion ? SWITCH_TO_HTML_MODE_ID : RUN_CREATE_RECIPE_MENU_ID;
