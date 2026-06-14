@@ -3,7 +3,7 @@ import { WxtVitest } from 'wxt/testing';
 
 import { clearBadge, showBadge } from '../badge';
 import { removeContextMenu, updateContextMenu } from '../contextMenu';
-import { testScrapeUrlDetailed } from '../network';
+import { findRecipeByURL, searchRecipesByName, testScrapeUrlDetailed } from '../network';
 import {
     checkStorageAndUpdateBadge,
     clearDetectionCache,
@@ -38,6 +38,8 @@ vi.mock('../contextMenu', () => ({
 
 vi.mock('../network', () => ({
     testScrapeUrlDetailed: vi.fn(() => Promise.resolve({ outcome: 'not-recipe' })),
+    findRecipeByURL: vi.fn(() => Promise.resolve(null)),
+    searchRecipesByName: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock('../logging', () => ({
@@ -586,15 +588,6 @@ describe('checkStorageAndUpdateBadge', () => {
     });
 
     describe('Duplicate Detection Integration', () => {
-        beforeEach(() => {
-            // Mock network functions for duplicate detection
-            vi.mock('../network', () => ({
-                testScrapeUrlDetailed: vi.fn(() => Promise.resolve({ outcome: 'not-recipe' })),
-                findRecipeByURL: vi.fn(() => Promise.resolve(null)),
-                searchRecipesByName: vi.fn(() => Promise.resolve([])),
-            }));
-        });
-
         it('should cache recipeName when recipe is detected', async () => {
             const { detectionCache } = await import('../storage');
 
@@ -624,7 +617,6 @@ describe('checkStorageAndUpdateBadge', () => {
 
         it('should cache duplicateDetection with URL match', async () => {
             const { detectionCache } = await import('../storage');
-            const { findRecipeByURL } = await import('../network');
 
             vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
                 (_keys, callback: (items: Record<string, string>) => void) => {
@@ -664,8 +656,6 @@ describe('checkStorageAndUpdateBadge', () => {
 
         it('should cache duplicateDetection with name matches', async () => {
             const { detectionCache } = await import('../storage');
-            const { findRecipeByURL, searchRecipesByName } = await import('../network');
-
             vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
                 (_keys, callback: (items: Record<string, string>) => void) => {
                     callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
@@ -706,8 +696,6 @@ describe('checkStorageAndUpdateBadge', () => {
 
         it('should cache duplicateDetection as none when no matches found', async () => {
             const { detectionCache } = await import('../storage');
-            const { findRecipeByURL, searchRecipesByName } = await import('../network');
-
             vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
                 (_keys, callback: (items: Record<string, string>) => void) => {
                     callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
@@ -739,8 +727,6 @@ describe('checkStorageAndUpdateBadge', () => {
 
         it('should not run duplicate detection for non-recipe outcomes', async () => {
             const { detectionCache } = await import('../storage');
-            const { findRecipeByURL } = await import('../network');
-
             vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
                 (_keys, callback: (items: Record<string, string>) => void) => {
                     callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
@@ -766,8 +752,6 @@ describe('checkStorageAndUpdateBadge', () => {
 
         it('should handle duplicate detection errors gracefully', async () => {
             const { detectionCache } = await import('../storage');
-            const { findRecipeByURL } = await import('../network');
-
             vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
                 (_keys, callback: (items: Record<string, string>) => void) => {
                     callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
