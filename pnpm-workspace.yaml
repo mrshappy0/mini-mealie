@@ -16,6 +16,9 @@ overrides:
   # GHSA-ph9p-34f9-6g65: tmp path traversal via unsanitized prefix/postfix.
   # web-ext-run@0.2.4 pins tmp@0.2.5; no newer web-ext-run release available.
   web-ext-run>tmp: ">=0.2.6"
+  # GHSA-gv7w-rqvm-qjhr / GHSA-g7r4-m6w7-qqqr: esbuild RCE via Deno binary
+  # integrity bypass and arbitrary file read on Windows dev server.
+  esbuild: ">=0.28.1"
 
 packageExtensions:
   "minimatch@10.2.5":
