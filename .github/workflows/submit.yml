@@ -62,7 +62,9 @@ jobs:
               if: ${{ env.FIREFOX_JWT_ISSUER != '' }}
               run: |
                   pnpm wxt submit \
-                    --firefox-zip .output/*-firefox.zip
+                    --firefox-zip .output/*-firefox.zip \
+                    --firefox-sources-zip .output/*-sources.zip \
+                    --firefox-channel=listed
               env:
                   FIREFOX_EXTENSION_ID: 'mini-mealie@shaplabs.net'
                   FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
