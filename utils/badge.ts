@@ -21,5 +21,8 @@ export const showBadge = (text: string, duration?: number) => {
 export const clearBadge = () => {
     const action = getActionApi();
     if (!action?.setBadgeText) return;
+    if (action.setBadgeBackgroundColor) {
+        void action.setBadgeBackgroundColor({ color: '#000000' });
+    }
     void action.setBadgeText({ text: '' });
 };

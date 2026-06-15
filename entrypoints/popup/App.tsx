@@ -475,7 +475,7 @@ function ActivityLog() {
     return (
         <div className="activity-log">
             <button className="activity-log-link" onClick={handleOpenLogs}>
-                Recent Activity ▶
+                Open Activity Log ↗
             </button>
         </div>
     );
