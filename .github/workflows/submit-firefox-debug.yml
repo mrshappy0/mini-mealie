@@ -1,0 +1,63 @@
+name: Firefox Submit Debug
+
+on:
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'Run in dry-run mode (no actual submission)'
+                type: boolean
+                default: true
+
+permissions:
+    contents: read
+
+jobs:
+    debug-submit:
+        name: Firefox Submit (Debug)
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v6
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v6
+
+            - name: Install Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 22
+                  cache: 'pnpm'
+                  cache-dependency-path: |
+                      package.json
+                      pnpm-lock.yaml
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Build & Zip for Firefox
+              run: pnpm zip:firefox
+
+            - name: List output files
+              run: ls -la .output/*.{zip,xpi} 2>/dev/null || echo "No zip files found"
+
+            - name: Submit to Firefox Add-ons
+              run: |
+                  pnpm wxt submit \
+                    --firefox-zip .output/*-firefox.zip \
+                    --firefox-sources-zip .output/*-sources.zip \
+                    --firefox-channel=listed \
+                    ${{ inputs.dry_run && '--dry-run' || '' }}
+              env:
+                  FIREFOX_EXTENSION_ID: 'mini-mealie@shaplabs.net'
+                  FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+                  FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+
+            - name: Submit failed — inspect output
+              if: failure()
+              run: |
+                  echo "::group::Environment (redacted)"
+                  echo "FIREFOX_EXTENSION_ID is set: ${{ env.FIREFOX_EXTENSION_ID != '' }}"
+                  echo "FIREFOX_JWT_ISSUER is set: ${{ secrets.FIREFOX_JWT_ISSUER != '' }}"
+                  echo "FIREFOX_JWT_SECRET is set: ${{ secrets.FIREFOX_JWT_SECRET != '' }}"
+                  echo "::endgroup::"
+                  echo "::notice::Check the wxt submit output above for the exact error. Common causes: invalid JWT, network timeout, missing sources zip, channel mismatch."
