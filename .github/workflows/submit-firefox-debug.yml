@@ -18,6 +18,8 @@ jobs:
         steps:
             - name: Checkout Code
               uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
 
             - name: Install pnpm
               uses: pnpm/action-setup@v6
@@ -33,6 +35,13 @@ jobs:
 
             - name: Install dependencies
               run: pnpm install
+
+            - name: Inject version from latest tag
+              run: |
+                  TAG=$(git describe --tags --abbrev=0)
+                  VERSION=${TAG#v}
+                  echo "Latest tag: $TAG → version: $VERSION"
+                  npm pkg set version="$VERSION"
 
             - name: Build & Zip for Firefox
               run: pnpm zip:firefox
