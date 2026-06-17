@@ -41,7 +41,7 @@
         "@types/react": "^19.2.15",
         "@types/react-dom": "^19.2.3",
         "@vitest/coverage-v8": "^4.1.8",
-        "@vitest/ui": "^4.1.8",
+        "@vitest/ui": "^4.1.9",
         "@wxt-dev/module-react": "^1.2.2",
         "eslint": "^9.39.4",
         "eslint-config-prettier": "^10.1.8",
