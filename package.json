@@ -40,10 +40,10 @@
         "@types/har-format": "^1.2.16",
         "@types/react": "^19.2.15",
         "@types/react-dom": "^19.2.3",
-        "@vitest/coverage-v8": "^4.1.9",
+        "@vitest/coverage-v8": "^4.1.8",
         "@vitest/ui": "^4.1.8",
         "@wxt-dev/module-react": "^1.2.2",
-        "eslint": "^10.5.0",
+        "eslint": "^9.39.4",
         "eslint-config-prettier": "^10.1.8",
         "eslint-formatter-compact": "^9.0.1",
         "eslint-plugin-prettier": "^5.5.5",
@@ -55,8 +55,8 @@
         "semantic-release": "^25.0.5",
         "tsx": "^4.21.0",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.61.1",
-        "vitest": "^4.1.8",
+        "typescript-eslint": "^8.61.0",
+        "vitest": "^4.1.9",
         "wxt": "^0.20.26"
     },
     "packageManager": "pnpm@11.2.2"
