@@ -19,6 +19,10 @@ overrides:
   # GHSA-gv7w-rqvm-qjhr / GHSA-g7r4-m6w7-qqqr: esbuild RCE via Deno binary
   # integrity bypass and arbitrary file read on Windows dev server.
   esbuild: ">=0.28.1"
+  # CVE-2026-6734, CVE-2026-9697 (HIGH), CVE-2026-9679, CVE-2026-9678
+  # (MEDIUM), CVE-2026-11525, CVE-2026-6733 (LOW): undici vulnerabilities
+  # in versions < 7.28.0. Transitive dep via @semantic-release/github.
+  undici: ">=7.28.0"
 
 packageExtensions:
   "minimatch@10.2.5":
