@@ -8,9 +8,10 @@
 [![Coverage Status][coverage-shield]][coverage-url]
 [![Conventional Commits][conventional-commits-shield]][conventional-commits-url]
 [![Chrome Web Store][chrome-web-store-shield]][chrome-web-store-url]
+[![Firefox Add-on][firefox-addon-shield]][firefox-addon-url]
 [![Buy Me a Coffee][coffee-shield]](#-support-me)
 
-Mini Mealie is a Chrome extension built using WXT and React, designed to speed up recipe creation. This extension integrates with Mealie to scrape recipes and import into Mealie.
+Mini Mealie is a browser extension built using WXT and React, designed to speed up recipe creation. This extension integrates with Mealie to scrape recipes and import into Mealie.
 
 ---
 
@@ -267,3 +268,5 @@ For questions or collaboration requests, contact:
 [discussions-url]: https://github.com/mrshappy0/mini-mealie/discussions
 [chrome-web-store-shield]: https://img.shields.io/chrome-web-store/v/lchfnbjpjoeejalacnpjnafenacmdocc.svg?style=for-the-badge
 [chrome-web-store-url]: https://chromewebstore.google.com/detail/mini-mealie/lchfnbjpjoeejalacnpjnafenacmdocc
+[firefox-addon-shield]: https://img.shields.io/amo/v/mini-mealie?style=for-the-badge
+[firefox-addon-url]: https://addons.mozilla.org/en-US/firefox/addon/mini-mealie/
