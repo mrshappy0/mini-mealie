@@ -26,7 +26,7 @@ Mini Mealie is a browser extension built using WXT and React, designed to speed 
     - _Note: Tag and category extraction depends on the source recipe having proper metadata (schema.org keywords, meta tags, etc.). Not all recipes include this information._
     - _Example recipe with tags/categories: [Homemade Nutty Granola](https://www.katheats.com/homemade-nutty-granola-recipe)_
 - **Intelligent Recipe Detection:** Automatic dry-run detection on active tab to verify recipe presence
-- **Activity Logging System:** Real-time event logging with dedicated viewer (`chrome-extension://[id]/logs.html`)
+- **Activity Logging System:** Real-time event logging with dedicated viewer (via the extension's logs page)
 - **Smart Context Menu:** Mode-aware menu options that adapt to your selected import method
 - **Secure Credential Storage:** API tokens stored securely using `chrome.storage.sync`
 - **Self-Hosted Support:** Connect to any Mealie server instance
@@ -37,7 +37,7 @@ Mini Mealie is a browser extension built using WXT and React, designed to speed 
 
 - **Node.js** v22.x or later
 - **pnpm** (Package Manager)
-- **Chrome** (for testing and development)
+- **Chrome** or **Firefox** (for testing and development)
 - Dependencies:
     - **WXT** (Web Extension Toolkit)
     - **React** v19.x
@@ -72,7 +72,7 @@ Mini Mealie is a browser extension built using WXT and React, designed to speed 
     **Why `.env.local`?**
     - ✅ Pre-populates your Mealie server URL and API token during development
     - ✅ No need to re-login every time you restart the dev browser
-    - ✅ Persistent Chrome profile remembers your settings
+    - ✅ Persistent browser profile remembers your settings
     - ✅ Your credentials never get committed to git (`.env.local` is gitignored)
 
     Without `.env.local`, you'll need to manually configure the extension via the popup on each dev session - it will still work, just less convenient!
@@ -90,18 +90,23 @@ Mini Mealie is a browser extension built using WXT and React, designed to speed 
     - Auto-open the activity logs page (`logs.html`) for real-time monitoring
     - Pre-populate your credentials from `.env.local` (if configured)
 
+    For Firefox development, use:
+    ```bash
+    pnpm dev:firefox
+    ```
+
     Your settings and browser state persist across dev sessions - no need to re-configure!
 
 5. **Build the extension for production:**
 
     ```bash
     pnpm build
+    pnpm build:firefox
     ```
 
-6. **Load the extension in Chrome:**
-    - Go to `chrome://extensions/`
-    - Enable **Developer Mode**
-    - Click **Load unpacked** and select the `dist` folder
+6. **Load the extension in Chrome or Firefox:**
+    - **Chrome:** Go to `chrome://extensions/`, enable **Developer Mode**, click **Load unpacked** and select the `.output/<name>-chrome` folder
+    - **Firefox:** Go to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select the `manifest.json` in the `.output/<name>-firefox` folder
 
 ---
 
@@ -113,7 +118,7 @@ Mini Mealie supports two distinct recipe import strategies:
 
 - **URL Mode:** Sends the recipe URL to Mealie's server-side scraper. This is the default mode and works well for most public recipe sites. Fast and efficient.
 
-- **HTML Mode:** Captures the entire page HTML in the browser using `chrome.scripting.executeScript`, then sends the HTML content to Mealie. Useful for:
+- **HTML Mode:** Captures the entire page HTML in the browser using the scripting API, then sends the HTML content to Mealie. Useful for:
     - Sites behind paywalls or authentication
     - JavaScript-heavy sites that don't render properly server-side
     - Sites with bot detection that blocks server requests
@@ -144,7 +149,7 @@ Logged operations include:
 - To use the Mealie integration, you will need to **generate an API token** in your Mealie instance.
 - Save the token securely within the extension popup.
 - Obtain your **local host URL** or public Mealie **instance URL** for API calls.
-- Modify your Mealie infrastructure to allow CORS (Cross-Origin Resource Sharing) calls, as the Chrome extension will be making API requests:
+- Modify your Mealie infrastructure to allow CORS (Cross-Origin Resource Sharing) calls, as the browser extension will be making API requests:
     - This involves configuring your reverse proxies, authentication, or other related infrastructure.
 
 ---
@@ -167,7 +172,7 @@ Logged operations include:
 ### Monitoring Activity
 
 - **Extension Badge:** Shows real-time status (⏳ processing, ✅ success, ❌ error)
-- **Activity Log Viewer:** Access detailed logs at `chrome-extension://[id]/logs.html` or via the popup
+- **Activity Log Viewer:** Access detailed logs via the extension's logs page or from the popup
 - **Event Tracking:** All major operations (authentication, recipe creation, detection) are logged with timestamps and correlation IDs
 
 ### Troubleshooting Failed Imports
@@ -199,7 +204,7 @@ If URL mode fails to detect a recipe:
 3. **Release Management**:
     - After a successful review and merge, a GitHub Action evaluates if a new release is necessary based on the PR commits.
     - This project follows Conventional Commits for release determination.
-    - Approved releases are published to the Chrome Web Store via an upload workflow.
+    - Approved releases are published to the Chrome Web Store and Firefox Add-ons via an upload workflow.
 
 ### Copilot Commit Helper (Optional)
 
