@@ -1,0 +1,81 @@
+name: Watch eslint-plugin-react Upstream Fix
+
+on:
+  schedule:
+    - cron: '0 8 */3 * *'  # Every 3 days at 8am UTC
+  workflow_dispatch:        # Manual trigger
+
+jobs:
+  check-pr-merged:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Check if upstream PR #3979 is merged
+        id: check
+        run: |
+          MERGED=$(gh pr view 3979 \
+            --repo jsx-eslint/eslint-plugin-react \
+            --json merged \
+            --jq '.merged' 2>/dev/null || echo "false")
+
+          echo "merged=$MERGED" >> $GITHUB_OUTPUT
+
+          if [ "$MERGED" = "true" ]; then
+            echo "Upstream PR #3979 has been merged!"
+            VERSION=$(gh pr view 3979 \
+              --repo jsx-eslint/eslint-plugin-react \
+              --json mergeCommit \
+              --jq '.mergeCommit.oid // "unknown"' 2>/dev/null)
+            echo "merge_commit=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "PR #3979 not yet merged."
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Notify via GitHub Issue
+        if: steps.check.outputs.merged == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { merged, merge_commit } = '${{ steps.check.outputs }}';
+
+            const title = 'eslint-plugin-react upstream fix has been merged';
+            const body = `The upstream ESLint 10 compatibility fix ([jsx-eslint/eslint-plugin-react#3979](https://github.com/jsx-eslint/eslint-plugin-react/pull/3979)) has been merged.
+
+            **Action required:** Revert \`eslint-plugin-react\` in \`package.json\` from the forked version back to the npm registry:
+
+            \`\`\`diff
+            -"eslint-plugin-react": "github:ledsun/eslint-plugin-react#update-deprecated-calls-v8",
+            +"eslint-plugin-react": "^7.38.0",
+            \`\`\`
+
+            Merge commit: \`${merge_commit}\`
+            `;
+
+            // Check for existing open issue
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['tech-debt'],
+              per_page: 100,
+            });
+
+            const exists = issues.some(i => i.title === title);
+            if (exists) {
+              console.log('Issue already exists, skipping.');
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['tech-debt'],
+            });
+
+            console.log('Created issue to track eslint-plugin-react revert.');

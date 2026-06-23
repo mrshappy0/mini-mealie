@@ -1,4 +1,10 @@
 # pnpm 11: project-level pnpm settings live here, not in package.json's "pnpm" field
+#
+# ⚠️  WATCHED DEPENDENCY: eslint-plugin-react is installed from a fork
+#    (github:ledsun/eslint-plugin-react#update-deprecated-calls-v8) for
+#    ESLint 10 compat. Revert to npm registry when upstream PR #3979 merges.
+#    See AGENTS.md for details.
+#
 allowBuilds:
   esbuild: true
   spawn-sync: true
