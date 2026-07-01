@@ -43,7 +43,7 @@
         "@vitest/coverage-v8": "^4.1.9",
         "@vitest/ui": "^4.1.9",
         "@wxt-dev/module-react": "^1.2.2",
-        "eslint": "^10.5.0",
+        "eslint": "^10.6.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-formatter-compact": "^9.0.1",
         "eslint-plugin-prettier": "^5.5.5",
