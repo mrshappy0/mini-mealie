@@ -29,12 +29,12 @@
     },
     "devDependencies": {
         "@commitlint/cli": "^21.2.0",
-        "@commitlint/config-conventional": "^21.0.1",
-        "@eslint/css": "^1.2.0",
+        "@commitlint/config-conventional": "^21.2.0",
+        "@eslint/css": "^1.4.0",
         "@eslint/js": "^10.0.1",
         "@html-eslint/parser": "^0.62.0",
         "@semantic-release/git": "^10.0.1",
-        "@types/chrome": "^0.1.42",
+        "@types/chrome": "^0.2.1",
         "@types/eslint-plugin-security": "^3.0.1",
         "@types/filesystem": "^0.0.36",
         "@types/har-format": "^1.2.16",
@@ -55,9 +55,9 @@
         "semantic-release": "^25.0.5",
         "tsx": "^4.21.0",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.61.1",
+        "typescript-eslint": "^8.62.1",
         "vitest": "^4.1.9",
-        "wxt": "^0.20.26"
+        "wxt": "^0.20.27"
     },
     "packageManager": "pnpm@11.2.2"
 }
