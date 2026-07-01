@@ -246,8 +246,7 @@ describe('activity', () => {
     describe('multiple concurrent activities', () => {
         it('should track multiple activities and decrement count', async () => {
             const initialState = storageData[ACTIVITY_STORAGE_KEY] as
-                | { activeCount: number }
-                | undefined;
+                { activeCount: number } | undefined;
             const initialCount = initialState?.activeCount ?? 0;
 
             await beginActivity('Activity A');

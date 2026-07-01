@@ -6,31 +6,31 @@
 #    See AGENTS.md for details.
 #
 allowBuilds:
-  esbuild: true
-  spawn-sync: true
+    esbuild: true
+    spawn-sync: true
 
 overrides:
-  # node-notifier@10.0.1 (via wxt → web-ext-run) pins uuid@^8.3.2 which is
-  # vulnerable to GHSA-w5hq-g745-h8pq. Scoped to node-notifier only so the
-  # rest of the tree resolves its own preferred uuid version. node-notifier
-  # only calls uuid.v4(), API-compatible across all major versions.
-  node-notifier>uuid: ">=11.1.1"
-  # GHSA-w7jw-789q-3m8p: shell-quote quote() newline escaping in .op values.
-  # fx-runner@1.4.0 pins shell-quote@1.7.3; fx-runner@1.5.0 already uses 1.8.4
-  # but web-ext-run@0.2.4 (no newer release) still depends on fx-runner@1.4.0.
-  fx-runner>shell-quote: ">=1.8.4"
-  # GHSA-ph9p-34f9-6g65: tmp path traversal via unsanitized prefix/postfix.
-  # web-ext-run@0.2.4 pins tmp@0.2.5; no newer web-ext-run release available.
-  web-ext-run>tmp: ">=0.2.6"
-  # GHSA-gv7w-rqvm-qjhr / GHSA-g7r4-m6w7-qqqr: esbuild RCE via Deno binary
-  # integrity bypass and arbitrary file read on Windows dev server.
-  esbuild: ">=0.28.1"
-  # CVE-2026-6734, CVE-2026-9697 (HIGH), CVE-2026-9679, CVE-2026-9678
-  # (MEDIUM), CVE-2026-11525, CVE-2026-6733 (LOW): undici vulnerabilities
-  # in versions < 7.28.0. Transitive dep via @semantic-release/github.
-  undici: ">=7.28.0"
+    # node-notifier@10.0.1 (via wxt → web-ext-run) pins uuid@^8.3.2 which is
+    # vulnerable to GHSA-w5hq-g745-h8pq. Scoped to node-notifier only so the
+    # rest of the tree resolves its own preferred uuid version. node-notifier
+    # only calls uuid.v4(), API-compatible across all major versions.
+    node-notifier>uuid: '>=11.1.1'
+    # GHSA-w7jw-789q-3m8p: shell-quote quote() newline escaping in .op values.
+    # fx-runner@1.4.0 pins shell-quote@1.7.3; fx-runner@1.5.0 already uses 1.8.4
+    # but web-ext-run@0.2.4 (no newer release) still depends on fx-runner@1.4.0.
+    fx-runner>shell-quote: '>=1.8.4'
+    # GHSA-ph9p-34f9-6g65: tmp path traversal via unsanitized prefix/postfix.
+    # web-ext-run@0.2.4 pins tmp@0.2.5; no newer web-ext-run release available.
+    web-ext-run>tmp: '>=0.2.6'
+    # GHSA-gv7w-rqvm-qjhr / GHSA-g7r4-m6w7-qqqr: esbuild RCE via Deno binary
+    # integrity bypass and arbitrary file read on Windows dev server.
+    esbuild: '>=0.28.1'
+    # CVE-2026-6734, CVE-2026-9697 (HIGH), CVE-2026-9679, CVE-2026-9678
+    # (MEDIUM), CVE-2026-11525, CVE-2026-6733 (LOW): undici vulnerabilities
+    # in versions < 7.28.0. Transitive dep via @semantic-release/github.
+    undici: '>=7.28.0'
 
 packageExtensions:
-  "minimatch@10.2.5":
-    dependencies:
-      brace-expansion: "^5.0.6"
+    'minimatch@10.2.5':
+        dependencies:
+            brace-expansion: '^5.0.6'

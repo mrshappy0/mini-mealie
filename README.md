@@ -91,6 +91,7 @@ Mini Mealie is a browser extension built using WXT and React, designed to speed 
     - Pre-populate your credentials from `.env.local` (if configured)
 
     For Firefox development, use:
+
     ```bash
     pnpm dev:firefox
     ```

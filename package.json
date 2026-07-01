@@ -25,7 +25,7 @@
         "normalize-url": "^9.0.1",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
-        "resend": "^6.12.3"
+        "resend": "^6.16.0"
     },
     "devDependencies": {
         "@commitlint/cli": "^21.2.0",
@@ -43,15 +43,15 @@
         "@vitest/coverage-v8": "^4.1.9",
         "@vitest/ui": "^4.1.9",
         "@wxt-dev/module-react": "^1.2.2",
-        "eslint": "^10.5.0",
+        "eslint": "^10.6.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-formatter-compact": "^9.0.1",
         "eslint-plugin-prettier": "^5.5.5",
         "eslint-plugin-react": "github:ledsun/eslint-plugin-react#update-deprecated-calls-v8",
         "eslint-plugin-security": "^4.0.0",
         "eslint-plugin-simple-import-sort": "^13.0.0",
-        "globals": "^17.6.0",
-        "prettier": "^3.8.3",
+        "globals": "^17.7.0",
+        "prettier": "^3.9.4",
         "semantic-release": "^25.0.5",
         "tsx": "^4.21.0",
         "typescript": "^6.0.3",
