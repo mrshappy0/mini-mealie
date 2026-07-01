@@ -51,7 +51,7 @@
         "eslint-plugin-security": "^4.0.0",
         "eslint-plugin-simple-import-sort": "^13.0.0",
         "globals": "^17.6.0",
-        "prettier": "^3.8.3",
+        "prettier": "^3.9.4",
         "semantic-release": "^25.0.5",
         "tsx": "^4.21.0",
         "typescript": "^6.0.3",
