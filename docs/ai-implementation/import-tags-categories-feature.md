@@ -43,12 +43,12 @@
 ```typescript
 // URL mode
 {
-    url, includeTags, includeCategories;
+    (url, includeTags, includeCategories);
 }
 
 // HTML mode
 {
-    data, url, includeTags, includeCategories;
+    (data, url, includeTags, includeCategories);
 }
 ```
 
