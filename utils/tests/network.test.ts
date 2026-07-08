@@ -585,6 +585,71 @@ describe('runCreateRecipe', () => {
         expect(createRecipeFromURL).not.toHaveBeenCalled();
     });
 
+    it('should call createRecipeFromHTML when executeScript is callback-only (Firefox)', async () => {
+        mockConfig.createRecipeFromHTMLResult = { slug: 'test-slug' };
+
+        // Firefox's chrome.* namespace ignores the callback-based invocation's
+        // return value (undefined, not a Promise) and instead resolves via the
+        // callback argument.
+        chrome.scripting.executeScript = vi.fn().mockImplementation((_opts, callback) => {
+            callback?.([{ result: mockHtml }]);
+            return undefined;
+        });
+
+        chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
+            callback({
+                mealieServer: mockServer,
+                mealieApiToken: mockToken,
+                recipeCreateMode: RecipeCreateMode.HTML,
+            }),
+        );
+
+        runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
+        await flushPromises();
+
+        const { createRecipeFromHTML } = await import('../network');
+        expect(createRecipeFromHTML).toHaveBeenCalledWith(
+            mockHtml,
+            mockServer,
+            mockToken,
+            mockUrl,
+            true,
+            true,
+        );
+    });
+
+    it('should show ❌ badge when callback-only executeScript reports lastError', async () => {
+        chrome.scripting.executeScript = vi.fn().mockImplementation((_opts, callback) => {
+            Object.defineProperty(chrome.runtime, 'lastError', {
+                value: { message: 'Missing host permission for the tab' },
+                configurable: true,
+                writable: true,
+            });
+            callback?.(undefined);
+            Object.defineProperty(chrome.runtime, 'lastError', {
+                value: undefined,
+                configurable: true,
+                writable: true,
+            });
+            return undefined;
+        });
+
+        chrome.storage.sync.get = vi.fn().mockImplementation((_keys, callback) =>
+            callback({
+                mealieServer: mockServer,
+                mealieApiToken: mockToken,
+                recipeCreateMode: RecipeCreateMode.HTML,
+            }),
+        );
+
+        runCreateRecipe({ id: mockTabId, url: mockUrl } as chrome.tabs.Tab);
+        await flushPromises();
+
+        const { createRecipeFromHTML } = await import('../network');
+        expect(createRecipeFromHTML).not.toHaveBeenCalled();
+        expect(showBadge).toHaveBeenCalledWith('❌', 4);
+    });
+
     it('should return failure if fetch response is not ok', async () => {
         const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
             // Intentionally empty: this test exercises an error path.
