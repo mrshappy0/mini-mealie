@@ -39,3 +39,9 @@ AI-planning/
 # Environment variables
 .env.local
 .env.*.local
+
+# E2E harnesses (local-only)
+.env.e2e
+e2e-playwright/playwright-report
+e2e-playwright/test-results
+test-results

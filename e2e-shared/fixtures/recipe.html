@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Pistachio-Crusted Salmon — E2E Fixture</title>
+        <!--
+          Self-contained recipe fixture for hermetic E2E. Mealie parses the schema.org
+          Recipe JSON-LD below from the captured HTML — no network, no remote images, so
+          the test never depends on a live recipe site. Point tests here via E2E_RECIPE_URL
+          (the default) or override with a real URL for a live-scrape run.
+        -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Recipe",
+                "name": "Pistachio-Crusted Salmon (E2E Fixture)",
+                "description": "A deterministic recipe fixture used by the E2E suite.",
+                "recipeYield": "2 servings",
+                "prepTime": "PT10M",
+                "cookTime": "PT15M",
+                "totalTime": "PT25M",
+                "recipeCategory": "Main Course",
+                "recipeCuisine": "American",
+                "keywords": "salmon, pistachio, e2e",
+                "recipeIngredient": [
+                    "2 salmon fillets (6 oz each)",
+                    "1/2 cup shelled pistachios, finely chopped",
+                    "2 tablespoons Dijon mustard",
+                    "1 tablespoon honey",
+                    "1 tablespoon olive oil",
+                    "1/2 teaspoon salt",
+                    "1/4 teaspoon black pepper"
+                ],
+                "recipeInstructions": [
+                    { "@type": "HowToStep", "text": "Preheat oven to 400F (200C) and line a baking sheet." },
+                    { "@type": "HowToStep", "text": "Whisk mustard and honey; brush over the salmon." },
+                    { "@type": "HowToStep", "text": "Press chopped pistachios onto the tops of the fillets." },
+                    { "@type": "HowToStep", "text": "Drizzle with olive oil, season with salt and pepper." },
+                    { "@type": "HowToStep", "text": "Bake 12-15 minutes until the salmon flakes easily." }
+                ]
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Pistachio-Crusted Salmon (E2E Fixture)</h1>
+        <p>A deterministic recipe fixture used by the Mini Mealie E2E suite.</p>
+        <h2>Ingredients</h2>
+        <ul>
+            <li>2 salmon fillets (6 oz each)</li>
+            <li>1/2 cup shelled pistachios, finely chopped</li>
+            <li>2 tablespoons Dijon mustard</li>
+            <li>1 tablespoon honey</li>
+            <li>1 tablespoon olive oil</li>
+            <li>1/2 teaspoon salt</li>
+            <li>1/4 teaspoon black pepper</li>
+        </ul>
+        <h2>Instructions</h2>
+        <ol>
+            <li>Preheat oven to 400F (200C) and line a baking sheet.</li>
+            <li>Whisk mustard and honey; brush over the salmon.</li>
+            <li>Press chopped pistachios onto the tops of the fillets.</li>
+            <li>Drizzle with olive oil, season with salt and pepper.</li>
+            <li>Bake 12-15 minutes until the salmon flakes easily.</li>
+        </ol>
+    </body>
+</html>
