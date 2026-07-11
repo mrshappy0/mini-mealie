@@ -244,14 +244,39 @@ async function maybeOpenRecipeAfterImport(
 
 async function getPageHTML(tabId: number) {
     try {
-        const results = await chrome.scripting.executeScript<[], string>({
-            target: { tabId },
-            func: () => document.documentElement.outerHTML,
-        });
+        // Firefox's chrome.* namespace is callback-only (calling without a callback
+        // returns undefined instead of a Promise), while Chrome returns a Promise.
+        // Support both, mirroring the tabs.query shim in storage.ts.
+        const results = await new Promise<chrome.scripting.InjectionResult<string>[]>(
+            (resolve, reject) => {
+                const result = chrome.scripting.executeScript<[], string>(
+                    {
+                        target: { tabId },
+                        func: () => document.documentElement.outerHTML,
+                    },
+                    (callbackResults) => {
+                        if (chrome.runtime.lastError) {
+                            reject(new Error(chrome.runtime.lastError.message));
+                            return;
+                        }
+                        resolve(callbackResults);
+                    },
+                ) as unknown;
+                if (result instanceof Promise) void result.then(resolve, reject);
+            },
+        );
 
         const html = results[0]?.result;
         return typeof html === 'string' ? html : null;
-    } catch {
+    } catch (error) {
+        void logEvent({
+            level: 'warn',
+            feature: 'html-capture',
+            action: 'getPageHTML',
+            phase: 'failure',
+            message: 'executeScript failed',
+            data: { error: error instanceof Error ? error.message : String(error) },
+        });
         return null;
     }
 }
