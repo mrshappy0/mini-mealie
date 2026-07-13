@@ -100,8 +100,28 @@ pnpm test:e2e:down
 - No secrets: Mealie is ephemeral and the API token is minted at runtime.
 - Fully hermetic: the default recipe is the local fixture, so no third-party site can flake CI.
 - Chrome uses the self-contained `pnpm test:e2e`; Firefox adds the `setup.sh` step.
-- **Pinned Mealie** (`v3.20.1`) so the gate is deterministic — a red PR means *your* change broke,
-  not that Mealie shipped a new release.
+- **Everything pinned** so the gate is deterministic — a red PR means *your* change broke, not
+  that an upstream dep shipped a release: Mealie (`v3.20.1`), Firefox (`142.0`), geckodriver
+  (`v0.36.0`), and Chromium (frozen inside the Playwright dep).
+
+## Canary (early warning)
+
+`.github/workflows/e2e-canary.yml` runs the same suite weekly (and on demand) against the
+**latest** of the dependencies we fetch at runtime, so upstream releases that break the extension
+surface *here* before they reach the pinned PR gate. It's **non-blocking** — a heads-up, not a
+merge gate — and reuses `e2e.yml` via `workflow_call`.
+
+It's a **matrix with one leg per moving dependency**, each holding the others pinned so a red leg
+names the culprit:
+
+| Leg | Overrides | Pinned |
+| --- | --- | --- |
+| `mealie-latest` | Mealie → `:latest` | Firefox `142.0` |
+| `firefox-latest` | Firefox → `latest` (also catches geckodriver/Firefox skew) | Mealie `v3.20.1` |
+
+Chromium has no leg: it's frozen in the Playwright dependency, so a new Chromium only arrives via
+a dependabot Playwright bump — which the normal PR gate already tests. `schedule` only fires from
+the default branch; trigger it manually with "Run workflow" otherwise.
 
 To run on your own server instead of GitHub-hosted, change `runs-on` to `[self-hosted]` —
 just ensure Docker is installed and the runner user is in the `docker` group. The harnesses

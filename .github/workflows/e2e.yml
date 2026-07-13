@@ -9,9 +9,27 @@ on:
         branches:
             - main
     workflow_dispatch:
+    # Callable by e2e-canary.yml to run the same jobs against newer upstream deps.
+    workflow_call:
+        inputs:
+            mealie_image:
+                description: 'Mealie image to test against (empty → the pinned version in mealie.e2e.yml)'
+                type: string
+                required: false
+            firefox_version:
+                description: 'Firefox version for setup.sh (empty → the pinned FIREFOX_VER; "latest" for newest)'
+                type: string
+                required: false
 
 permissions:
     contents: read
+
+env:
+    # Empty on pull_request / workflow_dispatch, so the harness falls back to the pinned
+    # defaults (Mealie v3.20.1 in mealie.e2e.yml, Firefox 142.0 in setup.sh). The canary sets
+    # exactly one of these per matrix leg to isolate which upstream dep broke.
+    MEALIE_IMAGE: ${{ inputs.mealie_image }}
+    FIREFOX_VER: ${{ inputs.firefox_version }}
 
 jobs:
     chrome:

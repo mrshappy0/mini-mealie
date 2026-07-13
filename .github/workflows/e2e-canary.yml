@@ -1,0 +1,46 @@
+name: E2E Canary (latest upstream deps)
+
+# Early-warning canary: runs the full E2E suite against the *latest* of each externally-released
+# dependency we fetch at runtime — Mealie and Firefox — on a schedule, so upstream releases that
+# break the extension surface here BEFORE they reach the pinned PR gate. Non-blocking: a red run
+# is a heads-up, not a merge block.
+#
+# One matrix leg per moving dependency, holding the others pinned, so a red leg names the culprit
+# (an "all latest at once" run couldn't tell you whether Mealie or Firefox broke). Chromium is not
+# a leg — it's frozen inside the Playwright dep, so a new Chromium only lands via a dependabot
+# Playwright bump, which the normal PR gate already tests.
+#
+# Note: `schedule` only fires from the repository's default branch. Until this is on the default
+# branch, run it manually via "Run workflow" (workflow_dispatch).
+
+on:
+    schedule:
+        # Weekly, Mondays 06:00 UTC. Mealie and Firefox release roughly monthly, so weekly is
+        # plenty; bump to a daily cron if you want faster signal.
+        - cron: '0 6 * * 1'
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    canary:
+        name: ${{ matrix.name }}
+        strategy:
+            # Don't let one red leg cancel the other — we want signal from both.
+            fail-fast: false
+            matrix:
+                include:
+                    # Mealie :latest, Firefox pinned.
+                    - name: mealie-latest
+                      mealie_image: ghcr.io/mealie-recipes/mealie:latest
+                      firefox_version: ''
+                    # Firefox latest, Mealie pinned. (Also surfaces geckodriver/Firefox
+                    # incompatibilities, since a newer Firefox is what breaks the pinned driver.)
+                    - name: firefox-latest
+                      mealie_image: ''
+                      firefox_version: latest
+        uses: ./.github/workflows/e2e.yml
+        with:
+            mealie_image: ${{ matrix.mealie_image }}
+            firefox_version: ${{ matrix.firefox_version }}
