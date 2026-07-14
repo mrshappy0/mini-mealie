@@ -65,11 +65,9 @@ async function buildDriver(): Promise<WebDriver> {
 async function seedCreds(driver: WebDriver, server: string, token: string): Promise<void> {
     const err = await driver.executeAsyncScript(
         function (server: string, token: string, seed: object, done: (e: string | null) => void) {
-            // eslint-disable-next-line no-undef
             chrome.storage.sync.set(Object.assign({ mealieServer: server, mealieApiToken: token }, seed), function () {
-                // eslint-disable-next-line no-undef
                 const e = chrome.runtime.lastError;
-                done(e ? e.message : null);
+                done(e?.message ?? null);
             });
         },
         server,
@@ -83,8 +81,7 @@ async function seedCreds(driver: WebDriver, server: string, token: string): Prom
 async function triggerImport(driver: WebDriver, matchUrl: string): Promise<{ ok?: boolean; error?: string }> {
     return (await driver.executeAsyncScript(
         function (type: string, matchUrl: string, done: (r: unknown) => void) {
-            // eslint-disable-next-line no-undef
-            browser.runtime
+            chrome.runtime
                 .sendMessage({ type, matchUrl })
                 .then((r: unknown) => done(r || {}))
                 .catch((e: unknown) => done({ error: String(e) }));
@@ -109,7 +106,7 @@ async function main(): Promise<void> {
     const driver = await buildDriver();
     try {
         log(`installing add-on: ${xpi}`);
-        await driver.installAddon(xpi, true);
+        await (driver as unknown as { installAddon: (path: string, temporary: boolean) => Promise<string> }).installAddon(xpi, true);
 
         // Popup tab: seed creds.
         await driver.get(POPUP_URL);
