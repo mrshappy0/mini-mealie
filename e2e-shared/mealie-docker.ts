@@ -22,7 +22,7 @@ const DEFAULT_EMAIL = 'changeme@example.com';
 const DEFAULT_PASSWORD = 'MyPassword';
 
 function compose(args: string[]): void {
-    execFileSync('docker', ['compose', '-f', COMPOSE_FILE, ...args], {
+    execFileSync('docker', ['compose', '-p', 'mini-mealie-e2e', '-f', COMPOSE_FILE, ...args], {
         stdio: 'inherit',
         cwd: REPO_ROOT,
     });
