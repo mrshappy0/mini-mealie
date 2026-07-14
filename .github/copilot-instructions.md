@@ -16,7 +16,7 @@ This repo is a **WXT + React** browser extension (MV3). Please optimize for **sm
 
 - Dev: `pnpm dev`
 - Build: `pnpm build`
-- Typecheck: `pnpm compile`
+- Typecheck: `pnpm typecheck`
 - Lint: `pnpm lint`
 - Tests: `pnpm test`
 - Coverage: `pnpm coverage`
