@@ -81,7 +81,8 @@ async function seedCreds(driver: WebDriver, server: string, token: string): Prom
 async function triggerImport(driver: WebDriver, matchUrl: string): Promise<{ ok?: boolean; error?: string }> {
     return (await driver.executeAsyncScript(
         function (type: string, matchUrl: string, done: (r: unknown) => void) {
-            chrome.runtime
+            // eslint-disable-next-line no-undef
+            browser.runtime
                 .sendMessage({ type, matchUrl })
                 .then((r: unknown) => done(r || {}))
                 .catch((e: unknown) => done({ error: String(e) }));
