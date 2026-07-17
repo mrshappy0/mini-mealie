@@ -68,7 +68,7 @@
         "selenium-webdriver": "^4.30.0",
         "semantic-release": "^25.0.5",
         "tsx": "^4.21.0",
-        "typescript": "^6.0.3",
+        "typescript": "^7.0.2",
         "typescript-eslint": "^8.63.0",
         "vitest": "^4.1.10",
         "wxt": "^0.20.27"
