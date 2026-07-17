@@ -70,6 +70,18 @@ export default [
     { ...eslintPluginPrettierRecommended, files: ['**/*.{js,ts,jsx,tsx}'] },
     autoImports,
     {
-        ignores: ['node_modules', '.wxt', '.output', 'coverage', 'html', 'coverage-report'],
+        ignores: [
+            'node_modules',
+            '.wxt',
+            '.output',
+            'coverage',
+            'html',
+            'coverage-report',
+            // Local-only E2E harnesses: mixed browser/node contexts the extension's
+            // eslint config isn't set up for. They have their own tsconfig for type-checking.
+            'e2e-playwright',
+            'e2e-geckodriver',
+            'e2e-shared',
+        ],
     },
 ];

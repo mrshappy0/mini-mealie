@@ -147,7 +147,7 @@
 
 ## Testing Checklist
 
-- [ ] Type checking passes (`pnpm compile`)
+- [ ] Type checking passes (`pnpm typecheck`)
 - [ ] Linting passes (`pnpm lint`)
 - [ ] Unit tests pass (`pnpm test`)
 - [ ] Coverage maintained or improved (`pnpm coverage`)

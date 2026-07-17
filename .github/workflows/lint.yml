@@ -1,4 +1,4 @@
-name: Lint Codebase
+name: Lint & Typecheck
 
 on:
     pull_request:
@@ -30,6 +30,12 @@ jobs:
 
             - name: Install dependencies
               run: pnpm install
+
+            - name: Run Typecheck (app)
+              run: pnpm typecheck
+
+            - name: Run Typecheck (e2e harnesses)
+              run: pnpm typecheck:e2e
 
             - name: Run Linter
               run: pnpm lint

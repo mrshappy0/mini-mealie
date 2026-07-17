@@ -1,3 +1,5 @@
+import { MINI_MEALIE_E2E_RUN_CREATE_RECIPE_MESSAGE } from '@/utils/e2eMessaging';
+
 export default defineBackground(() => {
     let updateTimer: ReturnType<typeof setTimeout> | undefined;
     const scheduleUpdate = () => {
@@ -62,6 +64,49 @@ export default defineBackground(() => {
             scheduleUpdate();
         }
     });
+
+    // E2E hook: lets the test harness trigger the exact same code path as the
+    // context-menu "Save to Mini Mealie" click, without driving native menu UI.
+    // See utils/e2eMessaging.ts for why this is the canonical cross-browser trigger.
+    //
+    // Gated behind WXT_E2E so it's tree-shaken out of production store builds — only
+    // E2E builds (`WXT_E2E=true`) compile it in. See wxt.config.ts `vite.define`.
+    if (import.meta.env.WXT_E2E) {
+        chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+            if (message?.type !== MINI_MEALIE_E2E_RUN_CREATE_RECIPE_MESSAGE) {
+                return;
+            }
+
+            const rawUrl = typeof message.matchUrl === 'string' ? message.matchUrl.trim() : '';
+            const matchUrl = rawUrl.length > 0 ? rawUrl.split('#')[0] : undefined;
+
+            const finish = (tab: chrome.tabs.Tab | undefined) => {
+                if (!tab?.id || !tab.url || isRestrictedUrl(tab.url)) {
+                    sendResponse({ ok: false, error: 'no_valid_tab' });
+                    return;
+                }
+                runCreateRecipe(tab);
+                sendResponse({ ok: true });
+            };
+
+            if (matchUrl) {
+                chrome.tabs.query({}, (tabs) => {
+                    void chrome.runtime.lastError;
+                    const tab = tabs.find((t) => t.url && t.url.split('#')[0] === matchUrl);
+                    finish(tab);
+                });
+            } else {
+                chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+                    void chrome.runtime.lastError;
+                    finish(tabs[0]);
+                });
+            }
+
+            // Keep the message channel open for the async sendResponse above
+            // (required in both MV3 service workers and MV2 background pages).
+            return true;
+        });
+    }
 
     chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         if (!tab?.url || !tab.id) return;

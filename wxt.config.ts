@@ -6,6 +6,36 @@ import { defineConfig } from 'wxt';
 // See https://wxt.dev/api/config.html
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
+    /**
+     * AMO sources zip filter — keep the listed-channel sources artifact free of
+     * local agent docs, local-only E2E harnesses, and test/coverage artifacts.
+     * WXT's source-zip generator walks the filesystem, not git, so `.gitignore`
+     * and `.git/info/exclude` do NOT apply here. Hidden files and node_modules
+     * are excluded by default; everything below is project-specific.
+     */
+    zip: {
+        excludeSources: [
+            'AGENTS.md',
+            'CLAUDE.md',
+            'e2e-shared/**',
+            'e2e-geckodriver/**',
+            'e2e-playwright/**',
+            'docker/**',
+            'coverage/**',
+            'html/**',
+        ],
+    },
+    /**
+     * Statically define `import.meta.env.WXT_E2E` so it's a literal `true`/`false` at build
+     * time (not a runtime lookup) and the E2E-only message hook in background.ts is dead-code
+     * eliminated from production store builds. Set `WXT_E2E=true` (E2E build steps only) to
+     * compile the hook in; store builds (`pnpm zip`, submit.yml) leave it unset → stripped.
+     */
+    vite: () => ({
+        define: {
+            'import.meta.env.WXT_E2E': JSON.stringify(process.env.WXT_E2E === 'true'),
+        },
+    }),
     manifest: ({ browser }) => ({
         permissions: ['storage', 'activeTab', 'contextMenus', 'scripting'],
         host_permissions: ['<all_urls>'],
