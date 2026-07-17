@@ -40,7 +40,7 @@
         "@commitlint/config-conventional": "^21.2.0",
         "@eslint/css": "^1.4.0",
         "@eslint/js": "^10.0.1",
-        "@html-eslint/parser": "^0.63.0",
+        "@html-eslint/parser": "^0.64.0",
         "@playwright/test": "^1.59.0",
         "@semantic-release/git": "^10.0.1",
         "@types/chrome": "^0.2.1",
