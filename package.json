@@ -51,7 +51,7 @@
         "@types/react": "^19.2.15",
         "@types/react-dom": "^19.2.3",
         "@types/selenium-webdriver": "^4.1.28",
-        "@vitest/coverage-v8": "^4.1.9",
+        "@vitest/coverage-v8": "^4.1.10",
         "@vitest/ui": "^4.1.10",
         "@wxt-dev/module-react": "^1.2.2",
         "cross-env": "^10.1.0",
