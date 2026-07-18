@@ -25,11 +25,12 @@ const CONTENT_TYPES: Record<string, string> = {
 export function startFixtureServer(port = FIXTURE_PORT): Promise<Server> {
     const server = createServer(async (req, res) => {
         try {
-            // Strip query/hash, prevent path traversal outside FIXTURES_DIR.
+            // Strip query/hash, decode, and resolve the requested path under FIXTURES_DIR.
             const rel = decodeURIComponent((req.url ?? '/').split('?')[0]).replace(/^\/+/, '');
-            const filePath = path.join(FIXTURES_DIR, rel || 'recipe.html');
-            // Trailing separator guards against a sibling dir sharing the prefix (e.g. `fixtures-x`).
-            if (filePath !== FIXTURES_DIR && !filePath.startsWith(FIXTURES_DIR + path.sep)) {
+            const filePath = path.resolve(FIXTURES_DIR, rel || 'recipe.html');
+            // Reject anything outside the fixtures directory (also blocks absolute paths
+            // and normalized ".." traversal because resolve returns the real filesystem path).
+            if (!filePath.startsWith(FIXTURES_DIR + path.sep)) {
                 res.writeHead(403).end('forbidden');
                 return;
             }
