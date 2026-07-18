@@ -261,13 +261,13 @@ For questions or collaboration requests, contact:
 [contributors-url]: https://github.com/mrshappy0/mini-mealie/graphs/contributors
 [stars-shield]: https://img.shields.io/github/stars/mrshappy0/mini-mealie?style=for-the-badge&color=blue
 [stars-url]: https://github.com/mrshappy0/mini-mealie/stargazers
-[e2e-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/e2e.yml?style=for-the-badge&label=e2e
+[e2e-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/e2e.yml?style=for-the-badge&label=e2e&cache=1
 [e2e-url]: https://github.com/mrshappy0/mini-mealie/actions/workflows/e2e.yml
 [issues-shield]: https://img.shields.io/github/issues-raw/mrshappy0/mini-mealie.svg?style=for-the-badge
 [issues-url]: https://github.com/mrshappy0/mini-mealie/issues
 [license-shield]: https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=for-the-badge
 [license-url]: https://github.com/mrshappy0/mini-mealie/blob/main/LICENSE
-[coverage-shield]: https://img.shields.io/endpoint?url=https://adam-shappy.com/mini-mealie/coverage-badge.json&style=for-the-badge
+[coverage-shield]: https://img.shields.io/endpoint?url=https://adam-shappy.com/mini-mealie/coverage-badge.json&style=for-the-badge&cache=1
 [coverage-url]: https://adam-shappy.com/mini-mealie/coverage-badge.json
 [conventional-commits-shield]: https://img.shields.io/badge/Conventional%20Commits-enabled-%23FE5196?logo=conventionalcommits&logoColor=white&style=for-the-badge
 [conventional-commits-url]: https://conventionalcommits.org/
