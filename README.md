@@ -261,7 +261,7 @@ For questions or collaboration requests, contact:
 [contributors-url]: https://github.com/mrshappy0/mini-mealie/graphs/contributors
 [stars-shield]: https://img.shields.io/github/stars/mrshappy0/mini-mealie?style=for-the-badge&color=blue
 [stars-url]: https://github.com/mrshappy0/mini-mealie/stargazers
-[e2e-shield]: https://img.shields.io/static/v1?label=e2e&message=tested&color=brightgreen&style=for-the-badge
+[e2e-shield]: https://img.shields.io/github/actions/workflow/status/mrshappy0/mini-mealie/e2e.yml?style=for-the-badge&label=e2e
 [e2e-url]: https://github.com/mrshappy0/mini-mealie/actions/workflows/e2e.yml
 [issues-shield]: https://img.shields.io/github/issues-raw/mrshappy0/mini-mealie.svg?style=for-the-badge
 [issues-url]: https://github.com/mrshappy0/mini-mealie/issues
