@@ -7,6 +7,7 @@
 [![AGPL License][license-shield]][license-url]
 [![Coverage Status][coverage-shield]][coverage-url]
 [![Conventional Commits][conventional-commits-shield]][conventional-commits-url]
+[![E2E Tests][e2e-shield]][e2e-url]
 [![Chrome Web Store][chrome-web-store-shield]][chrome-web-store-url]
 [![Firefox Add-on][firefox-addon-shield]][firefox-addon-url]
 [![Buy Me a Coffee][coffee-shield]](#-support-me)
@@ -258,8 +259,10 @@ For questions or collaboration requests, contact:
 
 [contributors-shield]: https://img.shields.io/github/contributors/mrshappy0/mini-mealie.svg?style=for-the-badge
 [contributors-url]: https://github.com/mrshappy0/mini-mealie/graphs/contributors
-[stars-shield]: https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fmrshappy0%2Fmini-mealie&query=stargazers_count&style=for-the-badge&label=stars&color=blue&logo=github
+[stars-shield]: https://img.shields.io/github/stars/mrshappy0/mini-mealie?style=for-the-badge&color=blue
 [stars-url]: https://github.com/mrshappy0/mini-mealie/stargazers
+[e2e-shield]: https://img.shields.io/badge/e2e-tested-brightgreen?style=for-the-badge
+[e2e-url]: https://github.com/mrshappy0/mini-mealie/actions/workflows/e2e.yml
 [issues-shield]: https://img.shields.io/github/issues-raw/mrshappy0/mini-mealie.svg?style=for-the-badge
 [issues-url]: https://github.com/mrshappy0/mini-mealie/issues
 [license-shield]: https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=for-the-badge
