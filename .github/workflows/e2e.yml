@@ -34,6 +34,10 @@ env:
 jobs:
     chrome:
         name: Chrome MV3
+        # Skip on the canary's firefox-latest leg: Chrome never reads FIREFOX_VER, so that run
+        # would be identical to the pinned PR-gate Chrome job (wasted CI, no new signal).
+        # Empty/unset on pull_request and on mealie-latest → Chrome still runs.
+        if: ${{ !inputs.firefox_version }}
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code

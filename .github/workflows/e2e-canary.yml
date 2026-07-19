@@ -6,9 +6,15 @@ name: E2E Canary (latest upstream deps)
 # is a heads-up, not a merge block.
 #
 # One matrix leg per moving dependency, holding the others pinned, so a red leg names the culprit
-# (an "all latest at once" run couldn't tell you whether Mealie or Firefox broke). Chromium is not
-# a leg — it's frozen inside the Playwright dep, so a new Chromium only lands via a dependabot
-# Playwright bump, which the normal PR gate already tests.
+# (an "all latest at once" run couldn't tell you whether Mealie or Firefox broke).
+#
+# Chromium has no leg by deliberate tradeoff: Mealie/Firefox are proactive weekly checks against
+# upstream latest; Chromium only moves via a Dependabot Playwright bump (reactive, can lag real
+# Chrome). Playwright/Chromium has been stabler here than Gecko — revisit with a chromium-latest
+# leg if that gap starts to matter.
+#
+# The firefox-latest leg sets firefox_version so e2e.yml skips its chrome job (Chrome ignores
+# FIREFOX_VER and would only re-run the pinned PR-gate Chrome suite).
 #
 # Note: `schedule` only fires from the repository's default branch. Until this is on the default
 # branch, run it manually via "Run workflow" (workflow_dispatch).
