@@ -36,6 +36,10 @@ overrides:
     # (MEDIUM), CVE-2026-11525, CVE-2026-6733 (LOW): undici vulnerabilities
     # in versions < 7.28.0. Transitive dep via @semantic-release/github.
     undici: '>=7.28.0'
+    # GHSA-v2hh-gcrm-f6hx: fast-uri host confusion via literal backslash
+    # authority delimiter in versions <=3.1.3. Transitive via
+    # @commitlint → ajv (no newer commitlint pin yet).
+    fast-uri: '>=3.1.4'
 
 packageExtensions:
     'minimatch@10.2.5':
