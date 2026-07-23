@@ -1,137 +1,59 @@
 name: E2E
 
-# Full end-to-end tests: real browser + built extension + ephemeral Dockerized Mealie,
-# importing a hermetic local recipe fixture (no external site). See
-# docs/developers-guide/e2e-testing.md.
+# PR gate: prove both ends of the Mealie support range (see e2e-shared/support-range.json).
+# Each leg runs the full suite (Chrome + Firefox) against one Mealie tag with browsers on
+# their current pins — not a cartesian product with browser-range legs (those land under
+# sibling issues for Firefox / Chrome).
+#
+# Gate vs canary: this workflow proves the declared support range. e2e-canary.yml watches
+# brand-new upstream `:latest` releases (non-blocking early warning).
 
 on:
     pull_request:
         branches:
             - main
     workflow_dispatch:
-    # Callable by e2e-canary.yml to run the same jobs against newer upstream deps.
-    workflow_call:
-        inputs:
-            mealie_image:
-                description: 'Mealie image to test against (empty → the pinned version in mealie.e2e.yml)'
-                type: string
-                required: false
-            firefox_version:
-                description: 'Firefox version for setup.sh (empty → the pinned FIREFOX_VER; "latest" for newest)'
-                type: string
-                required: false
-            chrome_version:
-                description: 'Chrome for Testing tag (empty → Playwright bundled Chromium; "latest" for CfT canary)'
-                type: string
-                required: false
 
 permissions:
     contents: read
 
-env:
-    # Empty on pull_request / workflow_dispatch, so the harness falls back to the pinned
-    # defaults (Mealie v3.20.1 in mealie.e2e.yml, Firefox 142.0 in setup.sh, Playwright's
-    # bundled Chromium). The canary sets exactly one of these per matrix leg to isolate which
-    # upstream dep broke.
-    MEALIE_IMAGE: ${{ inputs.mealie_image }}
-    FIREFOX_VER: ${{ inputs.firefox_version }}
-    CHROME_FOR_TESTING_TAG: ${{ inputs.chrome_version }}
-
 jobs:
-    chrome:
-        name: Chrome MV3
-        # Skip on the canary's firefox-latest leg: Chrome never reads FIREFOX_VER, so that run
-        # would be identical to the pinned PR-gate Chrome job (wasted CI, no new signal).
-        # Empty/unset on pull_request and on mealie-latest / chrome-latest → Chrome still runs.
-        if: ${{ !inputs.firefox_version }}
+    resolve:
+        name: Resolve support range
         runs-on: ubuntu-latest
+        outputs:
+            mealie_oldest_image: ${{ steps.range.outputs.mealie_oldest_image }}
+            mealie_newest_image: ${{ steps.range.outputs.mealie_newest_image }}
+            mealie_oldest: ${{ steps.range.outputs.mealie_oldest }}
+            mealie_newest: ${{ steps.range.outputs.mealie_newest }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v7
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v6
-
-            - name: Install Node.js
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 22
-                  cache: 'pnpm'
-                  cache-dependency-path: |
-                      package.json
-                      pnpm-lock.yaml
-
-            - name: Install dependencies
-              run: pnpm install
-
-            # PR gate / mealie-latest: Playwright's pinned Chromium. chrome-latest: Chrome for
-            # Testing @latest via executablePath (branded Google Chrome cannot side-load
-            # extensions; do not `playwright install chromium@latest` either — that fights the
-            # Playwright↔browser pairing).
-            - name: Install Playwright Chromium
-              if: ${{ !inputs.chrome_version }}
-              run: pnpm test:e2e:chromium:install
-
-            - name: Install Chrome for Testing
-              if: ${{ inputs.chrome_version == 'latest' }}
+            - name: Read e2e-shared/support-range.json
+              id: range
               run: |
-                  pnpm exec playwright install-deps chromium
-                  pnpm test:e2e:chrome-cft:install
+                  repo=$(jq -r '.mealie.repository' e2e-shared/support-range.json)
+                  oldest=$(jq -r '.mealie.oldest' e2e-shared/support-range.json)
+                  newest=$(jq -r '.mealie.newest' e2e-shared/support-range.json)
+                  echo "mealie_oldest=${oldest}" >> "$GITHUB_OUTPUT"
+                  echo "mealie_newest=${newest}" >> "$GITHUB_OUTPUT"
+                  echo "mealie_oldest_image=${repo}:${oldest}" >> "$GITHUB_OUTPUT"
+                  echo "mealie_newest_image=${repo}:${newest}" >> "$GITHUB_OUTPUT"
+                  echo "Mealie support range: ${oldest} … ${newest}"
 
-            # Isolates Playwright↔CfT/tooling failures from product/Chrome-behavior failures.
-            - name: Smoke — launch Chrome for Testing under Playwright (no extension)
-              if: ${{ inputs.chrome_version == 'latest' }}
-              run: pnpm test:e2e:chrome-cft:smoke
+    mealie-oldest:
+        name: mealie-oldest (${{ needs.resolve.outputs.mealie_oldest }})
+        needs: resolve
+        uses: ./.github/workflows/e2e-suite.yml
+        with:
+            mealie_image: ${{ needs.resolve.outputs.mealie_oldest_image }}
+            run_label: mealie-oldest
 
-            - name: Run Chrome E2E (Docker Mealie + build + spec + teardown)
-              run: pnpm test:e2e
-              env:
-                  E2E_IMPORT_MODE: html
-
-            - name: Upload Playwright report
-              if: failure()
-              uses: actions/upload-artifact@v7
-              with:
-                  name: playwright-report
-                  path: e2e-playwright/playwright-report
-                  retention-days: 7
-
-    firefox:
-        name: Firefox MV2
-        # Skip on the canary's chrome-latest leg: Firefox never reads CfT overrides,
-        # so that run would duplicate the pinned PR-gate Firefox job.
-        if: ${{ !inputs.chrome_version }}
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v7
-
-            - name: Install pnpm
-              uses: pnpm/action-setup@v6
-
-            - name: Install Node.js
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 22
-                  cache: 'pnpm'
-                  cache-dependency-path: |
-                      package.json
-                      pnpm-lock.yaml
-
-            - name: Install dependencies
-              run: pnpm install
-
-            - name: Install non-snap Firefox + geckodriver
-              run: pnpm test:e2e:gecko:setup
-
-            - name: Start Dockerized Mealie
-              run: pnpm test:e2e:up
-
-            - name: Run Firefox E2E (zip:firefox + Selenium)
-              run: pnpm test:e2e:gecko
-              env:
-                  E2E_IMPORT_MODE: html
-
-            - name: Tear down Mealie
-              if: always()
-              run: pnpm test:e2e:down
+    mealie-newest:
+        name: mealie-newest (${{ needs.resolve.outputs.mealie_newest }})
+        needs: resolve
+        uses: ./.github/workflows/e2e-suite.yml
+        with:
+            mealie_image: ${{ needs.resolve.outputs.mealie_newest_image }}
+            run_label: mealie-newest
