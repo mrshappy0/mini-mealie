@@ -100,9 +100,41 @@ pnpm test:e2e:down
 - No secrets: Mealie is ephemeral and the API token is minted at runtime.
 - Fully hermetic: the default recipe is the local fixture, so no third-party site can flake CI.
 - Chrome uses the self-contained `pnpm test:e2e`; Firefox adds the `setup.sh` step.
-- **Pinned Mealie** (`v3.20.1`) so the gate is deterministic — a red PR means *your* change broke,
-  not that Mealie shipped a new release.
+- **Everything pinned** so the gate is deterministic — a red PR means *your* change broke, not
+  that an upstream dep shipped a release: Mealie (`v3.20.1`), Firefox (`142.0`), geckodriver
+  (`v0.36.0`), and Chromium (frozen inside the Playwright dep).
+
+## Canary (early warning)
+
+`.github/workflows/e2e-canary.yml` runs the same suite weekly (and on demand) against the
+**latest** of the dependencies we fetch at runtime, so upstream releases that break the extension
+surface *here* before they reach the pinned PR gate. It's **non-blocking** — a heads-up, not a
+merge gate — and reuses `e2e.yml` via `workflow_call`.
+
+It's a **matrix with one leg per moving dependency**, each holding the others pinned so a red leg
+names the culprit:
+
+| Leg | Overrides | Pinned | Jobs |
+| --- | --- | --- | --- |
+| `mealie-latest` | Mealie → `:latest` | Firefox `142.0` | Chrome + Firefox |
+| `firefox-latest` | Firefox → `latest` (also catches geckodriver/Firefox skew) | Mealie `v3.20.1` | Firefox only |
+
+Chromium has no canary leg **by deliberate tradeoff**. Mealie/Firefox legs are *proactive*
+(weekly against real upstream `latest`). Chromium coverage stays *reactive*: a new Chromium only
+arrives via a Dependabot Playwright bump, which the PR gate then tests — and that can lag real
+Chrome stable. Playwright/Chromium has historically been stabler here than Gecko, so we accept
+weaker early warning on the primary browser for now; see
+[#183](https://github.com/mrshappy0/mini-mealie/issues/183) for a possible future
+`chromium-latest` leg if that gap starts to hurt. `schedule` only fires from the default
+branch; trigger the canary manually with "Run workflow" otherwise.
+
+The `firefox-latest` leg runs **only** the Firefox job (Chrome would ignore `FIREFOX_VER` and
+duplicate the pinned PR-gate Chrome run). The `mealie-latest` leg still runs both browsers.
 
 To run on your own server instead of GitHub-hosted, change `runs-on` to `[self-hosted]` —
-just ensure Docker is installed and the runner user is in the `docker` group. The harnesses
-stay excluded from lint / tsc / vitest and from the AMO sources zip.
+just ensure Docker is installed and the runner user is in the `docker` group. On a persistent
+runner, "latest" can go stale without care: Firefox is cached under a **version-keyed** directory
+(`~/.local/firefox-nonsnap-$FIREFOX_VER`), and `FIREFOX_VER=latest` always re-downloads; Mealie
+`compose up` **pulls** when `MEALIE_IMAGE` is set (the canary override) so `:latest` is refreshed.
+GitHub-hosted `ubuntu-latest` is a fresh VM each run, so this only matters for self-hosted.
+The harnesses stay excluded from lint / tsc / vitest and from the AMO sources zip.

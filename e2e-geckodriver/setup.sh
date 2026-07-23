@@ -10,7 +10,9 @@ GECKO_VER=${GECKO_VER:-v0.36.0}
 # Pin Firefox so the PR gate is deterministic (a red run means your change broke, not that
 # Firefox shipped a release). The canary sets FIREFOX_VER=latest for early-warning signal.
 FIREFOX_VER=${FIREFOX_VER:-142.0}
-FIREFOX_DIR=${FIREFOX_DIR:-$HOME/.local/firefox-nonsnap}
+# Version-keyed cache dir so pinned and canary installs don't clobber each other on a
+# persistent (self-hosted) runner. Override with FIREFOX_DIR if you need a fixed path.
+FIREFOX_DIR=${FIREFOX_DIR:-$HOME/.local/firefox-nonsnap-$FIREFOX_VER}
 GECKO_BIN=${GECKO_BIN:-$HOME/.local/bin/geckodriver}
 
 # Single cleanup trap for any temp dirs the blocks below create (guarded for `set -u`).
@@ -26,6 +28,12 @@ if [[ ! -x "$GECKO_BIN" ]]; then
     install -m 0755 "$tmp/geckodriver" "$GECKO_BIN"
 fi
 "$GECKO_BIN" --version | head -1
+
+# `latest` must re-download every run — a version-keyed dir named "latest" would otherwise
+# freeze the first resolved binary forever on a self-hosted runner.
+if [[ "$FIREFOX_VER" == "latest" ]]; then
+    rm -rf "$FIREFOX_DIR"
+fi
 
 if [[ ! -x "$FIREFOX_DIR/firefox/firefox" ]]; then
     echo "[setup] downloading non-snap Firefox $FIREFOX_VER -> $FIREFOX_DIR"
