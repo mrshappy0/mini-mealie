@@ -14,8 +14,8 @@ name: E2E Canary (latest upstream deps)
 # A smoke step launches that binary with no extension first: smoke fail → Playwright↔CfT/tooling;
 # smoke pass + suite fail → product/Chrome-behavior.
 #
-# The firefox-latest leg sets firefox_version so e2e.yml skips its chrome job (Chrome ignores
-# FIREFOX_VER). The chrome-latest leg sets chrome_version so e2e.yml skips its firefox job.
+# The firefox-latest leg sets firefox_version so e2e-suite.yml skips its chrome job (Chrome ignores
+# FIREFOX_VER). The chrome-latest leg sets chrome_version so e2e-suite.yml skips its firefox job.
 #
 # Note: `schedule` only fires from the repository's default branch. Until this is on the default
 # branch, run it manually via "Run workflow" (workflow_dispatch).
@@ -54,8 +54,9 @@ jobs:
                       mealie_image: ''
                       firefox_version: ''
                       chrome_version: latest
-        uses: ./.github/workflows/e2e.yml
+        uses: ./.github/workflows/e2e-suite.yml
         with:
             mealie_image: ${{ matrix.mealie_image }}
             firefox_version: ${{ matrix.firefox_version }}
             chrome_version: ${{ matrix.chrome_version }}
+            run_label: ${{ matrix.name }}

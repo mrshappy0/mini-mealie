@@ -3,6 +3,7 @@ import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { REPO_ROOT } from './config';
+import { defaultMealieImage } from './support-range';
 
 /**
  * Ephemeral Dockerized Mealie for E2E: bring it up, mint an API token, tear it down.
@@ -10,6 +11,8 @@ import { REPO_ROOT } from './config';
  *
  *   tsx e2e-shared/mealie-docker.ts up     # start + write .env.e2e (server + token)
  *   tsx e2e-shared/mealie-docker.ts down   # stop + remove volumes
+ *
+ * Image pin: `MEALIE_IMAGE` if set, else newest from `e2e-shared/support-range.json`.
  */
 
 const COMPOSE_FILE = path.join(REPO_ROOT, 'docker/mealie.e2e.yml');
@@ -21,10 +24,15 @@ const ENV_FILE = path.join(REPO_ROOT, '.env.e2e');
 const DEFAULT_EMAIL = 'changeme@example.com';
 const DEFAULT_PASSWORD = 'MyPassword';
 
-function compose(args: string[]): void {
+function resolveMealieImage(): string {
+    return process.env.MEALIE_IMAGE?.trim() || defaultMealieImage();
+}
+
+function compose(args: string[], env: NodeJS.ProcessEnv = process.env): void {
     execFileSync('docker', ['compose', '-p', 'mini-mealie-e2e', '-f', COMPOSE_FILE, ...args], {
         stdio: 'inherit',
         cwd: REPO_ROOT,
+        env,
     });
 }
 
@@ -74,13 +82,15 @@ export type MealieHandle = { server: string; token: string };
 
 /** Start Mealie (if not already up), wait for health, mint a fresh API token. */
 export async function mealieUp(): Promise<MealieHandle> {
-    // When MEALIE_IMAGE is set (canary mealie-latest), re-pull so a self-hosted runner
-    // doesn't keep a stale `:latest` (compose up alone won't refresh an existing local tag).
-    // PR-gate runs leave MEALIE_IMAGE unset and use the pinned image — no pull needed.
-    if (process.env.MEALIE_IMAGE?.trim()) {
-        compose(['pull']);
+    const image = resolveMealieImage();
+    const env = { ...process.env, MEALIE_IMAGE: image };
+    // Re-pull floating tags (canary `:latest`) so a self-hosted runner doesn't keep a
+    // stale local image. Pinned tags are content-addressed enough — skip the pull.
+    if (image.endsWith(':latest')) {
+        compose(['pull'], env);
     }
-    compose(['up', '-d']);
+    console.log(`[mealie] using image ${image}`);
+    compose(['up', '-d'], env);
     await waitForHealthy();
     const accessToken = await login();
     const token = await mintApiToken(accessToken);
