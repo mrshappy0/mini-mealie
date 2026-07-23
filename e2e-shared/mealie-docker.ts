@@ -74,6 +74,12 @@ export type MealieHandle = { server: string; token: string };
 
 /** Start Mealie (if not already up), wait for health, mint a fresh API token. */
 export async function mealieUp(): Promise<MealieHandle> {
+    // When MEALIE_IMAGE is set (canary mealie-latest), re-pull so a self-hosted runner
+    // doesn't keep a stale `:latest` (compose up alone won't refresh an existing local tag).
+    // PR-gate runs leave MEALIE_IMAGE unset and use the pinned image — no pull needed.
+    if (process.env.MEALIE_IMAGE?.trim()) {
+        compose(['pull']);
+    }
     compose(['up', '-d']);
     await waitForHealthy();
     const accessToken = await login();
