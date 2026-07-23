@@ -35,8 +35,12 @@ import { waitForRecipe } from '../e2e-shared/mealie-api';
 loadE2eEnv();
 
 const HOME = os.homedir();
+// Must match e2e-geckodriver/setup.sh's version-keyed default
+// (~/.local/firefox-nonsnap-$FIREFOX_VER). Override with E2E_FIREFOX_BIN if needed.
+const FIREFOX_VER = process.env.FIREFOX_VER?.trim() || '142.0';
 const FIREFOX_BIN =
-    process.env.E2E_FIREFOX_BIN?.trim() || path.join(HOME, '.local/firefox-nonsnap/firefox/firefox');
+    process.env.E2E_FIREFOX_BIN?.trim() ||
+    path.join(HOME, `.local/firefox-nonsnap-${FIREFOX_VER}`, 'firefox', 'firefox');
 const GECKODRIVER_BIN =
     process.env.E2E_GECKODRIVER_BIN?.trim() || path.join(HOME, '.local/bin/geckodriver');
 
