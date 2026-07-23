@@ -61,7 +61,10 @@ async function buildDriver(): Promise<WebDriver> {
     options.setPreference('xpinstall.signatures.required', false);
     options.setPreference('extensions.langpacks.signatures.required', false);
 
-    const service = new ServiceBuilder(GECKODRIVER_BIN);
+    // Firefox 153+ blocks WebDriver navigation to moz-extension:// pages unless
+    // geckodriver opts into parent-process access. Harmless on older pins (142).
+    // https://firefox-source-docs.mozilla.org/testing/geckodriver/Flags.html#allow-system-access
+    const service = new ServiceBuilder(GECKODRIVER_BIN).addArguments('--allow-system-access');
     return new Builder().forBrowser('firefox').setFirefoxOptions(options).setFirefoxService(service).build();
 }
 
