@@ -44,6 +44,17 @@ Mini Mealie is a browser extension built using WXT and React, designed to speed 
     - **React** v19.x
     - **TypeScript** 5.9.x
 
+### Supported versions
+
+Every pull request is tested against both ends of a declared range for
+**Mealie**, **Chrome**, and **Firefox** (so raising the newest pin cannot
+quietly drop an older version people still run).
+
+Current pins live in
+[`e2e-shared/support-range.json`](e2e-shared/support-range.json).
+Rolling rules and how the PR gate differs from the weekly canary are in the
+[e2e testing guide](docs/developers-guide/e2e-testing.md#support-range).
+
 ---
 
 ## Installation and Setup
