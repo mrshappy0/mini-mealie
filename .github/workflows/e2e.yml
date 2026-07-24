@@ -1,12 +1,14 @@
 name: E2E
 
-# PR gate: prove both ends of the Mealie support range (see e2e-shared/support-range.json).
-# Each leg runs the full suite (Chrome + Firefox) against one Mealie tag with browsers on
-# their current pins — not a cartesian product with browser-range legs (those land under
-# sibling issues for Firefox / Chrome).
+# PR gate: prove both ends of each declared support range (see e2e-shared/support-range.json).
+# One moving piece per leg — not a cartesian product across Mealie × Chrome × Firefox.
+#
+# Mealie legs: both browsers on current pins (Playwright Chromium + pinned Firefox).
+# Chrome legs: Mealie on newest pin; Firefox skipped. Both ends are pinned Chrome for Testing
+# builds (oldest = newest − 2 milestones) so the gate proves backward compatibility.
 #
 # Gate vs canary: this workflow proves the declared support range. e2e-canary.yml watches
-# brand-new upstream `:latest` releases (non-blocking early warning).
+# brand-new upstream `:latest` / `latest` releases (non-blocking early warning).
 
 on:
     pull_request:
@@ -26,6 +28,8 @@ jobs:
             mealie_newest_image: ${{ steps.range.outputs.mealie_newest_image }}
             mealie_oldest: ${{ steps.range.outputs.mealie_oldest }}
             mealie_newest: ${{ steps.range.outputs.mealie_newest }}
+            chrome_oldest: ${{ steps.range.outputs.chrome_oldest }}
+            chrome_newest: ${{ steps.range.outputs.chrome_newest }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v7
@@ -36,11 +40,16 @@ jobs:
                   repo=$(jq -r '.mealie.repository' e2e-shared/support-range.json)
                   oldest=$(jq -r '.mealie.oldest' e2e-shared/support-range.json)
                   newest=$(jq -r '.mealie.newest' e2e-shared/support-range.json)
+                  chrome_oldest=$(jq -r '.chrome.oldest' e2e-shared/support-range.json)
+                  chrome_newest=$(jq -r '.chrome.newest' e2e-shared/support-range.json)
                   echo "mealie_oldest=${oldest}" >> "$GITHUB_OUTPUT"
                   echo "mealie_newest=${newest}" >> "$GITHUB_OUTPUT"
                   echo "mealie_oldest_image=${repo}:${oldest}" >> "$GITHUB_OUTPUT"
                   echo "mealie_newest_image=${repo}:${newest}" >> "$GITHUB_OUTPUT"
+                  echo "chrome_oldest=${chrome_oldest}" >> "$GITHUB_OUTPUT"
+                  echo "chrome_newest=${chrome_newest}" >> "$GITHUB_OUTPUT"
                   echo "Mealie support range: ${oldest} … ${newest}"
+                  echo "Chrome support range: ${chrome_oldest} … ${chrome_newest}"
 
     mealie-oldest:
         name: mealie-oldest (${{ needs.resolve.outputs.mealie_oldest }})
@@ -57,3 +66,23 @@ jobs:
         with:
             mealie_image: ${{ needs.resolve.outputs.mealie_newest_image }}
             run_label: mealie-newest
+
+    # Both Chrome ends: pinned CfT (not branded Google Chrome). Setting chrome_version skips
+    # Firefox (same skip idea as chrome-latest canary) so this leg only moves the browser.
+    chrome-oldest:
+        name: chrome-oldest (${{ needs.resolve.outputs.chrome_oldest }})
+        needs: resolve
+        uses: ./.github/workflows/e2e-suite.yml
+        with:
+            mealie_image: ${{ needs.resolve.outputs.mealie_newest_image }}
+            chrome_version: ${{ needs.resolve.outputs.chrome_oldest }}
+            run_label: chrome-oldest
+
+    chrome-newest:
+        name: chrome-newest (${{ needs.resolve.outputs.chrome_newest }})
+        needs: resolve
+        uses: ./.github/workflows/e2e-suite.yml
+        with:
+            mealie_image: ${{ needs.resolve.outputs.mealie_newest_image }}
+            chrome_version: ${{ needs.resolve.outputs.chrome_newest }}
+            run_label: chrome-newest

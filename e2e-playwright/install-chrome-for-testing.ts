@@ -1,10 +1,11 @@
 /**
- * Download Chrome for Testing for the chrome-latest canary leg.
+ * Download Chrome for Testing for chrome-newest (pinned Stable) and chrome-latest (canary).
  *
  * Prints `browser@buildId <executablePath>` (same shape as `@puppeteer/browsers install`)
  * and, when running on GitHub Actions, appends PLAYWRIGHT_CHROME_EXECUTABLE to GITHUB_ENV.
  *
- * Tag defaults to `latest` (override with CHROME_FOR_TESTING_TAG, e.g. `stable`).
+ * Tag from CHROME_FOR_TESTING_TAG: pinned build id (e.g. `151.0.7922.47`), `stable`, or
+ * `latest` (canary). Defaults to `latest` when unset.
  * Cache: E2E_CFT_CACHE_DIR or ~/.cache/mini-mealie-chrome-for-testing.
  */
 import { spawnSync } from 'node:child_process';

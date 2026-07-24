@@ -1,5 +1,5 @@
 /**
- * Tiny Playwright↔Chrome-for-Testing smoke for the chrome-latest canary leg.
+ * Tiny Playwright↔Chrome-for-Testing smoke for chrome-newest / chrome-latest.
  *
  * Launches PLAYWRIGHT_CHROME_EXECUTABLE with no extension and no suite — if this fails,
  * treat the red leg as Playwright↔CfT tooling (or install/path), not product behavior.

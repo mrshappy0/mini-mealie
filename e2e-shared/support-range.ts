@@ -4,14 +4,23 @@ import path from 'node:path';
 import { REPO_ROOT } from './config';
 
 /**
- * Supported Mealie ends for the PR e2e gate.
+ * Supported Mealie / Chrome ends for the PR e2e gate.
  * Source of truth: `e2e-shared/support-range.json`.
- * Raising `mealie.oldest` is an intentional, documented change.
+ * Raising any `*.oldest` field is an intentional, documented change.
+ *
+ * Chrome ends are pinned Chrome for Testing build ids (not Playwright’s bundled
+ * Chromium). Canary still floats `latest` and is not stored in this file.
  */
 export type SupportRange = {
     mealie: {
         repository: string;
         oldest: string;
+        newest: string;
+    };
+    chrome: {
+        /** Pinned CfT build for the oldest supported Chrome (backward-compat floor). */
+        oldest: string;
+        /** Pinned CfT Stable build for the newest supported Chrome. */
         newest: string;
     };
 };
