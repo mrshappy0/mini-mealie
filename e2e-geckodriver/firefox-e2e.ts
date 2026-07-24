@@ -19,6 +19,7 @@ import {
 } from '../e2e-shared/config';
 import { startFixtureServer, stopFixtureServer } from '../e2e-shared/fixture-server';
 import { waitForRecipe } from '../e2e-shared/mealie-api';
+import { defaultFirefoxVersion } from '../e2e-shared/support-range';
 
 /**
  * Firefox MV2 E2E via Selenium + geckodriver.
@@ -36,8 +37,9 @@ loadE2eEnv();
 
 const HOME = os.homedir();
 // Must match e2e-geckodriver/setup.sh's version-keyed default
-// (~/.local/firefox-nonsnap-$FIREFOX_VER). Override with E2E_FIREFOX_BIN if needed.
-const FIREFOX_VER = process.env.FIREFOX_VER?.trim() || '142.0';
+// (~/.local/firefox-nonsnap-$FIREFOX_VER). Empty → firefox.newest from support-range.json.
+// Override with E2E_FIREFOX_BIN if needed.
+const FIREFOX_VER = process.env.FIREFOX_VER?.trim() || defaultFirefoxVersion();
 const FIREFOX_BIN =
     process.env.E2E_FIREFOX_BIN?.trim() ||
     path.join(HOME, `.local/firefox-nonsnap-${FIREFOX_VER}`, 'firefox', 'firefox');
@@ -61,7 +63,11 @@ async function buildDriver(): Promise<WebDriver> {
     options.setPreference('xpinstall.signatures.required', false);
     options.setPreference('extensions.langpacks.signatures.required', false);
 
-    const service = new ServiceBuilder(GECKODRIVER_BIN);
+    // Firefox 153+ blocks WebDriver navigation to moz-extension:// pages unless
+    // geckodriver opts into parent-process access. Harmless on older pins (151).
+    // Requires geckodriver ≥ 0.37.1 (see firefox.geckodriver in support-range.json).
+    // https://firefox-source-docs.mozilla.org/testing/geckodriver/Flags.html#allow-system-access
+    const service = new ServiceBuilder(GECKODRIVER_BIN).addArguments('--allow-system-access');
     return new Builder().forBrowser('firefox').setFirefoxOptions(options).setFirefoxService(service).build();
 }
 

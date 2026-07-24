@@ -1,0 +1,16 @@
+{
+    "mealie": {
+        "repository": "ghcr.io/mealie-recipes/mealie",
+        "oldest": "v3.19.2",
+        "newest": "v3.20.1"
+    },
+    "chrome": {
+        "oldest": "149.0.7827.155",
+        "newest": "151.0.7922.47"
+    },
+    "firefox": {
+        "oldest": "151.0",
+        "newest": "153.0",
+        "geckodriver": "v0.37.1"
+    }
+}

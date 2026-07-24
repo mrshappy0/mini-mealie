@@ -6,6 +6,10 @@ import { chromeExtensionDir } from '../e2e-shared/config';
  * Chromium E2E fixture. Mirrors Chrome's `--load-extension=…` flow (Playwright's
  * "Chrome extensions" pattern). Chrome MV3 uses a background service worker, so the
  * extension id comes from `context.serviceWorkers()`.
+ *
+ * mealie-* / mealie-latest: Playwright's bundled Chromium (`channel: 'chromium'`).
+ * chrome-oldest / chrome-newest / chrome-latest: Chrome for Testing via
+ * PLAYWRIGHT_CHROME_EXECUTABLE (still supports side-loading; branded Google Chrome does not).
  */
 
 export type MiniMealieFixtures = {
@@ -16,16 +20,25 @@ export type MiniMealieFixtures = {
     extensionBridgePage: Page;
 };
 
+function launchPersistentOptions(pathToExtension: string) {
+    const args = [
+        `--disable-extensions-except=${pathToExtension}`,
+        `--load-extension=${pathToExtension}`,
+    ];
+    const executablePath = process.env.PLAYWRIGHT_CHROME_EXECUTABLE?.trim();
+    if (executablePath) {
+        return { executablePath, args };
+    }
+    return { channel: 'chromium' as const, args };
+}
+
 export const test = base.extend<MiniMealieFixtures>({
     context: async ({}, use) => {
         const pathToExtension = chromeExtensionDir();
-        const browserContext = await chromium.launchPersistentContext('', {
-            channel: 'chromium',
-            args: [
-                `--disable-extensions-except=${pathToExtension}`,
-                `--load-extension=${pathToExtension}`,
-            ],
-        });
+        const browserContext = await chromium.launchPersistentContext(
+            '',
+            launchPersistentOptions(pathToExtension),
+        );
         await use(browserContext);
         await browserContext.close();
     },
