@@ -12,7 +12,7 @@ on:
                 type: string
                 required: false
             firefox_version:
-                description: 'Firefox version for setup.sh (empty → pinned FIREFOX_VER; "latest" for newest)'
+                description: 'Firefox version for setup.sh (empty → firefox.newest from support-range.json; "latest" for canary)'
                 type: string
                 required: false
             chrome_version:
@@ -30,7 +30,7 @@ on:
                 type: string
                 required: false
             firefox_version:
-                description: 'Firefox version for setup.sh (empty → the pinned FIREFOX_VER; "latest" for newest)'
+                description: 'Firefox version for setup.sh (empty → firefox.newest from support-range.json; "latest" for canary)'
                 type: string
                 required: false
             chrome_version:
@@ -54,8 +54,8 @@ env:
 jobs:
     chrome:
         name: Chrome MV3
-        # Skip on the canary's firefox-latest leg: Chrome never reads FIREFOX_VER, so that run
-        # would be identical to the pinned PR-gate Chrome job (wasted CI, no new signal).
+        # Skip on firefox-oldest / firefox-newest / firefox-latest: Chrome never reads
+        # FIREFOX_VER, so that run would duplicate a mealie-* / chrome-* Chrome job.
         # Empty/unset (mealie-*) / CfT pin / chrome-latest → Chrome still runs.
         if: ${{ !inputs.firefox_version }}
         runs-on: ubuntu-latest

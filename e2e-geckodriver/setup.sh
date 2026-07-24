@@ -3,13 +3,28 @@
 # Fetches a NON-SNAP Firefox + geckodriver — snap Firefox is sandboxed and can't be
 # driven by geckodriver. Idempotent: re-running only fetches what's missing.
 #
+# Defaults for FIREFOX_VER / GECKO_VER come from e2e-shared/support-range.json
+# (firefox.newest / firefox.geckodriver). The canary sets FIREFOX_VER=latest.
 # The Selenium client itself is an npm devDependency (selenium-webdriver), so no pip here.
 set -euo pipefail
 
-GECKO_VER=${GECKO_VER:-v0.36.0}
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+RANGE_JSON="$REPO_ROOT/e2e-shared/support-range.json"
+
+read_range() {
+    # $1 = dotted path under the JSON root (e.g. firefox.newest)
+    node -e "
+        const r = require('$RANGE_JSON');
+        const v = '$1'.split('.').reduce((o, k) => o[k], r);
+        if (v == null || v === '') process.exit(1);
+        process.stdout.write(String(v));
+    "
+}
+
+GECKO_VER=${GECKO_VER:-$(read_range firefox.geckodriver)}
 # Pin Firefox so the PR gate is deterministic (a red run means your change broke, not that
-# Firefox shipped a release). The canary sets FIREFOX_VER=latest for early-warning signal.
-FIREFOX_VER=${FIREFOX_VER:-142.0}
+# Firefox shipped a release). Empty/unset → newest from support-range.json.
+FIREFOX_VER=${FIREFOX_VER:-$(read_range firefox.newest)}
 # Version-keyed cache dir so pinned and canary installs don't clobber each other on a
 # persistent (self-hosted) runner. Override with FIREFOX_DIR if you need a fixed path.
 FIREFOX_DIR=${FIREFOX_DIR:-$HOME/.local/firefox-nonsnap-$FIREFOX_VER}
@@ -19,7 +34,15 @@ GECKO_BIN=${GECKO_BIN:-$HOME/.local/bin/geckodriver}
 tmp='' ff_tmp=''
 trap 'rm -rf "${tmp:-}" "${ff_tmp:-}"' EXIT
 
+gecko_needs_install=0
 if [[ ! -x "$GECKO_BIN" ]]; then
+    gecko_needs_install=1
+elif ! "$GECKO_BIN" --version 2>/dev/null | grep -qF "${GECKO_VER#v}"; then
+    # Pin moved (e.g. v0.36.0 → v0.37.1); replace the cached binary.
+    gecko_needs_install=1
+fi
+
+if [[ "$gecko_needs_install" -eq 1 ]]; then
     echo "[setup] installing geckodriver $GECKO_VER -> $GECKO_BIN"
     mkdir -p "$(dirname "$GECKO_BIN")"
     tmp=$(mktemp -d)
