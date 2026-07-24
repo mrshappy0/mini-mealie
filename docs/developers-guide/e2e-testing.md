@@ -40,7 +40,8 @@ Both harnesses run the same flow:
 ## The Mealie backend (Docker)
 
 `docker/mealie.e2e.yml` runs an ephemeral Mealie on SQLite (tmpfs, so every run is clean).
-`e2e-shared/mealie-docker.ts` brings it up, waits for health, logs in with Mealie's default
+`e2e-shared/mealie-docker.ts` brings it up (image from `MEALIE_IMAGE` or **newest** in
+`e2e-shared/support-range.json`), waits for health, logs in with Mealie's default
 `changeme@example.com` / `MyPassword`, mints an API token, and writes `.env.e2e`
 (`E2E_MEALIE_SERVER`, `E2E_MEALIE_TOKEN`). Both harnesses auto-load `.env.e2e`.
 
@@ -86,55 +87,111 @@ pnpm test:e2e:down
 | `E2E_IMPORT_MODE` | `html` | `html` or `url` import mode |
 | `E2E_RECIPE_URL` | local fixture | recipe to import; set a real URL for a live-scrape run |
 | `E2E_FIXTURE_PORT` | `8730` | port for the local fixture server |
-| `MEALIE_IMAGE` / `MEALIE_PORT` | `…/mealie:v3.20.1` / `9925` | Docker Mealie image / host port |
+| `MEALIE_IMAGE` / `MEALIE_PORT` | newest from `support-range.json` / `9925` | Docker Mealie image / host port |
 | `E2E_FIREFOX_XPI` | newest `.output/*-firefox.zip` | Firefox add-on to install |
-| `FIREFOX_VER` | `142.0` (pinned) | Firefox version `setup.sh` fetches; set `latest` for the canary |
+| `FIREFOX_VER` | newest from `support-range.json` | Firefox version `setup.sh` fetches; set `latest` for the canary |
+| `GECKO_VER` | `firefox.geckodriver` from `support-range.json` | geckodriver release tag |
+| `PLAYWRIGHT_CHROME_EXECUTABLE` | (unset → Playwright Chromium) | absolute path to Chrome for Testing |
+| `CHROME_FOR_TESTING_TAG` | `latest` | tag / build id for `@puppeteer/browsers` (`151.0.7922.47`, `stable`, `latest`, …) |
 | `E2E_HEADLESS` | on | set `0` to watch Firefox run |
 
-## CI
+## Support range
 
-`.github/workflows/e2e.yml` runs both targets on every PR to `main` (and `workflow_dispatch`):
+`e2e-shared/support-range.json` is the **single source of truth** for which Mealie, Chrome,
+and Firefox ends we claim to support. Local `pnpm test:e2e:up` uses **newest** Mealie when
+`MEALIE_IMAGE` is unset; `setup.sh` / the Firefox harness use **newest** Firefox when
+`FIREFOX_VER` is unset. Compose requires `MEALIE_IMAGE` — always go through the harness or
+set it yourself from that file.
+
+| End | Mealie | Chrome (CfT) | Firefox | Rolling rule |
+| --- | --- | --- | --- | --- |
+| **Oldest** | `v3.19.2` | `149.0.7827.155` | `151.0` | Mealie: latest patch of **newest − 2 minors**. Chrome: latest build of **newest − 2 milestones**. Firefox: **newest − 2 majors**. |
+| **Newest** | `v3.20.1` | `151.0.7922.47` | `153.0` | Latest stable the gate (or a bump PR) has proven green |
+
+`firefox.geckodriver` (`v0.37.1`) is pinned alongside the Firefox range — Firefox 153+ needs
+geckodriver ≥ 0.37.1 for `--allow-system-access`. `wxt.config.ts` `strict_min_version` must
+match `firefox.oldest`.
+
+Raising any `*.oldest` field is an intentional change: edit the JSON and say so in the PR /
+release notes. Do not raise a floor as a side effect of chasing “latest.”
+
+**No branded Google Chrome in CI.** Store Chrome removed the flags needed to side-load unpacked
+extensions. Gate Chrome range legs and the canary use **Chrome for Testing** only. Mealie legs
+still use Playwright’s bundled Chromium as the harness default (not a support-range end).
+**ESR** is out of the default Firefox range unless we explicitly decide to support it.
+
+## CI (PR gate)
+
+`.github/workflows/e2e.yml` is the **merge gate**. On every PR to `main` (and
+`workflow_dispatch`) it reads `support-range.json` and runs the reusable suite
+(`.github/workflows/e2e-suite.yml`) once per named leg:
+
+| Leg | Mealie | Chrome | Firefox |
+| --- | --- | --- | --- |
+| `mealie-oldest` | oldest tag | Playwright Chromium | newest pin (`153.0`) |
+| `mealie-newest` | newest tag | Playwright Chromium | newest pin (`153.0`) |
+| `chrome-oldest` | newest tag | CfT `149.0.7827.155` | skipped |
+| `chrome-newest` | newest tag | CfT `151.0.7922.47` | skipped |
+| `firefox-oldest` | newest tag | skipped | `151.0` |
+| `firefox-newest` | newest tag | skipped | `153.0` |
+
+One moving piece per leg (same idea as the canary) — not a full Mealie × browser grid.
+`chrome-*` legs skip Firefox and `firefox-*` legs skip Chrome so a red check names the
+browser, not a duplicate run.
 
 - Docker + Compose ship on `ubuntu-latest`, so `test:e2e:up` brings up Mealie there exactly
   as it does locally.
 - No secrets: Mealie is ephemeral and the API token is minted at runtime.
 - Fully hermetic: the default recipe is the local fixture, so no third-party site can flake CI.
 - Chrome uses the self-contained `pnpm test:e2e`; Firefox adds the `setup.sh` step.
-- **Everything pinned** so the gate is deterministic — a red PR means *your* change broke, not
-  that an upstream dep shipped a release: Mealie (`v3.20.1`), Firefox (`142.0`), geckodriver
-  (`v0.36.0`), and Chromium (frozen inside the Playwright dep).
+- **Pinned ends** so the gate is deterministic — a red PR means *your* change broke something
+  in the support range, not that an upstream dep just shipped: Mealie (`oldest`…`newest`),
+  Chrome (pinned CfT oldest…newest), Firefox (pinned oldest…newest), geckodriver
+  (`firefox.geckodriver`).
 
 ## Canary (early warning)
 
 `.github/workflows/e2e-canary.yml` runs the same suite weekly (and on demand) against the
-**latest** of the dependencies we fetch at runtime, so upstream releases that break the extension
-surface *here* before they reach the pinned PR gate. It's **non-blocking** — a heads-up, not a
-merge gate — and reuses `e2e.yml` via `workflow_call`.
+**latest** of the dependencies we fetch at runtime, so brand-new upstream releases that break
+the extension surface *here* before we raise the support-range ceiling. It's **non-blocking** —
+a heads-up, not a merge gate — and reuses `e2e-suite.yml` via `workflow_call`.
+
+**Gate vs canary:** the gate proves the declared support range; the canary watches floating
+`:latest` / `latest` upstreams only (not a third pin in `support-range.json`).
 
 It's a **matrix with one leg per moving dependency**, each holding the others pinned so a red leg
 names the culprit:
 
 | Leg | Overrides | Pinned | Jobs |
 | --- | --- | --- | --- |
-| `mealie-latest` | Mealie → `:latest` | Firefox `142.0` | Chrome + Firefox |
-| `firefox-latest` | Firefox → `latest` (also catches geckodriver/Firefox skew) | Mealie `v3.20.1` | Firefox only |
+| `mealie-latest` | Mealie → `:latest` | Firefox newest pin, Playwright Chromium | Chrome + Firefox |
+| `firefox-latest` | Firefox → `latest` (also catches geckodriver/Firefox skew) | Mealie newest pin | Firefox only |
+| `chrome-latest` | Chrome for Testing → `latest` via `PLAYWRIGHT_CHROME_EXECUTABLE` | Mealie newest pin, Firefox newest pin, Playwright version | Chrome only |
 
-Chromium has no canary leg **by deliberate tradeoff**. Mealie/Firefox legs are *proactive*
-(weekly against real upstream `latest`). Chromium coverage stays *reactive*: a new Chromium only
-arrives via a Dependabot Playwright bump, which the PR gate then tests — and that can lag real
-Chrome stable. Playwright/Chromium has historically been stabler here than Gecko, so we accept
-weaker early warning on the primary browser for now; see
-[#183](https://github.com/mrshappy0/mini-mealie/issues/183) for a possible future
-`chromium-latest` leg if that gap starts to hurt. `schedule` only fires from the default
-branch; trigger the canary manually with "Run workflow" otherwise.
+`chrome-latest` keeps Playwright pinned and downloads **Chrome for Testing** `@latest`
+(`pnpm test:e2e:chrome-cft:install`), then drives it with `executablePath`. Branded Google Chrome
+is not used. Do **not** try `playwright install chromium@latest` either — that fights Playwright's
+bundled-browser pairing.
+
+Before the suite, a smoke step (`pnpm test:e2e:chrome-cft:smoke`) launches that binary with no
+extension: smoke fail → Playwright↔CfT/tooling (or install/path); smoke pass + suite fail →
+product / Chrome-behavior. A red leg is early warning and triage, not automatic proof that Chrome
+broke the extension. (Addresses
+[#183](https://github.com/mrshappy0/mini-mealie/issues/183).)
+
+`schedule` only fires from the default branch; trigger the canary manually with "Run workflow"
+otherwise.
 
 The `firefox-latest` leg runs **only** the Firefox job (Chrome would ignore `FIREFOX_VER` and
-duplicate the pinned PR-gate Chrome run). The `mealie-latest` leg still runs both browsers.
+duplicate a gate Chrome run). The `chrome-latest` leg runs **only** the Chrome job
+(Firefox would ignore the CfT override). The `mealie-latest` leg still runs both browsers.
 
 To run on your own server instead of GitHub-hosted, change `runs-on` to `[self-hosted]` —
 just ensure Docker is installed and the runner user is in the `docker` group. On a persistent
 runner, "latest" can go stale without care: Firefox is cached under a **version-keyed** directory
-(`~/.local/firefox-nonsnap-$FIREFOX_VER`), and `FIREFOX_VER=latest` always re-downloads; Mealie
-`compose up` **pulls** when `MEALIE_IMAGE` is set (the canary override) so `:latest` is refreshed.
+(`~/.local/firefox-nonsnap-$FIREFOX_VER`), and `FIREFOX_VER=latest` always re-downloads;
+geckodriver is reinstalled when the pin in `support-range.json` moves; Chrome for Testing is
+cached under `~/.cache/mini-mealie-chrome-for-testing` (clear it to force a refresh); Mealie
+`compose` **pulls** only for floating `:latest` images so the canary refreshes.
 GitHub-hosted `ubuntu-latest` is a fresh VM each run, so this only matters for self-hosted.
 The harnesses stay excluded from lint / tsc / vitest and from the AMO sources zip.

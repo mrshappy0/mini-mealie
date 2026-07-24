@@ -1,5 +1,8 @@
 # Ephemeral Mealie for E2E. Runs standalone on SQLite (no external DB), data in
-# tmpfs so every run starts clean. Image is overridable via MEALIE_IMAGE.
+# tmpfs so every run starts clean.
+#
+# MEALIE_IMAGE is required. Prefer `pnpm test:e2e:up` (sets newest from
+# e2e-shared/support-range.json). CI passes oldest/newest explicitly.
 #
 #   docker compose -f docker/mealie.e2e.yml up -d
 #   docker compose -f docker/mealie.e2e.yml down -v
@@ -8,7 +11,7 @@
 # logs in with those and mints an API token (see e2e-shared/mealie-docker.ts).
 services:
     mealie:
-        image: ${MEALIE_IMAGE:-ghcr.io/mealie-recipes/mealie:v3.20.1}
+        image: ${MEALIE_IMAGE:?Set MEALIE_IMAGE or use pnpm test:e2e:up}
         container_name: mini-mealie-e2e
         ports:
             - '${MEALIE_PORT:-9925}:9000'
