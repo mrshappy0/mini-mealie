@@ -3,9 +3,11 @@ name: E2E
 # PR gate: prove both ends of each declared support range (see e2e-shared/support-range.json).
 # One moving piece per leg — not a cartesian product across Mealie × Chrome × Firefox.
 #
-# Mealie legs: both browsers on current pins (Playwright Chromium + pinned Firefox).
+# Mealie legs: Playwright Chromium + Firefox newest pin.
 # Chrome legs: Mealie on newest pin; Firefox skipped. Both ends are pinned Chrome for Testing
 # builds (oldest = newest − 2 milestones) so the gate proves backward compatibility.
+# Firefox legs: Mealie on newest pin; Chrome skipped. Both ends from support-range.json
+# (oldest = newest − 2 majors).
 #
 # Gate vs canary: this workflow proves the declared support range. e2e-canary.yml watches
 # brand-new upstream `:latest` / `latest` releases (non-blocking early warning).
@@ -30,6 +32,8 @@ jobs:
             mealie_newest: ${{ steps.range.outputs.mealie_newest }}
             chrome_oldest: ${{ steps.range.outputs.chrome_oldest }}
             chrome_newest: ${{ steps.range.outputs.chrome_newest }}
+            firefox_oldest: ${{ steps.range.outputs.firefox_oldest }}
+            firefox_newest: ${{ steps.range.outputs.firefox_newest }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v7
@@ -42,14 +46,19 @@ jobs:
                   newest=$(jq -r '.mealie.newest' e2e-shared/support-range.json)
                   chrome_oldest=$(jq -r '.chrome.oldest' e2e-shared/support-range.json)
                   chrome_newest=$(jq -r '.chrome.newest' e2e-shared/support-range.json)
+                  firefox_oldest=$(jq -r '.firefox.oldest' e2e-shared/support-range.json)
+                  firefox_newest=$(jq -r '.firefox.newest' e2e-shared/support-range.json)
                   echo "mealie_oldest=${oldest}" >> "$GITHUB_OUTPUT"
                   echo "mealie_newest=${newest}" >> "$GITHUB_OUTPUT"
                   echo "mealie_oldest_image=${repo}:${oldest}" >> "$GITHUB_OUTPUT"
                   echo "mealie_newest_image=${repo}:${newest}" >> "$GITHUB_OUTPUT"
                   echo "chrome_oldest=${chrome_oldest}" >> "$GITHUB_OUTPUT"
                   echo "chrome_newest=${chrome_newest}" >> "$GITHUB_OUTPUT"
+                  echo "firefox_oldest=${firefox_oldest}" >> "$GITHUB_OUTPUT"
+                  echo "firefox_newest=${firefox_newest}" >> "$GITHUB_OUTPUT"
                   echo "Mealie support range: ${oldest} … ${newest}"
                   echo "Chrome support range: ${chrome_oldest} … ${chrome_newest}"
+                  echo "Firefox support range: ${firefox_oldest} … ${firefox_newest}"
 
     mealie-oldest:
         name: mealie-oldest (${{ needs.resolve.outputs.mealie_oldest }})
@@ -86,3 +95,23 @@ jobs:
             mealie_image: ${{ needs.resolve.outputs.mealie_newest_image }}
             chrome_version: ${{ needs.resolve.outputs.chrome_newest }}
             run_label: chrome-newest
+
+    # Both Firefox ends: pinned non-snap releases. Setting firefox_version skips Chrome
+    # (same skip idea as firefox-latest canary) so this leg only moves the browser.
+    firefox-oldest:
+        name: firefox-oldest (${{ needs.resolve.outputs.firefox_oldest }})
+        needs: resolve
+        uses: ./.github/workflows/e2e-suite.yml
+        with:
+            mealie_image: ${{ needs.resolve.outputs.mealie_newest_image }}
+            firefox_version: ${{ needs.resolve.outputs.firefox_oldest }}
+            run_label: firefox-oldest
+
+    firefox-newest:
+        name: firefox-newest (${{ needs.resolve.outputs.firefox_newest }})
+        needs: resolve
+        uses: ./.github/workflows/e2e-suite.yml
+        with:
+            mealie_image: ${{ needs.resolve.outputs.mealie_newest_image }}
+            firefox_version: ${{ needs.resolve.outputs.firefox_newest }}
+            run_label: firefox-newest
