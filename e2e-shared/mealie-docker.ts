@@ -99,7 +99,8 @@ export async function mealieUp(): Promise<MealieHandle> {
 
 /** Stop Mealie and remove its (tmpfs) volumes. */
 export function mealieDown(): void {
-    compose(['down', '-v']);
+    const image = resolveMealieImage();
+    compose(['down', '-v'], { ...process.env, MEALIE_IMAGE: image });
 }
 
 async function main(): Promise<void> {
