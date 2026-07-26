@@ -7,9 +7,9 @@ import { chromeExtensionDir } from '../e2e-shared/config';
  * "Chrome extensions" pattern). Chrome MV3 uses a background service worker, so the
  * extension id comes from `context.serviceWorkers()`.
  *
- * PR gate / mealie-latest: Playwright's bundled Chromium (`channel: 'chromium'`).
- * chrome-latest canary: Chrome for Testing via PLAYWRIGHT_CHROME_EXECUTABLE (still
- * supports side-loading; branded Google Chrome does not).
+ * mealie-* / mealie-latest: Playwright's bundled Chromium (`channel: 'chromium'`).
+ * chrome-oldest / chrome-newest / chrome-latest: Chrome for Testing via
+ * PLAYWRIGHT_CHROME_EXECUTABLE (still supports side-loading; branded Google Chrome does not).
  */
 
 export type MiniMealieFixtures = {
