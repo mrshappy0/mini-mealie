@@ -644,4 +644,4 @@ interface ImportMeta {
 - [WXT Environment Variables](https://wxt.dev/guide/essentials/config/environment-variables.html)
 - [Vite Environment Variables](https://vite.dev/guide/env-and-mode.html)
 - [Chrome Extension Storage API](https://developer.chrome.com/docs/extensions/reference/api/storage)
-- [Project Copilot Instructions](../.github/copilot-instructions.md)
+- [Agent Instructions](../../AGENTS.md)
