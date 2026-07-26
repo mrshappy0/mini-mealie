@@ -36,6 +36,7 @@ vi.mock('../storage', () => ({
 vi.mock('../logging', () => ({
     logEvent: vi.fn(),
     sanitizeUrl: vi.fn((url: string) => url),
+    withOperation: vi.fn((_config, fn) => fn()),
 }));
 
 const mockHtml = '<html><body>Recipe</body></html>';
