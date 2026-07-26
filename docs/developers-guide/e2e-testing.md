@@ -89,6 +89,8 @@ pnpm test:e2e:down
 | `MEALIE_IMAGE` / `MEALIE_PORT` | `…/mealie:v3.20.1` / `9925` | Docker Mealie image / host port |
 | `E2E_FIREFOX_XPI` | newest `.output/*-firefox.zip` | Firefox add-on to install |
 | `FIREFOX_VER` | `142.0` (pinned) | Firefox version `setup.sh` fetches; set `latest` for the canary |
+| `PLAYWRIGHT_CHROME_EXECUTABLE` | (unset → Playwright Chromium) | absolute path to Chrome for Testing (canary) |
+| `CHROME_FOR_TESTING_TAG` | `latest` | tag passed to `@puppeteer/browsers` (`latest`, `stable`, …) |
 | `E2E_HEADLESS` | on | set `0` to watch Firefox run |
 
 ## CI
@@ -116,25 +118,33 @@ names the culprit:
 
 | Leg | Overrides | Pinned | Jobs |
 | --- | --- | --- | --- |
-| `mealie-latest` | Mealie → `:latest` | Firefox `142.0` | Chrome + Firefox |
+| `mealie-latest` | Mealie → `:latest` | Firefox `142.0`, Playwright Chromium | Chrome + Firefox |
 | `firefox-latest` | Firefox → `latest` (also catches geckodriver/Firefox skew) | Mealie `v3.20.1` | Firefox only |
+| `chrome-latest` | Chrome for Testing → `latest` via `PLAYWRIGHT_CHROME_EXECUTABLE` | Mealie `v3.20.1`, Firefox `142.0`, Playwright version | Chrome only |
 
-Chromium has no canary leg **by deliberate tradeoff**. Mealie/Firefox legs are *proactive*
-(weekly against real upstream `latest`). Chromium coverage stays *reactive*: a new Chromium only
-arrives via a Dependabot Playwright bump, which the PR gate then tests — and that can lag real
-Chrome stable. Playwright/Chromium has historically been stabler here than Gecko, so we accept
-weaker early warning on the primary browser for now; see
-[#183](https://github.com/mrshappy0/mini-mealie/issues/183) for a possible future
-`chromium-latest` leg if that gap starts to hurt. `schedule` only fires from the default
-branch; trigger the canary manually with "Run workflow" otherwise.
+`chrome-latest` keeps Playwright pinned and downloads **Chrome for Testing** `@latest`
+(`pnpm test:e2e:chrome-cft:install`), then drives it with `executablePath`. Branded Google Chrome
+is not used — Google removed the flags needed to side-load unpacked extensions. Do **not** try
+`playwright install chromium@latest` either — that fights Playwright's bundled-browser pairing.
+
+Before the suite, a smoke step (`pnpm test:e2e:chrome-cft:smoke`) launches that binary with no
+extension: smoke fail → Playwright↔CfT/tooling (or install/path); smoke pass + suite fail →
+product / Chrome-behavior. A red leg is early warning and triage, not automatic proof that Chrome
+broke the extension. (Addresses
+[#183](https://github.com/mrshappy0/mini-mealie/issues/183).)
+
+`schedule` only fires from the default branch; trigger the canary manually with "Run workflow"
+otherwise.
 
 The `firefox-latest` leg runs **only** the Firefox job (Chrome would ignore `FIREFOX_VER` and
-duplicate the pinned PR-gate Chrome run). The `mealie-latest` leg still runs both browsers.
+duplicate the pinned PR-gate Chrome run). The `chrome-latest` leg runs **only** the Chrome job
+(Firefox would ignore the CfT override). The `mealie-latest` leg still runs both browsers.
 
 To run on your own server instead of GitHub-hosted, change `runs-on` to `[self-hosted]` —
 just ensure Docker is installed and the runner user is in the `docker` group. On a persistent
 runner, "latest" can go stale without care: Firefox is cached under a **version-keyed** directory
-(`~/.local/firefox-nonsnap-$FIREFOX_VER`), and `FIREFOX_VER=latest` always re-downloads; Mealie
-`compose up` **pulls** when `MEALIE_IMAGE` is set (the canary override) so `:latest` is refreshed.
+(`~/.local/firefox-nonsnap-$FIREFOX_VER`), and `FIREFOX_VER=latest` always re-downloads; Chrome for
+Testing is cached under `~/.cache/mini-mealie-chrome-for-testing` (clear it to force a refresh);
+Mealie `compose up` **pulls** when `MEALIE_IMAGE` is set (the canary override) so `:latest` is refreshed.
 GitHub-hosted `ubuntu-latest` is a fresh VM each run, so this only matters for self-hosted.
 The harnesses stay excluded from lint / tsc / vitest and from the AMO sources zip.

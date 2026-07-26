@@ -20,23 +20,29 @@ on:
                 description: 'Firefox version for setup.sh (empty → the pinned FIREFOX_VER; "latest" for newest)'
                 type: string
                 required: false
+            chrome_version:
+                description: 'Chrome for Testing tag (empty → Playwright bundled Chromium; "latest" for CfT canary)'
+                type: string
+                required: false
 
 permissions:
     contents: read
 
 env:
     # Empty on pull_request / workflow_dispatch, so the harness falls back to the pinned
-    # defaults (Mealie v3.20.1 in mealie.e2e.yml, Firefox 142.0 in setup.sh). The canary sets
-    # exactly one of these per matrix leg to isolate which upstream dep broke.
+    # defaults (Mealie v3.20.1 in mealie.e2e.yml, Firefox 142.0 in setup.sh, Playwright's
+    # bundled Chromium). The canary sets exactly one of these per matrix leg to isolate which
+    # upstream dep broke.
     MEALIE_IMAGE: ${{ inputs.mealie_image }}
     FIREFOX_VER: ${{ inputs.firefox_version }}
+    CHROME_FOR_TESTING_TAG: ${{ inputs.chrome_version }}
 
 jobs:
     chrome:
         name: Chrome MV3
         # Skip on the canary's firefox-latest leg: Chrome never reads FIREFOX_VER, so that run
         # would be identical to the pinned PR-gate Chrome job (wasted CI, no new signal).
-        # Empty/unset on pull_request and on mealie-latest → Chrome still runs.
+        # Empty/unset on pull_request and on mealie-latest / chrome-latest → Chrome still runs.
         if: ${{ !inputs.firefox_version }}
         runs-on: ubuntu-latest
         steps:
@@ -58,8 +64,24 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
+            # PR gate / mealie-latest: Playwright's pinned Chromium. chrome-latest: Chrome for
+            # Testing @latest via executablePath (branded Google Chrome cannot side-load
+            # extensions; do not `playwright install chromium@latest` either — that fights the
+            # Playwright↔browser pairing).
             - name: Install Playwright Chromium
+              if: ${{ !inputs.chrome_version }}
               run: pnpm test:e2e:chromium:install
+
+            - name: Install Chrome for Testing
+              if: ${{ inputs.chrome_version == 'latest' }}
+              run: |
+                  pnpm exec playwright install-deps chromium
+                  pnpm test:e2e:chrome-cft:install
+
+            # Isolates Playwright↔CfT/tooling failures from product/Chrome-behavior failures.
+            - name: Smoke — launch Chrome for Testing under Playwright (no extension)
+              if: ${{ inputs.chrome_version == 'latest' }}
+              run: pnpm test:e2e:chrome-cft:smoke
 
             - name: Run Chrome E2E (Docker Mealie + build + spec + teardown)
               run: pnpm test:e2e
@@ -76,6 +98,9 @@ jobs:
 
     firefox:
         name: Firefox MV2
+        # Skip on the canary's chrome-latest leg: Firefox never reads CfT overrides,
+        # so that run would duplicate the pinned PR-gate Firefox job.
+        if: ${{ !inputs.chrome_version }}
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Code

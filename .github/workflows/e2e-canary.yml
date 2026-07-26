@@ -1,20 +1,21 @@
 name: E2E Canary (latest upstream deps)
 
 # Early-warning canary: runs the full E2E suite against the *latest* of each externally-released
-# dependency we fetch at runtime — Mealie and Firefox — on a schedule, so upstream releases that
-# break the extension surface here BEFORE they reach the pinned PR gate. Non-blocking: a red run
-# is a heads-up, not a merge block.
+# dependency we fetch at runtime — Mealie, Firefox, and Chrome for Testing — on a schedule, so
+# upstream releases that break the extension surface here BEFORE they reach the pinned PR gate.
+# Non-blocking: a red run is a heads-up, not a merge block.
 #
 # One matrix leg per moving dependency, holding the others pinned, so a red leg names the culprit
-# (an "all latest at once" run couldn't tell you whether Mealie or Firefox broke).
+# (an "all latest at once" run couldn't tell you whether Mealie, Firefox, or Chrome broke).
 #
-# Chromium has no leg by deliberate tradeoff: Mealie/Firefox are proactive weekly checks against
-# upstream latest; Chromium only moves via a Dependabot Playwright bump (reactive, can lag real
-# Chrome). Playwright/Chromium has been stabler here than Gecko — revisit with a chromium-latest
-# leg if that gap starts to matter.
+# chrome-latest keeps Playwright pinned and drives Chrome for Testing @latest via
+# PLAYWRIGHT_CHROME_EXECUTABLE (not branded Google Chrome — store Chrome removed side-load flags;
+# not `playwright install chromium@latest`, which fights Playwright's bundled-browser pairing).
+# A smoke step launches that binary with no extension first: smoke fail → Playwright↔CfT/tooling;
+# smoke pass + suite fail → product/Chrome-behavior.
 #
 # The firefox-latest leg sets firefox_version so e2e.yml skips its chrome job (Chrome ignores
-# FIREFOX_VER and would only re-run the pinned PR-gate Chrome suite).
+# FIREFOX_VER). The chrome-latest leg sets chrome_version so e2e.yml skips its firefox job.
 #
 # Note: `schedule` only fires from the repository's default branch. Until this is on the default
 # branch, run it manually via "Run workflow" (workflow_dispatch).
@@ -33,20 +34,28 @@ jobs:
     canary:
         name: ${{ matrix.name }}
         strategy:
-            # Don't let one red leg cancel the other — we want signal from both.
+            # Don't let one red leg cancel the others — we want signal from each.
             fail-fast: false
             matrix:
                 include:
-                    # Mealie :latest, Firefox pinned.
+                    # Mealie :latest, Firefox + Chromium pinned.
                     - name: mealie-latest
                       mealie_image: ghcr.io/mealie-recipes/mealie:latest
                       firefox_version: ''
-                    # Firefox latest, Mealie pinned. (Also surfaces geckodriver/Firefox
+                      chrome_version: ''
+                    # Firefox latest, Mealie + Chromium pinned. (Also surfaces geckodriver/Firefox
                     # incompatibilities, since a newer Firefox is what breaks the pinned driver.)
                     - name: firefox-latest
                       mealie_image: ''
                       firefox_version: latest
+                      chrome_version: ''
+                    # Chrome for Testing latest, Mealie + Firefox pinned. Playwright stays pinned.
+                    - name: chrome-latest
+                      mealie_image: ''
+                      firefox_version: ''
+                      chrome_version: latest
         uses: ./.github/workflows/e2e.yml
         with:
             mealie_image: ${{ matrix.mealie_image }}
             firefox_version: ${{ matrix.firefox_version }}
+            chrome_version: ${{ matrix.chrome_version }}

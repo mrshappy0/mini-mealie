@@ -24,6 +24,8 @@
         "test:e2e:up": "tsx e2e-shared/mealie-docker.ts up",
         "test:e2e:down": "tsx e2e-shared/mealie-docker.ts down",
         "test:e2e:chromium:install": "playwright install chromium",
+        "test:e2e:chrome-cft:install": "tsx e2e-playwright/install-chrome-for-testing.ts",
+        "test:e2e:chrome-cft:smoke": "tsx e2e-playwright/chrome-cft-smoke.ts",
         "test:e2e:chromium": "playwright test --config=e2e-playwright/playwright.config.ts",
         "test:e2e:gecko:setup": "bash e2e-geckodriver/setup.sh",
         "test:e2e:gecko": "cross-env WXT_E2E=true pnpm zip:firefox && tsx e2e-geckodriver/firefox-e2e.ts",
