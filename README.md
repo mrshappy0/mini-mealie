@@ -219,21 +219,6 @@ If URL mode fails to detect a recipe:
     - This project follows Conventional Commits for release determination.
     - Approved releases are published to the Chrome Web Store and Firefox Add-ons via an upload workflow.
 
-### Copilot Commit Helper (Optional)
-
-If you use GitHub Copilot Chat in VS Code, you can use the prompt file at `.github/prompts/cz.prompt.md` to:
-
-- Inspect **staged** changes only (`git diff --staged`)
-- Propose a strict **Conventional Commits** message
-- Iterate with you until you say **"commit those changes"**
-
-Typical flow:
-
-1. Stage your work (`git add ...`).
-2. Open the prompt file and run it in Copilot Chat (or paste its contents into chat).
-3. Review/tweak the proposed message.
-4. When satisfied, respond: **"commit those changes"**.
-
 ### Code Reviews
 
 - All pull request reviews must be kept up-to-date with the `main` branch.
