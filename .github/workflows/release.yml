@@ -23,6 +23,9 @@ jobs:
         timeout-minutes: 10
 
         steps:
+            - name: Checkout Code
+              uses: actions/checkout@v7
+
             - name: Setup
               uses: ./.github/actions/setup
 

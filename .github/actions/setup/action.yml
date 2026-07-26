@@ -1,20 +1,13 @@
 name: Setup pnpm + Node
-description: Checkout the repo and install pnpm, Node.js, and project dependencies
+description: Install pnpm, Node.js, and project dependencies
 
-inputs:
-    fetch-depth:
-        description: 'Number of commits to fetch (0 = all history)'
-        required: false
-        default: '1'
+# Callers must `actions/checkout` before this step. A local action (uses: ./path)
+# is resolved from the runner's checked-out filesystem, so checkout can't live
+# inside the action it would be needed to fetch in the first place.
 
 runs:
     using: composite
     steps:
-        - name: Checkout Code
-          uses: actions/checkout@v7
-          with:
-              fetch-depth: ${{ inputs.fetch-depth }}
-
         - name: Install pnpm
           uses: pnpm/action-setup@v6
 
