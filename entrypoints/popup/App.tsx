@@ -97,7 +97,6 @@ function App() {
                 chrome.storage.local.get(['suggestHtmlMode'], ({ suggestHtmlMode }) => {
                     if (suggestHtmlMode) {
                         setRecipeCreateMode(RecipeCreateMode.HTML);
-                        // TODO: investigate if we can await this call
                         void chrome.storage.local.remove('suggestHtmlMode');
                         updateRecipeCreateMode(RecipeCreateMode.HTML);
                     }
@@ -180,7 +179,6 @@ function App() {
                 mealieServer: inputServer.trim(),
                 mealieApiToken: inputToken.trim(),
                 mealieUsername: result.username,
-                ladderEnabled: false,
             },
             () => {
                 if (chrome.runtime.lastError) {
@@ -255,7 +253,6 @@ function App() {
         chrome.storage.sync.set({ recipeCreateMode: next }, async () => {
             setRecipeCreateMode(next);
             // Trigger context menu update with new mode
-            // TODO: investigate if we can await this call
             void checkStorageAndUpdateBadge();
         });
     };
@@ -263,21 +260,18 @@ function App() {
     const handleImportTagsChange = () => {
         const newValue = !importTags;
         setImportTags(newValue);
-        // TODO: investigate if we can await this call
         void chrome.storage.sync.set({ importTags: newValue });
     };
 
     const handleImportCategoriesChange = () => {
         const newValue = !importCategories;
         setImportCategories(newValue);
-        // TODO: investigate if we can await this call
         void chrome.storage.sync.set({ importCategories: newValue });
     };
 
     const handleOpenAfterImportChange = () => {
         const newValue = !openAfterImport;
         setOpenAfterImport(newValue);
-        // TODO: investigate if we can await this call
         void chrome.storage.sync.set({ openAfterImport: newValue });
     };
     return (
@@ -331,7 +325,6 @@ function App() {
                                 onFocus={handleServerFocus}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !isSaveDisabled) {
-                                        // TODO: investigate if we can await this call
                                         void saveSettings();
                                     }
                                 }}
@@ -344,7 +337,6 @@ function App() {
                             onChange={(e) => setInputToken(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !isSaveDisabled) {
-                                    // TODO: investigate if we can await this call
                                     void saveSettings();
                                 }
                             }}
@@ -468,7 +460,6 @@ function App() {
 
 function ActivityLog() {
     const handleOpenLogs = () => {
-        // TODO: investigate if we can await this call
         void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
     };
 

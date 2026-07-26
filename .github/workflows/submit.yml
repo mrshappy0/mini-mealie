@@ -45,10 +45,7 @@ jobs:
                   pnpm zip:firefox
 
             - name: Submit to Firefox Add-ons
-              # Must check `secrets.*` here, not `env.*` — a step's own `env:` block
-              # isn't materialized until after its `if:` is evaluated, so checking
-              # env.FIREFOX_JWT_ISSUER here always evaluates false.
-              if: ${{ secrets.FIREFOX_JWT_ISSUER != '' }}
+              if: ${{ env.FIREFOX_JWT_ISSUER != '' }}
               run: |
                   pnpm wxt submit \
                     --firefox-zip .output/*-firefox.zip \

@@ -7,7 +7,6 @@ import {
     getRecentEvents,
     logEvent,
     sanitizeUrl,
-    withOperation,
 } from '../logging';
 
 describe('logging', () => {
@@ -318,127 +317,6 @@ describe('logging', () => {
             await expect(clearEvents()).resolves.not.toThrow();
 
             global.chrome = originalChrome;
-        });
-    });
-
-    describe('withOperation', () => {
-        it('should log start and success events', async () => {
-            vi.mocked(chrome.storage.local.get).mockImplementation((_keys, callback) => {
-                callback?.({});
-            });
-
-            const result = await withOperation(
-                {
-                    feature: 'recipe-create',
-                    action: 'createFromUrl',
-                    message: 'Creating recipe',
-                    data: { url: 'https://example.com' },
-                },
-                async () => 'success-result',
-            );
-
-            expect(result).toBe('success-result');
-
-            const setCalls = vi.mocked(chrome.storage.local.set).mock.calls;
-            expect(setCalls.length).toBe(2); // start + success
-
-            const startEvent = (
-                (setCalls[0][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
-                    phase?: string;
-                }>
-            )[0];
-            expect(startEvent.phase).toBe('start');
-
-            const successEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
-                    phase?: string;
-                }>
-            )[0];
-            expect(successEvent.phase).toBe('success');
-        });
-
-        it('should log failure when operation throws', async () => {
-            vi.mocked(chrome.storage.local.get).mockImplementation((_keys, callback) => {
-                callback?.({});
-            });
-
-            await expect(
-                withOperation(
-                    {
-                        feature: 'recipe-create',
-                        action: 'createFromUrl',
-                        message: 'Creating recipe',
-                    },
-                    async () => {
-                        throw new Error('Test error');
-                    },
-                ),
-            ).rejects.toThrow('Test error');
-
-            const setCalls = vi.mocked(chrome.storage.local.set).mock.calls;
-
-            const failureEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
-                    phase?: string;
-                    level?: string;
-                }>
-            )[0];
-            expect(failureEvent.phase).toBe('failure');
-            expect(failureEvent.level).toBe('error');
-        });
-
-        it('should use custom success predicate', async () => {
-            vi.mocked(chrome.storage.local.get).mockImplementation((_keys, callback) => {
-                callback?.({});
-            });
-
-            await withOperation(
-                {
-                    feature: 'recipe-create',
-                    action: 'createFromUrl',
-                    message: 'Creating recipe',
-                },
-                async () => 'failure',
-                (result) => result === 'success',
-            );
-
-            const setCalls = vi.mocked(chrome.storage.local.set).mock.calls;
-
-            const resultEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
-                    phase?: string;
-                    level?: string;
-                }>
-            )[0];
-            expect(resultEvent.phase).toBe('failure');
-            expect(resultEvent.level).toBe('warn');
-        });
-
-        it('should include duration in result events', async () => {
-            vi.mocked(chrome.storage.local.get).mockImplementation((_keys, callback) => {
-                callback?.({});
-            });
-
-            await withOperation(
-                {
-                    feature: 'recipe-create',
-                    action: 'test',
-                    message: 'Test',
-                },
-                async () => {
-                    await new Promise((resolve) => setTimeout(resolve, 10));
-                    return 'done';
-                },
-            );
-
-            const setCalls = vi.mocked(chrome.storage.local.set).mock.calls;
-
-            const successEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
-                    durationMs?: number;
-                }>
-            )[0];
-            expect(successEvent.durationMs).toBeGreaterThanOrEqual(0);
         });
     });
 
