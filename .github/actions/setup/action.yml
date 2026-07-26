@@ -1,0 +1,32 @@
+name: Setup pnpm + Node
+description: Checkout the repo and install pnpm, Node.js, and project dependencies
+
+inputs:
+    fetch-depth:
+        description: 'Number of commits to fetch (0 = all history)'
+        required: false
+        default: '1'
+
+runs:
+    using: composite
+    steps:
+        - name: Checkout Code
+          uses: actions/checkout@v7
+          with:
+              fetch-depth: ${{ inputs.fetch-depth }}
+
+        - name: Install pnpm
+          uses: pnpm/action-setup@v6
+
+        - name: Install Node.js
+          uses: actions/setup-node@v7
+          with:
+              node-version: 22
+              cache: 'pnpm'
+              cache-dependency-path: |
+                  package.json
+                  pnpm-lock.yaml
+
+        - name: Install dependencies
+          shell: bash
+          run: pnpm install

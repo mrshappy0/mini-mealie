@@ -12,24 +12,10 @@ jobs:
     submit:
         name: Submit to Store(s)
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v7
-
-            - name: Install pnpm
-              uses: pnpm/action-setup@v6
-
-            - name: Install Node.js
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 22
-                  cache: 'pnpm'
-                  cache-dependency-path: |
-                      package.json
-                      pnpm-lock.yaml
-
-            - name: Install dependencies
-              run: pnpm install
+            - name: Setup
+              uses: ./.github/actions/setup
 
             - name: Extract release version from tag
               id: extract_version
@@ -59,7 +45,10 @@ jobs:
                   pnpm zip:firefox
 
             - name: Submit to Firefox Add-ons
-              if: ${{ env.FIREFOX_JWT_ISSUER != '' }}
+              # Must check `secrets.*` here, not `env.*` — a step's own `env:` block
+              # isn't materialized until after its `if:` is evaluated, so checking
+              # env.FIREFOX_JWT_ISSUER here always evaluates false.
+              if: ${{ secrets.FIREFOX_JWT_ISSUER != '' }}
               run: |
                   pnpm wxt submit \
                     --firefox-zip .output/*-firefox.zip \

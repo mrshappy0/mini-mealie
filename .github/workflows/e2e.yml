@@ -16,15 +16,25 @@ on:
     pull_request:
         branches:
             - main
+        paths-ignore:
+            - '**.md'
+            - 'docs/**'
+            - 'AI-planning/**'
+            - 'LICENSE'
     workflow_dispatch:
 
 permissions:
     contents: read
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     resolve:
         name: Resolve support range
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         outputs:
             mealie_oldest_image: ${{ steps.range.outputs.mealie_oldest_image }}
             mealie_newest_image: ${{ steps.range.outputs.mealie_newest_image }}

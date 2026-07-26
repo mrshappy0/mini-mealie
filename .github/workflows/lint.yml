@@ -1,5 +1,9 @@
 name: Lint & Typecheck
 
+# Note: "Run ESLint" is a required status check on main — do not add paths-ignore
+# here. A path-filtered workflow never reports its required check, which leaves
+# the PR permanently blocked waiting on a status that will never arrive.
+
 on:
     pull_request:
         branches:
@@ -8,28 +12,18 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     lint:
         name: Run ESLint
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v7
-
-            - name: Install pnpm
-              uses: pnpm/action-setup@v6
-
-            - name: Install Node.js
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 22
-                  cache: 'pnpm'
-                  cache-dependency-path: |
-                      package.json
-                      pnpm-lock.yaml
-
-            - name: Install dependencies
-              run: pnpm install
+            - name: Setup
+              uses: ./.github/actions/setup
 
             - name: Run Typecheck (app)
               run: pnpm typecheck
