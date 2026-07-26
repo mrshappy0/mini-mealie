@@ -7,5 +7,10 @@
     "chrome": {
         "oldest": "149.0.7827.155",
         "newest": "151.0.7922.47"
+    },
+    "firefox": {
+        "oldest": "151.0",
+        "newest": "153.0",
+        "geckodriver": "v0.37.1"
     }
 }

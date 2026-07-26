@@ -89,31 +89,36 @@ pnpm test:e2e:down
 | `E2E_FIXTURE_PORT` | `8730` | port for the local fixture server |
 | `MEALIE_IMAGE` / `MEALIE_PORT` | newest from `support-range.json` / `9925` | Docker Mealie image / host port |
 | `E2E_FIREFOX_XPI` | newest `.output/*-firefox.zip` | Firefox add-on to install |
-| `FIREFOX_VER` | `142.0` (pinned) | Firefox version `setup.sh` fetches; set `latest` for the canary |
+| `FIREFOX_VER` | newest from `support-range.json` | Firefox version `setup.sh` fetches; set `latest` for the canary |
+| `GECKO_VER` | `firefox.geckodriver` from `support-range.json` | geckodriver release tag |
 | `PLAYWRIGHT_CHROME_EXECUTABLE` | (unset → Playwright Chromium) | absolute path to Chrome for Testing |
 | `CHROME_FOR_TESTING_TAG` | `latest` | tag / build id for `@puppeteer/browsers` (`151.0.7922.47`, `stable`, `latest`, …) |
 | `E2E_HEADLESS` | on | set `0` to watch Firefox run |
 
 ## Support range
 
-`e2e-shared/support-range.json` is the **single source of truth** for which Mealie and Chrome
-ends we claim to support. Local `pnpm test:e2e:up` uses **newest** Mealie when `MEALIE_IMAGE`
-is unset. Compose requires `MEALIE_IMAGE` — always go through the harness or set it yourself
-from that file.
+`e2e-shared/support-range.json` is the **single source of truth** for which Mealie, Chrome,
+and Firefox ends we claim to support. Local `pnpm test:e2e:up` uses **newest** Mealie when
+`MEALIE_IMAGE` is unset; `setup.sh` / the Firefox harness use **newest** Firefox when
+`FIREFOX_VER` is unset. Compose requires `MEALIE_IMAGE` — always go through the harness or
+set it yourself from that file.
 
-| End | Mealie | Chrome (CfT) | Rolling rule |
-| --- | --- | --- | --- |
-| **Oldest** | `v3.19.2` | `149.0.7827.155` | Mealie: latest patch of **newest − 2 minors**. Chrome: latest build of **newest − 2 milestones**. |
-| **Newest** | `v3.20.1` | `151.0.7922.47` | Latest stable the gate (or a bump PR) has proven green |
+| End | Mealie | Chrome (CfT) | Firefox | Rolling rule |
+| --- | --- | --- | --- | --- |
+| **Oldest** | `v3.19.2` | `149.0.7827.155` | `151.0` | Mealie: latest patch of **newest − 2 minors**. Chrome: latest build of **newest − 2 milestones**. Firefox: **newest − 2 majors**. |
+| **Newest** | `v3.20.1` | `151.0.7922.47` | `153.0` | Latest stable the gate (or a bump PR) has proven green |
+
+`firefox.geckodriver` (`v0.37.1`) is pinned alongside the Firefox range — Firefox 153+ needs
+geckodriver ≥ 0.37.1 for `--allow-system-access`. `wxt.config.ts` `strict_min_version` must
+match `firefox.oldest`.
 
 Raising any `*.oldest` field is an intentional change: edit the JSON and say so in the PR /
-release notes. Do not raise a floor as a side effect of chasing “latest.” Firefox still uses a
-single pin; its support-range fields land under
-[#198](https://github.com/mrshappy0/mini-mealie/issues/198).
+release notes. Do not raise a floor as a side effect of chasing “latest.”
 
 **No branded Google Chrome in CI.** Store Chrome removed the flags needed to side-load unpacked
 extensions. Gate Chrome range legs and the canary use **Chrome for Testing** only. Mealie legs
 still use Playwright’s bundled Chromium as the harness default (not a support-range end).
+**ESR** is out of the default Firefox range unless we explicitly decide to support it.
 
 ## CI (PR gate)
 
@@ -123,13 +128,16 @@ still use Playwright’s bundled Chromium as the harness default (not a support-
 
 | Leg | Mealie | Chrome | Firefox |
 | --- | --- | --- | --- |
-| `mealie-oldest` | oldest tag | Playwright Chromium | pinned `142.0` |
-| `mealie-newest` | newest tag | Playwright Chromium | pinned `142.0` |
+| `mealie-oldest` | oldest tag | Playwright Chromium | newest pin (`153.0`) |
+| `mealie-newest` | newest tag | Playwright Chromium | newest pin (`153.0`) |
 | `chrome-oldest` | newest tag | CfT `149.0.7827.155` | skipped |
 | `chrome-newest` | newest tag | CfT `151.0.7922.47` | skipped |
+| `firefox-oldest` | newest tag | skipped | `151.0` |
+| `firefox-newest` | newest tag | skipped | `153.0` |
 
 One moving piece per leg (same idea as the canary) — not a full Mealie × browser grid.
-`chrome-*` legs skip Firefox so a red check names the browser, not a duplicate Firefox run.
+`chrome-*` legs skip Firefox and `firefox-*` legs skip Chrome so a red check names the
+browser, not a duplicate run.
 
 - Docker + Compose ship on `ubuntu-latest`, so `test:e2e:up` brings up Mealie there exactly
   as it does locally.
@@ -138,7 +146,8 @@ One moving piece per leg (same idea as the canary) — not a full Mealie × brow
 - Chrome uses the self-contained `pnpm test:e2e`; Firefox adds the `setup.sh` step.
 - **Pinned ends** so the gate is deterministic — a red PR means *your* change broke something
   in the support range, not that an upstream dep just shipped: Mealie (`oldest`…`newest`),
-  Chrome (pinned CfT oldest…newest), Firefox (`142.0`), geckodriver (`v0.36.0`).
+  Chrome (pinned CfT oldest…newest), Firefox (pinned oldest…newest), geckodriver
+  (`firefox.geckodriver`).
 
 ## Canary (early warning)
 
@@ -155,9 +164,9 @@ names the culprit:
 
 | Leg | Overrides | Pinned | Jobs |
 | --- | --- | --- | --- |
-| `mealie-latest` | Mealie → `:latest` | Firefox `142.0`, Playwright Chromium | Chrome + Firefox |
+| `mealie-latest` | Mealie → `:latest` | Firefox newest pin, Playwright Chromium | Chrome + Firefox |
 | `firefox-latest` | Firefox → `latest` (also catches geckodriver/Firefox skew) | Mealie newest pin | Firefox only |
-| `chrome-latest` | Chrome for Testing → `latest` via `PLAYWRIGHT_CHROME_EXECUTABLE` | Mealie newest pin, Firefox `142.0`, Playwright version | Chrome only |
+| `chrome-latest` | Chrome for Testing → `latest` via `PLAYWRIGHT_CHROME_EXECUTABLE` | Mealie newest pin, Firefox newest pin, Playwright version | Chrome only |
 
 `chrome-latest` keeps Playwright pinned and downloads **Chrome for Testing** `@latest`
 (`pnpm test:e2e:chrome-cft:install`), then drives it with `executablePath`. Branded Google Chrome
@@ -180,8 +189,9 @@ duplicate a gate Chrome run). The `chrome-latest` leg runs **only** the Chrome j
 To run on your own server instead of GitHub-hosted, change `runs-on` to `[self-hosted]` —
 just ensure Docker is installed and the runner user is in the `docker` group. On a persistent
 runner, "latest" can go stale without care: Firefox is cached under a **version-keyed** directory
-(`~/.local/firefox-nonsnap-$FIREFOX_VER`), and `FIREFOX_VER=latest` always re-downloads; Chrome for
-Testing is cached under `~/.cache/mini-mealie-chrome-for-testing` (clear it to force a refresh);
-Mealie `compose` **pulls** only for floating `:latest` images so the canary refreshes.
+(`~/.local/firefox-nonsnap-$FIREFOX_VER`), and `FIREFOX_VER=latest` always re-downloads;
+geckodriver is reinstalled when the pin in `support-range.json` moves; Chrome for Testing is
+cached under `~/.cache/mini-mealie-chrome-for-testing` (clear it to force a refresh); Mealie
+`compose` **pulls** only for floating `:latest` images so the canary refreshes.
 GitHub-hosted `ubuntu-latest` is a fresh VM each run, so this only matters for self-hosted.
 The harnesses stay excluded from lint / tsc / vitest and from the AMO sources zip.
