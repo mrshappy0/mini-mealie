@@ -1,0 +1,25 @@
+name: Setup pnpm + Node
+description: Install pnpm, Node.js, and project dependencies
+
+# Callers must `actions/checkout` before this step. A local action (uses: ./path)
+# is resolved from the runner's checked-out filesystem, so checkout can't live
+# inside the action it would be needed to fetch in the first place.
+
+runs:
+    using: composite
+    steps:
+        - name: Install pnpm
+          uses: pnpm/action-setup@v6
+
+        - name: Install Node.js
+          uses: actions/setup-node@v7
+          with:
+              node-version: 22
+              cache: 'pnpm'
+              cache-dependency-path: |
+                  package.json
+                  pnpm-lock.yaml
+
+        - name: Install dependencies
+          shell: bash
+          run: pnpm install

@@ -1,4 +1,10 @@
-name: Run Unit Tests
+name: Test & Coverage
+
+# "Run Tests" and "Check Code Coverage" are both required status checks on main,
+# so both job names below must stay exactly as-is even though they now live in
+# one file. The coverage job reuses the first job's coverage output instead of
+# re-running the whole suite, since both used to run `pnpm test` independently
+# on every PR.
 
 on:
     pull_request:
@@ -8,28 +14,48 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     test:
         name: Run Tests
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
             - name: Checkout Code
               uses: actions/checkout@v7
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v6
+            - name: Setup
+              uses: ./.github/actions/setup
 
-            - name: Install Node.js
-              uses: actions/setup-node@v7
+            - name: Run Tests with Coverage
+              run: pnpm test --run --coverage
+
+            - name: Upload coverage report
+              uses: actions/upload-artifact@v7
               with:
-                  node-version: 22
-                  cache: 'pnpm'
-                  cache-dependency-path: |
-                      package.json
-                      pnpm-lock.yaml
+                  name: coverage-report
+                  path: coverage/coverage-summary.json
+                  retention-days: 1
 
-            - name: Install dependencies
-              run: pnpm install
+    coverage:
+        name: Check Code Coverage
+        needs: test
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v7
 
-            - name: Run Tests
-              run: pnpm test
+            - name: Download coverage report
+              uses: actions/download-artifact@v7
+              with:
+                  name: coverage-report
+                  path: coverage
+
+            - name: Enforce Coverage Threshold
+              run: |
+                  chmod +x scripts/check-coverage.sh
+                  scripts/check-coverage.sh
