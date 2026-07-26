@@ -39,6 +39,7 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         data: { url: sanitizeUrl(tab.url) },
                     });
 
+                    // TODO: investigate whether we can await these calls
                     void chrome.storage.local.set({ suggestHtmlMode: true });
                     void chrome.action?.openPopup();
                     return;

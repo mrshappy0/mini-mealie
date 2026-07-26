@@ -9,6 +9,7 @@ export default defineBackground(() => {
 
         updateTimer = setTimeout(() => {
             updateTimer = undefined;
+            // TODO: investigate if we can await this call
             void checkStorageAndUpdateBadge();
         }, 250);
     };
@@ -28,6 +29,7 @@ export default defineBackground(() => {
 
         // Auto-open logs page in dev mode (only on install/update, not every startup)
         if (import.meta.env.DEV) {
+            // TODO: investigate if we can await this call
             void chrome.tabs.create({ url: chrome.runtime.getURL('logs.html') });
         }
     });

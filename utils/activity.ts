@@ -32,9 +32,11 @@ function startSpinner() {
 
         const action = getActionApi();
         if (action?.setBadgeText) {
+            // TODO: investigate if should be awaited
             void action.setBadgeText({ text: frame });
         }
         if (action?.setBadgeBackgroundColor) {
+            // TODO: investigate if should be awaited
             void action.setBadgeBackgroundColor({ color: '#ec7e19' });
         }
     }, SPINNER_INTERVAL_MS);
@@ -49,6 +51,7 @@ function stopSpinner() {
     // Reset badge background to default (black)
     const action = getActionApi();
     if (action?.setBadgeBackgroundColor) {
+        // TODO: investigate if should be awaited
         void action.setBadgeBackgroundColor({ color: '#000000' });
     }
 }
@@ -88,6 +91,7 @@ export async function beginActivity(label: string, opId?: string): Promise<void>
     // Update tooltip
     const action = getActionApi();
     if (action?.setTitle) {
+        // TODO: investigate if should be awaited
         void action.setTitle({ title: label });
     }
 
@@ -128,6 +132,7 @@ export async function endActivity(
         if (tooltipMessage) {
             const action = getActionApi();
             if (action?.setTitle) {
+                // TODO: investigate if should be awaited
                 void action.setTitle({ title: tooltipMessage });
             }
         }
@@ -138,6 +143,13 @@ export async function endActivity(
     } else {
         await writeActivityState();
     }
+}
+
+/**
+ * Check if any activity is in progress.
+ */
+export function isActivityActive(): boolean {
+    return activeCount > 0;
 }
 
 /**

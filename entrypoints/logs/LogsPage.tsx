@@ -10,6 +10,7 @@ export function LogsPage() {
     };
 
     useEffect(() => {
+        // TODO: investigate if we can await this call
         void loadEvents();
 
         if (!autoRefresh) return;
@@ -19,6 +20,7 @@ export function LogsPage() {
             area: string,
         ) => {
             if (area === 'local' && Object.hasOwn(changes, EVENT_LOG_STORAGE_KEY)) {
+                // TODO: investigate if we can await this call
                 void loadEvents();
             }
         };
