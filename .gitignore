@@ -26,6 +26,12 @@ coverage-report
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea
+
+# Claude Code local-only state — never shared, easy to sweep into a commit
+# with a stray `git add -A`. .claude/settings.json (team config) is NOT
+# ignored — it's tracked intentionally.
+.claude/worktrees/
+.claude/settings.local.json
 .DS_Store
 *.suo
 *.ntvs*
