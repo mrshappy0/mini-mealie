@@ -59,38 +59,30 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         return;
                     }
 
+                    const tabUrl = tab.url;
                     await beginActivity('Creating recipe (URL)');
-                    void logEvent({
-                        level: 'info',
-                        feature: 'recipe-create',
-                        action: 'createFromUrl',
-                        phase: 'start',
-                        message: 'Creating recipe from URL',
-                        data: { url: sanitizeUrl(tab.url) },
-                    });
 
-                    const result = await createRecipeFromURL(
-                        tab.url,
-                        mealieServer,
-                        mealieApiToken,
-                        importTags ?? true,
-                        importCategories ?? true,
+                    const result = await withOperation(
+                        {
+                            feature: 'recipe-create',
+                            action: 'createFromUrl',
+                            message: 'Creating recipe from URL',
+                            data: { url: sanitizeUrl(tabUrl) },
+                        },
+                        () =>
+                            createRecipeFromURL(
+                                tabUrl,
+                                mealieServer,
+                                mealieApiToken,
+                                importTags ?? true,
+                                importCategories ?? true,
+                            ),
+                        (res) => res !== 'failure',
                     );
                     const success = result !== 'failure';
 
-                    void logEvent({
-                        level: success ? 'info' : 'warn',
-                        feature: 'recipe-create',
-                        action: 'createFromUrl',
-                        phase: success ? 'success' : 'failure',
-                        message: success
-                            ? 'Recipe created from URL'
-                            : 'Failed to create recipe from URL',
-                        data: { url: sanitizeUrl(tab.url) },
-                    });
-
                     if (success) {
-                        invalidateDetectionCacheForUrl(tab.url);
+                        invalidateDetectionCacheForUrl(tabUrl);
                     }
 
                     await endActivity(
@@ -117,67 +109,53 @@ export function runCreateRecipe(tab: chrome.tabs.Tab) {
                         return;
                     }
 
+                    const tabId = tab.id;
+                    const tabUrl = tab.url;
                     await beginActivity('Creating recipe (HTML)');
-                    void logEvent({
-                        level: 'info',
-                        feature: 'html-capture',
-                        action: 'getPageHTML',
-                        phase: 'start',
-                        message: 'Capturing page HTML',
-                        data: { url: tab.url ? sanitizeUrl(tab.url) : undefined },
-                    });
 
-                    const html = await getPageHTML(tab.id);
-                    if (!html) {
-                        void logEvent({
-                            level: 'warn',
+                    const htmlData: { url?: string; htmlLength?: number } = {
+                        url: tabUrl ? sanitizeUrl(tabUrl) : undefined,
+                    };
+                    const html = await withOperation(
+                        {
                             feature: 'html-capture',
                             action: 'getPageHTML',
-                            phase: 'failure',
-                            message: 'Failed to capture page HTML',
-                        });
+                            message: 'Capturing page HTML',
+                            data: htmlData,
+                        },
+                        async () => {
+                            const captured = await getPageHTML(tabId);
+                            if (captured) {
+                                htmlData.htmlLength = captured.length;
+                            }
+                            return captured;
+                        },
+                        (captured) => captured !== null,
+                    );
+                    if (!html) {
                         await endActivity('❌', 'Failed to capture page HTML');
                         return;
                     }
 
-                    void logEvent({
-                        level: 'info',
-                        feature: 'html-capture',
-                        action: 'getPageHTML',
-                        phase: 'success',
-                        message: 'Page HTML captured',
-                        data: { htmlLength: html.length },
-                    });
-
-                    void logEvent({
-                        level: 'info',
-                        feature: 'recipe-create',
-                        action: 'createFromHtml',
-                        phase: 'start',
-                        message: 'Creating recipe from HTML',
-                        data: { url: tab.url ? sanitizeUrl(tab.url) : undefined },
-                    });
-
-                    const result = await createRecipeFromHTML(
-                        html,
-                        mealieServer,
-                        mealieApiToken,
-                        tab.url,
-                        importTags ?? true,
-                        importCategories ?? true,
+                    const result = await withOperation(
+                        {
+                            feature: 'recipe-create',
+                            action: 'createFromHtml',
+                            message: 'Creating recipe from HTML',
+                            data: { url: tabUrl ? sanitizeUrl(tabUrl) : undefined },
+                        },
+                        () =>
+                            createRecipeFromHTML(
+                                html,
+                                mealieServer,
+                                mealieApiToken,
+                                tabUrl,
+                                importTags ?? true,
+                                importCategories ?? true,
+                            ),
+                        (res) => res !== 'failure',
                     );
                     const success = result !== 'failure';
-
-                    void logEvent({
-                        level: success ? 'info' : 'warn',
-                        feature: 'recipe-create',
-                        action: 'createFromHtml',
-                        phase: success ? 'success' : 'failure',
-                        message: success
-                            ? 'Recipe created from HTML'
-                            : 'Failed to create recipe from HTML',
-                        data: { url: tab.url ? sanitizeUrl(tab.url) : undefined },
-                    });
 
                     await endActivity(
                         success ? '✅' : '❌',
