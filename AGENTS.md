@@ -6,7 +6,7 @@ This repo is a **WXT + React** browser extension (MV3). Please optimize for **sm
 
 - WXT drives builds/dev server. Output goes to `.output/`.
 - Extension entrypoints live in `entrypoints/` (popup, background, etc.).
-- Shared logic lives in `utils/` with Vitest coverage focused there.
+- Shared logic lives in `utils/` with Vitest coverage focused there. `entrypoints/**` (popup, logs, background) also has real Vitest coverage now, but isn't part of the enforced coverage gate — see Testing conventions below.
 
 ## Local commands (preferred)
 
@@ -70,6 +70,15 @@ Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execu
 - Prefer deterministic unit tests (no real network).
 - Add tests alongside existing ones in `utils/tests/`.
 - When changing behavior in `utils/`, update tests in the same PR.
+- `entrypoints/**/tests/` uses jsdom + `@testing-library/react` + `@testing-library/user-event`
+  for component/entrypoint tests. `vitest.setup.ts` bridges fake-browser's promise-only
+  `chrome.storage.*` to the callback style used throughout this codebase, normalizes
+  `chrome.runtime.lastError` to `undefined`, and runs RTL's `cleanup()` after each test.
+- `entrypoints/**` is excluded from the enforced coverage gate (`scripts/check-coverage.sh`):
+  statement coverage reports 0 for these files under both v8 and istanbul providers, a
+  sourcemap-chain issue between WXT's auto-import/JSX transform (or `defineBackground`) and
+  this toolchain. The tests still run and catch regressions — they just don't count toward
+  the gate.
 
 ## Change management
 
@@ -117,5 +126,10 @@ and opens a `tech-debt` labeled issue if so.
 
 ## Undici Security Overrides
 
-`pnpm-workspace.yaml` pins `undici >=7.28.0` to fix 6 open CVEs. This override
-can be removed when `@semantic-release/github` updates its minimum undici version.
+`pnpm-workspace.yaml` scopes two separate `undici` overrides (`>=7.28.0`) to known CVEs
+rather than one blanket override: `@actions/http-client>undici` (real path is
+semantic-release → `@semantic-release/npm` → `@actions/core` → `@actions/http-client`)
+and `jsdom>undici` (capped `<8.0.0`, since jsdom bundles its own `^7.25.0` and a blanket
+override was forcing it to an incompatible major). See the comments in
+`pnpm-workspace.yaml` for the full reasoning; revisit when either dependency chain
+bumps its own undici floor.

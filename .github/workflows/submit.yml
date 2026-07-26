@@ -13,6 +13,14 @@ jobs:
         name: Submit to Store(s)
         runs-on: ubuntu-latest
         timeout-minutes: 15
+        env:
+            # Mirrored into job-level env because the `secrets` context isn't
+            # allowed in `if:` conditions at all (GitHub rejects the whole
+            # workflow file with "Unrecognized named-value: 'secrets'" if you
+            # reference it there) — only `env` is readable from `if:`. A step's
+            # own `env:` block isn't visible to that same step's `if:`, so this
+            # has to live at the job level for the check below to see it.
+            FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v7
@@ -48,10 +56,7 @@ jobs:
                   pnpm zip:firefox
 
             - name: Submit to Firefox Add-ons
-              # Check the secret directly: secrets.* is always available at if:
-              # evaluation time, so this doesn't depend on this step's own env:
-              # block having been resolved yet.
-              if: ${{ secrets.FIREFOX_JWT_ISSUER != '' }}
+              if: ${{ env.FIREFOX_JWT_ISSUER != '' }}
               run: |
                   pnpm wxt submit \
                     --firefox-zip .output/*-firefox.zip \
@@ -59,5 +64,4 @@ jobs:
                     --firefox-channel=listed
               env:
                   FIREFOX_EXTENSION_ID: 'mini-mealie@shaplabs.net'
-                  FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
                   FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
