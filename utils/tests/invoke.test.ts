@@ -11,6 +11,7 @@ vi.mock('../activity', () => ({
 vi.mock('../logging', () => ({
     logEvent: vi.fn(),
     sanitizeUrl: vi.fn((url: string) => url),
+    withOperation: vi.fn((_config, fn) => fn()),
 }));
 
 vi.mock('../network', () => ({
