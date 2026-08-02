@@ -1,4 +1,9 @@
 :root {
+    /* Pinned so the popup's fixed-budget layout is deterministic regardless of the
+       browser's own default text-size preference (which is user-configurable and can
+       differ between Chrome and Firefox on the same machine, independent of any CSS
+       here) — every em-based size in this stylesheet cascades from this value. */
+    font-size: 16px;
     font-family:
         -apple-system,
         BlinkMacSystemFont,
