@@ -7,20 +7,24 @@
 }
 
 #root {
+    box-sizing: border-box;
     max-width: 1280px;
+    /* Real ceiling so overflow-y can actually scroll (rather than relying on each
+       browser's own popup auto-sizing/clipping, which Chrome and Firefox handle
+       differently) — content is sized to stay well under this in normal use. */
+    max-height: 560px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 0.75rem;
     text-align: center;
     background-color: var(--mealie-black);
     color: var(--mealie-white);
-    /* Popup content was taller than the panel on Firefox — overflow:hidden hid “Recent Activity”. */
     overflow-x: hidden;
     overflow-y: auto;
 }
 
 .logo {
     height: 5em;
-    padding: 1em;
+    padding: 0.5em;
     will-change: filter;
     transition: filter 150ms ease-in-out;
 }
@@ -44,8 +48,10 @@
 }
 
 .card {
-    padding: 20px;
+    padding: 16px;
     width: 250px;
+    max-width: calc(100% - 32px);
+    margin: 0 auto;
     font-family: Arial, sans-serif;
     background-color: var(--mealie-grey);
     color: var(--mealie-white);
@@ -56,6 +62,7 @@
 
 .header {
     font-size: 18px;
+    margin-top: 0;
     margin-bottom: 10px;
     color: var(--mealie-orange);
 }
@@ -83,7 +90,7 @@
 .recipe-mode-card {
     padding: 0em 0em 0.5em 0em;
     border-radius: 10px;
-    margin-bottom: 0.75em;
+    margin-bottom: 0.5em;
 }
 
 .recipe-mode-title {
@@ -185,7 +192,7 @@
 .read-the-docs {
     color: #888;
     margin-bottom: 0.25em;
-    margin-top: 0.5em;
+    margin-top: 0.25em;
 }
 
 .buy-me-a-coffee-button:hover {
@@ -199,7 +206,7 @@
 
 .buy-me-a-coffee-container {
     text-align: right;
-    margin-top: 0.75em;
+    margin-top: 0.5em;
     padding-top: 0;
 }
 
@@ -294,7 +301,7 @@ input:checked + .slider::before {
 
 .connected-message {
     text-align: center;
-    margin-bottom: 1.25em;
+    margin-bottom: 0.75em;
 }
 
 .greeting {
@@ -316,9 +323,9 @@ input:checked + .slider::before {
 .import-options {
     display: flex;
     flex-direction: column;
-    gap: 0.75em;
-    margin: 1.25em 0;
-    padding: 0.75em;
+    gap: 0.5em;
+    margin: 0.75em 0;
+    padding: 0.6em 0.75em;
     background-color: #222;
     border-radius: 6px;
 }
@@ -349,8 +356,8 @@ input:checked + .slider::before {
 }
 
 .activity-log {
-    margin-top: 0.75em;
-    margin-bottom: 0.75em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
     text-align: center;
     display: block;
     width: 100%;
