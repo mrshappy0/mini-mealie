@@ -230,7 +230,7 @@
     background-color: var(--mealie-orange);
     color: #000000;
     text-decoration: none;
-    font-family: 'Poppins', sans-serif;
+    font-family: inherit;
     font-weight: bold;
     border-radius: 6px;
     transition: background-color 0.3s ease;
