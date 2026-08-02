@@ -14,7 +14,7 @@
        differently) — content is sized to stay well under this in normal use. */
     max-height: 560px;
     margin: 0 auto;
-    padding: 0.75rem;
+    padding: 0.6rem;
     text-align: center;
     background-color: var(--mealie-black);
     color: var(--mealie-white);
@@ -23,8 +23,8 @@
 }
 
 .logo {
-    height: 5em;
-    padding: 0.5em;
+    height: 4em;
+    padding: 0.35em;
     will-change: filter;
     transition: filter 150ms ease-in-out;
 }
@@ -48,9 +48,9 @@
 }
 
 .card {
-    padding: 16px;
+    padding: 12px;
     width: 250px;
-    max-width: calc(100% - 32px);
+    max-width: calc(100% - 24px);
     margin: 0 auto;
     font-family: Arial, sans-serif;
     background-color: var(--mealie-grey);
@@ -63,7 +63,7 @@
 .header {
     font-size: 18px;
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     color: var(--mealie-orange);
 }
 
@@ -88,13 +88,13 @@
 }
 
 .recipe-mode-card {
-    padding: 0em 0em 0.5em 0em;
+    padding: 0em 0em 0.35em 0em;
     border-radius: 10px;
-    margin-bottom: 0.5em;
+    margin-bottom: 0.35em;
 }
 
 .recipe-mode-title {
-    margin: 0 0 10px 0;
+    margin: 0 0 6px 0;
     font-weight: 700;
     font-size: 0.9em;
     letter-spacing: 0.02em;
@@ -111,7 +111,7 @@
     position: relative;
     display: grid;
     gap: 2px;
-    padding: 10px 10px;
+    padding: 8px 10px;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(0, 0, 0, 0.18);
@@ -167,7 +167,7 @@
 
 .card button {
     width: 100%;
-    padding: 0.8em;
+    padding: 0.6em;
     background-color: var(--mealie-orange);
     color: var(--mealie-white);
     border: none;
@@ -206,7 +206,7 @@
 
 .buy-me-a-coffee-container {
     text-align: right;
-    margin-top: 0.5em;
+    margin-top: 0.35em;
     padding-top: 0;
 }
 
@@ -301,7 +301,7 @@ input:checked + .slider::before {
 
 .connected-message {
     text-align: center;
-    margin-bottom: 0.75em;
+    margin-bottom: 0.5em;
 }
 
 .greeting {
@@ -309,7 +309,7 @@ input:checked + .slider::before {
     font-weight: 500;
     color: #f1f1f1;
     background: #222;
-    padding: 0.75em 1em;
+    padding: 0.55em 1em;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     margin-top: 0;
@@ -323,9 +323,9 @@ input:checked + .slider::before {
 .import-options {
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
-    margin: 0.75em 0;
-    padding: 0.6em 0.75em;
+    gap: 0.4em;
+    margin: 0.5em 0;
+    padding: 0.5em 0.75em;
     background-color: #222;
     border-radius: 6px;
 }
@@ -356,8 +356,8 @@ input:checked + .slider::before {
 }
 
 .activity-log {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
+    margin-top: 0.35em;
+    margin-bottom: 0.35em;
     text-align: center;
     display: block;
     width: 100%;
