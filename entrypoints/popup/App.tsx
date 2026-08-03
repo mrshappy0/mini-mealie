@@ -331,7 +331,8 @@ function App() {
                             />
                         </div>
                         <input
-                            type="text"
+                            type="password"
+                            autoComplete="off"
                             placeholder="Enter Mealie API Token"
                             value={inputToken}
                             onChange={(e) => setInputToken(e.target.value)}
