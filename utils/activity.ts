@@ -1,3 +1,7 @@
+import { clearBadge, showBadge } from './badge';
+import { addContextMenu } from './contextMenu';
+import { checkStorageAndUpdateBadge } from './storage';
+
 const getActionApi = () =>
     typeof chrome !== 'undefined' ? (chrome.action ?? chrome.browserAction) : undefined;
 

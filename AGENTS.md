@@ -36,6 +36,12 @@ Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execu
 - If imports look "missing" (especially ESLint complaining about undefined globals/imports), run `pnpm install` (or `pnpm.cmd install` on Windows).
     - The `postinstall` hook runs `wxt prepare`, which generates files under `.wxt/` (including ESLint auto-import definitions).
 - When adding new exported utilities/types, prefer patterns that allow auto-imports to pick them up rather than adding manual imports everywhere.
+- **Exception — files inside `utils/` must use explicit imports for anything they consume at runtime.**
+  Relying on auto-imports inside `utils/` breaks istanbul coverage instrumentation (the unimport
+  transform mangles the sourcemap): before explicit imports were added, `invoke.ts` reported 0
+  instrumentable statements and `storage.ts` reported 8 (of ~100+), silently deflating the
+  coverage gate. Auto-imports remain fine in `entrypoints/**` (already excluded from the gate)
+  and for type-only references anywhere (types are erased at compile time).
 
 ## Commits, versioning, and releases (important)
 
