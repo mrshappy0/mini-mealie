@@ -436,8 +436,12 @@ export function mergeMealieCredentialsFromLocalIfNeeded(
     });
 }
 
-/** Always persisted to Activity Logs — root-cause signal when only `auth/getUser` appears from the popup. */
-const BADGE_MENU_LOG_SCHEMA = 2;
+/**
+ * Always persisted to Activity Logs — root-cause signal when only `auth/getUser` appears from
+ * the popup. Schema 3 folds the former `pipeline_job` event into the outcome event (checkId,
+ * srv/tok/mode) so each refresh persists one event instead of two.
+ */
+const BADGE_MENU_LOG_SCHEMA = 3;
 
 function recordBadgeMenuRefresh(summary: Record<string, unknown>): void {
     const outcome = typeof summary.outcome === 'string' ? summary.outcome : 'badgeMenuRefresh';
@@ -457,14 +461,19 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
     const { mealieServer, mealieApiToken, recipeCreateMode } = data;
     if (checkId !== lastCheckId) return;
 
+    const record = (summary: Record<string, unknown>) =>
+        recordBadgeMenuRefresh({
+            checkId,
+            srv: Boolean(mealieServer),
+            tok: Boolean(mealieApiToken),
+            mode: recipeCreateMode ?? null,
+            ...summary,
+        });
+
     if (!mealieServer || !mealieApiToken) {
         showBadge('❌');
         removeContextMenu();
-        recordBadgeMenuRefresh({
-            outcome: 'skipped_no_credentials',
-            srv: Boolean(mealieServer),
-            tok: Boolean(mealieApiToken),
-        });
+        record({ outcome: 'skipped_no_credentials' });
         return;
     }
 
@@ -478,7 +487,7 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
             if (result instanceof Promise) void result.then(resolve);
         });
     } catch (err) {
-        recordBadgeMenuRefresh({
+        record({
             outcome: 'tabs_query_rejected',
             error: err instanceof Error ? err.message : String(err),
         });
@@ -495,10 +504,9 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
     // Script injection fails on these pages due to browser security restrictions
     if (url && isRestrictedUrl(url)) {
         disableAllMenus();
-        recordBadgeMenuRefresh({
+        record({
             outcome: 'skipped_restricted_tab',
             url: sanitizeUrl(url),
-            recipeCreateMode: mode,
             tabsReturned: tabsResult.length,
         });
         return;
@@ -508,7 +516,7 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
     // No detection or duplicate checking needed
     if (!isUrlMode) {
         updateContextMenu('Create Recipe from HTML', true, {}, false);
-        recordBadgeMenuRefresh({
+        record({
             outcome: 'html_mode_static_menu',
             tabsReturned: tabsResult.length,
             activeTabId: tab?.id,
@@ -543,7 +551,7 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
                 isUrlMode,
             );
             if (!detectionResult) {
-                recordBadgeMenuRefresh({
+                record({
                     outcome: 'skipped_detection_superseded',
                     hadTabUrl: Boolean(url),
                     tabUrlHint: url ? sanitizeUrl(url) : undefined,
@@ -560,9 +568,8 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
 
     // Always use updateContextMenu with duplicate info
     updateContextMenu(title, enabled, duplicateInfo, isErrorSuggestion);
-    recordBadgeMenuRefresh({
+    record({
         outcome: 'menu_updated',
-        recipeCreateMode: RecipeCreateMode.URL,
         menuTitle: title,
         hadTabUrl: Boolean(url),
         tabUrlHint: url ? sanitizeUrl(url) : undefined,
@@ -589,14 +596,6 @@ async function runQueuedStorageCheck(): Promise<void> {
         chrome.storage.sync.get([...storageKeys], (syncData: StorageData) => {
             void chrome.runtime?.lastError;
             mergeMealieCredentialsFromLocalIfNeeded(syncData, (merged) => {
-                recordBadgeMenuRefresh({
-                    outcome: 'pipeline_job',
-                    step: 'merged_credentials',
-                    checkId,
-                    srv: Boolean(merged.mealieServer),
-                    tok: Boolean(merged.mealieApiToken),
-                    mode: merged.recipeCreateMode ?? null,
-                });
                 void runStorageCheckAfterMerge(checkId, merged).finally(() => resolve());
             });
         });

@@ -84,6 +84,35 @@ describe('logging', () => {
             );
         });
 
+        it('should not drop events when logged concurrently', async () => {
+            // In-memory store with async callbacks — without serialized writes, overlapping
+            // read-modify-write cycles clobber each other and drop events.
+            let stored: Record<string, unknown> = {};
+            vi.mocked(chrome.storage.local.get).mockImplementation((_keys, callback) => {
+                setTimeout(() => callback?.({ ...stored }), 0);
+            });
+            vi.mocked(chrome.storage.local.set).mockImplementation((items, callback) => {
+                setTimeout(() => {
+                    stored = { ...stored, ...(items as Record<string, unknown>) };
+                    callback?.();
+                }, 0);
+            });
+
+            await Promise.all(
+                Array.from({ length: 5 }, (_, i) =>
+                    logEvent({
+                        level: 'info',
+                        feature: 'network',
+                        action: 'concurrent',
+                        message: `event ${i}`,
+                    }),
+                ),
+            );
+
+            const events = stored[EVENT_LOG_STORAGE_KEY] as Array<{ message: string }>;
+            expect(events).toHaveLength(5);
+        });
+
         it('should sanitize sensitive data', async () => {
             vi.mocked(chrome.storage.local.get).mockImplementation((_keys, callback) => {
                 callback?.({});
