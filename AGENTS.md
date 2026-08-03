@@ -36,6 +36,12 @@ Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execu
 - If imports look "missing" (especially ESLint complaining about undefined globals/imports), run `pnpm install` (or `pnpm.cmd install` on Windows).
     - The `postinstall` hook runs `wxt prepare`, which generates files under `.wxt/` (including ESLint auto-import definitions).
 - When adding new exported utilities/types, prefer patterns that allow auto-imports to pick them up rather than adding manual imports everywhere.
+- **Exception — files inside `utils/` must use explicit imports for anything they consume at runtime.**
+  Relying on auto-imports inside `utils/` breaks istanbul coverage instrumentation (the unimport
+  transform mangles the sourcemap): before explicit imports were added, `invoke.ts` reported 0
+  instrumentable statements and `storage.ts` reported 8 (of ~100+), silently deflating the
+  coverage gate. Auto-imports remain fine in `entrypoints/**` (already excluded from the gate)
+  and for type-only references anywhere (types are erased at compile time).
 
 ## Commits, versioning, and releases (important)
 
@@ -45,7 +51,14 @@ Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execu
     - Keep commit message body lines ≤ 100 characters. Agent-generated commits (those containing `Agent-Logs-Url:`) are automatically skipped by commitlint, so long trailers in agent commit bodies won't fail CI.
 - Releases are driven by commit history and semantic versioning via **semantic-release**.
     - On merges to `main`, GitHub Actions runs `npx semantic-release` (see `.github/workflows/release.yml` and `.releaserc`).
-    - When a GitHub Release is published, CI zips the extension (`pnpm zip`) and submits it to the Chrome Web Store (see `.github/workflows/submit.yml`).
+    - When a GitHub Release is published, CI zips the extension (`pnpm zip`) and submits it to the Chrome Web Store and Firefox Add-ons (see `.github/workflows/submit.yml`).
+    - `submit.yml` also runs on a 4-hour schedule as a **catch-up**: Chrome rejects uploads while
+      a prior submission is in review, so releases published during that window are tolerated as
+      no-ops and retried later. Each run targets the **latest** GitHub Release and skips stores
+      that already have that version (or newer) uploaded — so releases that stack up during one
+      Chrome review collapse into a single submission of the newest version, while every PR keeps
+      its own tag/GitHub Release for tracking. Store version numbers can never decrease; rolling
+      back means reverting commits and releasing a new, higher version.
 - When making changes, keep commit messages clean and scoped so release automation behaves predictably.
 
 ## Code style / quality bar
