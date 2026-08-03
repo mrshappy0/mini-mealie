@@ -1,8 +1,4 @@
 :root {
-    /* Pinned so the popup's fixed-budget layout is deterministic regardless of the
-       browser's own default text-size preference (which is user-configurable and can
-       differ between Chrome and Firefox on the same machine, independent of any CSS
-       here) — every em-based size in this stylesheet cascades from this value. */
     font-size: 16px;
     font-family:
         -apple-system,
@@ -47,6 +43,12 @@ a:hover {
 }
 
 body {
+    /* Chrome's extension-page UA stylesheet sets body { font-size: 75% } (12px), while
+       Firefox uses the standard 16px — so every em-based size below inherited a base
+       that differed 33% between browsers, and the layout only fit inside Chrome's
+       shrunken default. Pin the base explicitly (matching Chrome's popup rendering,
+       which the layout was designed against) so both browsers render identically. */
+    font-size: 12px;
     margin: 0;
     display: flex;
     align-items: center;
