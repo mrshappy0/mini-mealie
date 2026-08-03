@@ -16,7 +16,10 @@ import { RecipeCreateMode } from '@/utils/types/storageTypes';
 import backgroundDef from '../background';
 
 vi.mock('@/utils/invoke', () => ({ runCreateRecipe: vi.fn() }));
-vi.mock('@/utils/network', () => ({ getUser: vi.fn() }));
+vi.mock('@/utils/network', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/utils/network')>()),
+    getUser: vi.fn(),
+}));
 vi.mock('@/utils/devInit', () => ({ initDevEnvironment: vi.fn(() => Promise.resolve()) }));
 
 vi.mock('@/utils/logging', async (importOriginal) => {

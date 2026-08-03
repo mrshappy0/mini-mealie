@@ -1441,3 +1441,73 @@ describe('searchRecipesByName', () => {
         expect(callArgs[0]).toContain('%26'); // & is encoded as %26
     });
 });
+
+describe('Mealie server hosted under a subpath', () => {
+    const subpathServer = 'https://home.example.com/mealie/';
+
+    it('should preserve the subpath in createRecipeFromURL', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce('slug'),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromURL('https://example.com/recipe', subpathServer, 'token');
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://home.example.com/mealie/api/recipes/create/url',
+            expect.anything(),
+        );
+    });
+
+    it('should preserve the subpath in createRecipeFromHTML', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            headers: { get: () => 'application/json' },
+            json: vi.fn().mockResolvedValueOnce('slug'),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.createRecipeFromHTML('<html></html>', subpathServer, 'token');
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://home.example.com/mealie/api/recipes/create/html-or-json',
+            expect.anything(),
+        );
+    });
+
+    it('should preserve the subpath in findRecipeByURL', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({ items: [] }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.findRecipeByURL('https://example.com/recipe', subpathServer, 'token');
+
+        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        expect(callArgs[0]).toContain('https://home.example.com/mealie/api/recipes?');
+    });
+
+    it('should preserve the subpath in searchRecipesByName', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({ items: [] }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        await actual.searchRecipesByName('Chicken Soup', subpathServer, 'token');
+
+        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        expect(callArgs[0]).toContain('https://home.example.com/mealie/api/recipes?');
+    });
+});

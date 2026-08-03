@@ -207,7 +207,7 @@ async function maybeOpenRecipeAfterImport(
 
     const recipeUrl =
         groupSlug && slug
-            ? `${mealieServer.replace(/\/$/, '')}/g/${encodeURIComponent(groupSlug)}/r/${encodeURIComponent(slug)}`
+            ? `${normalizeMealieServerBaseUrl(mealieServer)}/g/${encodeURIComponent(groupSlug)}/r/${encodeURIComponent(slug)}`
             : undefined;
 
     void logEvent({
