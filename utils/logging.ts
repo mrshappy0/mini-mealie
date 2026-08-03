@@ -108,6 +108,12 @@ async function writeEvents(events: LogEvent[]): Promise<void> {
 }
 
 /**
+ * Serialize ring-buffer updates: concurrent logEvent calls each did their own
+ * read-modify-write of the full array, so overlapping writes dropped events.
+ */
+let pendingWrite: Promise<void> = Promise.resolve();
+
+/**
  * Log a single event. Appends to the ring buffer.
  */
 export async function logEvent(
@@ -123,12 +129,16 @@ export async function logEvent(
         data: event.data ? sanitizeData(event.data) : undefined,
     };
 
-    const events = await readEvents();
-    events.push(fullEvent);
+    const job = pendingWrite.then(async () => {
+        const events = await readEvents();
+        events.push(fullEvent);
 
-    // Trim to max size (ring buffer)
-    const trimmed = events.length > MAX_EVENTS ? events.slice(-MAX_EVENTS) : events;
-    await writeEvents(trimmed);
+        // Trim to max size (ring buffer)
+        const trimmed = events.length > MAX_EVENTS ? events.slice(-MAX_EVENTS) : events;
+        await writeEvents(trimmed);
+    });
+    pendingWrite = job.catch(() => undefined);
+    await job;
 
     // Also log to console for dev visibility
     const consoleMethod = fullEvent.level === 'error' ? console.error : console.log;

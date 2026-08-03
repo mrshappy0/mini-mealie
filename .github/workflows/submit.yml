@@ -4,9 +4,21 @@ on:
     workflow_dispatch:
     release:
         types: [published]
+    schedule:
+        # Catch-up: Chrome rejects uploads while a prior submission is in review, so a
+        # release published during that window can't be uploaded immediately. This cron
+        # retries the *latest* released version until both stores are current — releases
+        # that stack up during one review collapse into a single submission of the newest
+        # version (intermediate versions stay tracked as tags/GitHub Releases).
+        - cron: '17 */4 * * *'
 
 permissions:
     contents: read
+
+# Never run two store submissions at once — they'd race on the same store drafts.
+concurrency:
+    group: store-submit
+    cancel-in-progress: false
 
 jobs:
     submit:
@@ -19,49 +31,157 @@ jobs:
             # workflow file with "Unrecognized named-value: 'secrets'" if you
             # reference it there) — only `env` is readable from `if:`. A step's
             # own `env:` block isn't visible to that same step's `if:`, so this
-            # has to live at the job level for the check below to see it.
+            # has to live at the job level for the checks below to see it.
             FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v7
+              with:
+                  # Full history so the catch-up path can check out the release tag.
+                  fetch-depth: 0
+
+            - name: Resolve target release
+              id: target
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+                      TAG="${GITHUB_REF#refs/tags/}"
+                  else
+                      # schedule / manual dispatch: target the latest published release
+                      TAG=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
+                  fi
+                  if [[ -z "$TAG" ]]; then
+                      echo "No published release found — nothing to submit." >> "$GITHUB_STEP_SUMMARY"
+                  fi
+                  echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
+                  echo "VERSION=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+            - name: Check whether the Chrome Web Store needs this version
+              id: chrome
+              if: steps.target.outputs.TAG != ''
+              env:
+                  CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+                  CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+                  CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+                  CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+                  VERSION: ${{ steps.target.outputs.VERSION }}
+              run: |
+                  if [[ -z "$CHROME_CLIENT_ID" ]]; then
+                      echo "needed=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  # Ask CWS for the most recently uploaded (draft) version. Fail open:
+                  # if the check itself errors, attempt the submit and let it decide.
+                  NEEDED=true
+                  if TOKEN=$(curl -sf https://oauth2.googleapis.com/token \
+                          -d client_id="$CHROME_CLIENT_ID" \
+                          -d client_secret="$CHROME_CLIENT_SECRET" \
+                          -d refresh_token="$CHROME_REFRESH_TOKEN" \
+                          -d grant_type=refresh_token | jq -r '.access_token // empty') \
+                      && [[ -n "$TOKEN" ]]; then
+                      DRAFT=$(curl -sf \
+                          -H "Authorization: Bearer $TOKEN" \
+                          -H "x-goog-api-version: 2" \
+                          "https://www.googleapis.com/chromewebstore/v1.1/items/$CHROME_EXTENSION_ID?projection=DRAFT" \
+                          | jq -r '.crxVersion // empty' || true)
+                      if [[ -n "$DRAFT" ]]; then
+                          NEWEST=$(printf '%s\n%s\n' "$DRAFT" "$VERSION" | sort -V | tail -1)
+                          if [[ "$NEWEST" == "$DRAFT" ]]; then
+                              NEEDED=false
+                              echo "Chrome already has $DRAFT uploaded (target $VERSION) — skipping." \
+                                  >> "$GITHUB_STEP_SUMMARY"
+                          fi
+                      fi
+                  fi
+                  echo "needed=$NEEDED" >> "$GITHUB_OUTPUT"
+
+            - name: Check whether Firefox Add-ons needs this version
+              id: firefox
+              if: steps.target.outputs.TAG != ''
+              env:
+                  VERSION: ${{ steps.target.outputs.VERSION }}
+              run: |
+                  if [[ -z "$FIREFOX_JWT_ISSUER" ]]; then
+                      echo "needed=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  # AMO's public API lists approved listed versions; a version still in
+                  # review won't appear, so the submit step tolerates duplicate uploads.
+                  NEEDED=true
+                  LATEST=$(curl -sf \
+                      "https://addons.mozilla.org/api/v5/addons/addon/mini-mealie%40shaplabs.net/versions/?page_size=1" \
+                      | jq -r '.results[0].version // empty' || true)
+                  if [[ -n "$LATEST" ]]; then
+                      NEWEST=$(printf '%s\n%s\n' "$LATEST" "$VERSION" | sort -V | tail -1)
+                      if [[ "$NEWEST" == "$LATEST" ]]; then
+                          NEEDED=false
+                          echo "Firefox already has $LATEST approved (target $VERSION) — skipping." \
+                              >> "$GITHUB_STEP_SUMMARY"
+                      fi
+                  fi
+                  echo "needed=$NEEDED" >> "$GITHUB_OUTPUT"
+
+            - name: Check out release tag
+              if: steps.chrome.outputs.needed == 'true' || steps.firefox.outputs.needed == 'true'
+              run: git checkout "refs/tags/${{ steps.target.outputs.TAG }}"
 
             - name: Setup
+              if: steps.chrome.outputs.needed == 'true' || steps.firefox.outputs.needed == 'true'
               uses: ./.github/actions/setup
 
-            - name: Extract release version from tag
-              id: extract_version
-              run: |
-                  echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
             - name: Inject version into package.json
+              if: steps.chrome.outputs.needed == 'true' || steps.firefox.outputs.needed == 'true'
               run: |
-                  npm pkg set version=${{ steps.extract_version.outputs.VERSION }}
+                  npm pkg set version=${{ steps.target.outputs.VERSION }}
+
+            - name: Zip Firefox extension
+              if: steps.firefox.outputs.needed == 'true'
+              run: |
+                  pnpm zip:firefox
+
+            - name: Submit to Firefox Add-ons
+              if: steps.firefox.outputs.needed == 'true'
+              env:
+                  FIREFOX_EXTENSION_ID: 'mini-mealie@shaplabs.net'
+                  FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+                  VERSION: ${{ steps.target.outputs.VERSION }}
+              run: |
+                  set -o pipefail
+                  if pnpm wxt submit \
+                        --firefox-zip .output/*-firefox.zip \
+                        --firefox-sources-zip .output/*-sources.zip \
+                        --firefox-channel=listed 2>&1 | tee firefox-submit.log; then
+                      echo "Firefox: submitted $VERSION." >> "$GITHUB_STEP_SUMMARY"
+                  elif grep -qiE 'already exists|duplicate' firefox-submit.log; then
+                      echo "Firefox: $VERSION was already uploaded (likely still in review) — nothing to do." \
+                          >> "$GITHUB_STEP_SUMMARY"
+                  else
+                      exit 1
+                  fi
 
             - name: Zip Chrome extension
+              if: steps.chrome.outputs.needed == 'true'
               run: |
                   pnpm zip
 
             - name: Submit to Chrome Store
-              run: |
-                  pnpm wxt submit \
-                    --chrome-zip .output/*-chrome.zip \
+              if: steps.chrome.outputs.needed == 'true'
               env:
                   CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
                   CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
                   CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
                   CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
                   CHROME_SKIP_SUBMIT_REVIEW: false
-
-            - name: Zip Firefox extension
+                  VERSION: ${{ steps.target.outputs.VERSION }}
               run: |
-                  pnpm zip:firefox
-
-            - name: Submit to Firefox Add-ons
-              if: ${{ env.FIREFOX_JWT_ISSUER != '' }}
-              run: |
-                  pnpm wxt submit \
-                    --firefox-zip .output/*-firefox.zip \
-                    --firefox-sources-zip .output/*-sources.zip \
-                    --firefox-channel=listed
-              env:
-                  FIREFOX_EXTENSION_ID: 'mini-mealie@shaplabs.net'
-                  FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+                  set -o pipefail
+                  if pnpm wxt submit \
+                        --chrome-zip .output/*-chrome.zip 2>&1 | tee chrome-submit.log; then
+                      echo "Chrome: submitted $VERSION for review." >> "$GITHUB_STEP_SUMMARY"
+                  elif grep -qiE 'ITEM_NOT_UPDATABLE|IN_REVIEW|PENDING_REVIEW' chrome-submit.log; then
+                      echo "Chrome: a previous submission is still in review — the scheduled catch-up run will retry $VERSION after it clears." \
+                          >> "$GITHUB_STEP_SUMMARY"
+                  else
+                      exit 1
+                  fi
