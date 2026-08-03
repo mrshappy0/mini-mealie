@@ -1,6 +1,6 @@
 {
     "name": "mini-mealie",
-    "description": "manifest.json description",
+    "description": "Browser extension that scrapes recipes and saves them to a Mealie instance.",
     "private": true,
     "type": "module",
     "scripts": {
@@ -34,8 +34,7 @@
     "dependencies": {
         "normalize-url": "^9.0.1",
         "react": "^19.2.8",
-        "react-dom": "^19.2.8",
-        "resend": "^6.18.1"
+        "react-dom": "^19.2.8"
     },
     "devDependencies": {
         "@commitlint/cli": "^21.2.0",
@@ -72,6 +71,7 @@
         "jsdom": "^29.1.1",
         "playwright": "^1.62.0",
         "prettier": "^3.9.6",
+        "resend": "^6.18.1",
         "selenium-webdriver": "^4.30.0",
         "semantic-release": "^25.0.8",
         "tsx": "^4.23.1",
