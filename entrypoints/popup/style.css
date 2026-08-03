@@ -1,5 +1,14 @@
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        system-ui,
+        'Segoe UI',
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
     line-height: 1.5;
     font-weight: 400;
 
@@ -34,9 +43,16 @@ a:hover {
 }
 
 body {
+    /* Chrome's extension-page UA stylesheet sets body { font-size: 75% } (12px), while
+       Firefox uses the standard 16px — so every em-based size below inherited a base
+       that differed 33% between browsers, and the layout only fit inside Chrome's
+       shrunken default. Pin the base explicitly (matching Chrome's popup rendering,
+       which the layout was designed against) so both browsers render identically. */
+    font-size: 12px;
     margin: 0;
     display: flex;
-    place-items: center;
+    align-items: center;
+    justify-content: center;
     min-width: 320px;
     min-height: 100vh;
     background-color: var(--mealie-black);
