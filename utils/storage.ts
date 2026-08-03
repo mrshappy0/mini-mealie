@@ -1,4 +1,14 @@
-import { logEvent } from './logging';
+import { showBadge } from './badge';
+import { removeContextMenu, updateContextMenu } from './contextMenu';
+import { logEvent, sanitizeUrl } from './logging';
+import { findRecipeByURL, searchRecipesByName, testScrapeUrlDetailed } from './network';
+import type { RecipeSummary } from './types/apiTypes';
+import {
+    isRecipeCreateMode,
+    RecipeCreateMode,
+    type StorageData,
+    storageKeys,
+} from './types/storageTypes';
 
 const DETECTION_CACHE_TTL_MS = 30_000;
 const DETECTION_CACHE_MAX_SIZE = 100;
