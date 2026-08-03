@@ -14,7 +14,8 @@ vi.mock('../logging', () => ({
     withOperation: vi.fn((_config, fn) => fn()),
 }));
 
-vi.mock('../network', () => ({
+vi.mock('../network', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('../network')>()),
     createRecipeFromURL: vi.fn().mockResolvedValue({ slug: 'test-slug' }),
     createRecipeFromHTML: vi.fn().mockResolvedValue({ slug: 'test-slug' }),
     getUser: vi.fn().mockResolvedValue({

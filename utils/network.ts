@@ -119,7 +119,7 @@ export async function createRecipeFromURL(
     includeCategories = false,
 ): Promise<CreateRecipeResult> {
     try {
-        const fetchUrl = new URL('/api/recipes/create/url', server).href;
+        const fetchUrl = `${normalizeMealieServerBaseUrl(server)}/api/recipes/create/url`;
         const response = (await fetch(fetchUrl, {
             method: 'POST',
             headers: {
@@ -161,7 +161,7 @@ export async function createRecipeFromHTML(
     includeCategories = false,
 ): Promise<CreateRecipeResult> {
     try {
-        const fetchUrl = new URL('/api/recipes/create/html-or-json', server).href;
+        const fetchUrl = `${normalizeMealieServerBaseUrl(server)}/api/recipes/create/html-or-json`;
         const response = (await fetch(fetchUrl, {
             method: 'POST',
             headers: {
@@ -344,7 +344,7 @@ export async function findRecipeByURL(
 
         // Fetch recent recipes (more likely to match) and filter client-side
         // This works around Mealie's exact string matching in queryFilter
-        const apiUrl = new URL('/api/recipes', server);
+        const apiUrl = new URL(`${normalizeMealieServerBaseUrl(server)}/api/recipes`);
         apiUrl.searchParams.set('perPage', '100'); // Fetch more to increase match chance
         apiUrl.searchParams.set('orderBy', 'dateUpdated');
         apiUrl.searchParams.set('orderDirection', 'desc');
@@ -440,7 +440,7 @@ export async function searchRecipesByName(
 
     try {
         // Construct the API query with search parameter
-        const apiUrl = new URL('/api/recipes', server);
+        const apiUrl = new URL(`${normalizeMealieServerBaseUrl(server)}/api/recipes`);
         apiUrl.searchParams.set('search', name);
         apiUrl.searchParams.set('perPage', '5');
 

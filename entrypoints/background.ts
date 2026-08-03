@@ -171,7 +171,7 @@ async function handleViewSpecificDuplicate(slug: string) {
             return;
         }
 
-        const normalizedMealieServer = mealieServer.replace(/\/+$/, '');
+        const normalizedMealieServer = normalizeMealieServerBaseUrl(mealieServer);
         const user = await getUser(mealieServer, mealieApiToken);
         const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
 
@@ -186,7 +186,7 @@ async function handleViewSpecificDuplicate(slug: string) {
             return;
         }
 
-        const recipeUrl = `${normalizedMealieServer}/g/${groupSlug}/r/${slug}`;
+        const recipeUrl = `${normalizedMealieServer}/g/${encodeURIComponent(groupSlug)}/r/${encodeURIComponent(slug)}`;
         await logEvent({
             level: 'info',
             feature: 'duplicate-detect',
@@ -236,7 +236,7 @@ async function handleViewDuplicate(url: string, menuId: string) {
             return;
         }
 
-        const normalizedServer = mealieServer.replace(/\/+$/, '');
+        const normalizedServer = normalizeMealieServerBaseUrl(mealieServer);
         const user = await getUser(mealieServer, mealieApiToken);
         const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
 
