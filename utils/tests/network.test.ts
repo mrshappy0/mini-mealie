@@ -555,7 +555,7 @@ describe('runCreateRecipe', () => {
         expect(chrome.scripting.executeScript).not.toHaveBeenCalled();
 
         const createRecipeFromURLMock = vi.mocked(createRecipeFromURL);
-        const result = await createRecipeFromURLMock.mock.results[0].value;
+        const result = await createRecipeFromURLMock.mock.results[0]!.value;
         expect(result).toEqual({ slug: 'test-slug' });
     });
 
@@ -1322,7 +1322,7 @@ describe('findRecipeByURL', () => {
         // Should find the recipe because URLs are normalized and compared client-side
         expect(result).toEqual(mockRecipe);
         // Verify the fetch call uses the new approach (no queryFilter)
-        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        const callArgs = vi.mocked(global.fetch).mock.calls[0]!;
         expect(callArgs[0]).toContain('perPage=100');
         expect(callArgs[0]).toContain('orderBy=dateUpdated');
         expect(callArgs[0]).not.toContain('queryFilter');
@@ -1435,7 +1435,7 @@ describe('searchRecipesByName', () => {
         await actual.searchRecipesByName('Chicken & Pasta', mockServer, mockToken);
 
         // Verify the fetch call contains the encoded name (searchParams uses + for spaces)
-        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        const callArgs = vi.mocked(global.fetch).mock.calls[0]!;
         expect(callArgs[0]).toContain('search=Chicken');
         expect(callArgs[0]).toContain('Pasta');
         expect(callArgs[0]).toContain('%26'); // & is encoded as %26
@@ -1492,7 +1492,7 @@ describe('Mealie server hosted under a subpath', () => {
         const actual = await vi.importActual<typeof import('../network')>('../network');
         await actual.findRecipeByURL('https://example.com/recipe', subpathServer, 'token');
 
-        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        const callArgs = vi.mocked(global.fetch).mock.calls[0]!;
         expect(callArgs[0]).toContain('https://home.example.com/mealie/api/recipes?');
     });
 
@@ -1507,7 +1507,7 @@ describe('Mealie server hosted under a subpath', () => {
         const actual = await vi.importActual<typeof import('../network')>('../network');
         await actual.searchRecipesByName('Chicken Soup', subpathServer, 'token');
 
-        const callArgs = vi.mocked(global.fetch).mock.calls[0];
+        const callArgs = vi.mocked(global.fetch).mock.calls[0]!;
         expect(callArgs[0]).toContain('https://home.example.com/mealie/api/recipes?');
     });
 });
