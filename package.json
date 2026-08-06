@@ -66,7 +66,7 @@
         "eslint-plugin-prettier": "^5.5.5",
         "eslint-plugin-react": "github:ledsun/eslint-plugin-react#update-deprecated-calls-v8",
         "eslint-plugin-security": "^4.0.0",
-        "eslint-plugin-simple-import-sort": "^13.0.0",
+        "eslint-plugin-simple-import-sort": "^14.0.0",
         "globals": "^17.8.0",
         "jsdom": "^29.1.1",
         "playwright": "^1.62.1",
