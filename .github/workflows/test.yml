@@ -59,3 +59,31 @@ jobs:
               run: |
                   chmod +x scripts/check-coverage.sh
                   scripts/check-coverage.sh
+
+    # submit.yml only runs on release/schedule, so nothing else exercises the store
+    # packaging path on a PR. A wxt bump that renames or drops a zip artifact would
+    # otherwise stay invisible until a release failed mid-submission. Build the real
+    # store artifacts here and assert they still match the globs submit.yml passes.
+    store-artifacts:
+        name: Store Artifact Contract
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v7
+
+            - name: Setup
+              uses: ./.github/actions/setup
+
+            # package.json is versionless (private package); submit.yml injects the
+            # release version before zipping, so mirror that to get realistic filenames.
+            - name: Inject a placeholder version
+              run: npm pkg set version=0.0.0-ci
+
+            - name: Build store zips
+              run: |
+                  pnpm zip:firefox
+                  pnpm zip
+
+            - name: Verify artifacts match submit.yml globs
+              run: node scripts/check-store-artifacts.js
