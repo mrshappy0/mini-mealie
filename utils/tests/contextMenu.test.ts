@@ -124,14 +124,14 @@ describe('updateContextMenu', () => {
         expect(createCalls.length).toBe(2);
 
         // First should be parent menu
-        expect(createCalls[0][0]).toEqual({
+        expect(createCalls[0]![0]).toEqual({
             id: 'miniMealieParent',
             title: 'Mini Mealie',
             contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Second should be create menu as child
-        expect(createCalls[1][0]).toEqual({
+        expect(createCalls[1]![0]).toEqual({
             id: 'runCreateRecipe',
             parentId: 'miniMealieParent',
             title: 'Create Recipe from URL',
@@ -157,14 +157,14 @@ describe('updateContextMenu', () => {
         expect(createCalls.length).toBe(3); // Parent + create + URL duplicate
 
         // First should be parent menu
-        expect(createCalls[0][0]).toEqual({
+        expect(createCalls[0]![0]).toEqual({
             id: 'miniMealieParent',
             title: 'Mini Mealie',
             contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Second should be create menu
-        expect(createCalls[1][0]).toEqual({
+        expect(createCalls[1]![0]).toEqual({
             id: 'runCreateRecipe',
             parentId: 'miniMealieParent',
             title: 'Create Recipe from URL',
@@ -173,7 +173,7 @@ describe('updateContextMenu', () => {
         });
 
         // Third should be duplicate URL menu (sibling of create)
-        expect(createCalls[2][0]).toEqual({
+        expect(createCalls[2]![0]).toEqual({
             id: 'viewDuplicateUrl',
             parentId: 'miniMealieParent',
             title: '⚠️ Already exists: "Chicken Carbonara"',
@@ -201,14 +201,14 @@ describe('updateContextMenu', () => {
         expect(createCalls.length).toBe(5); // Parent + create + name parent + 2 children
 
         // First should be parent menu
-        expect(createCalls[0][0]).toEqual({
+        expect(createCalls[0]![0]).toEqual({
             id: 'miniMealieParent',
             title: 'Mini Mealie',
             contexts: RECIPE_MENU_CONTEXTS,
         });
 
         // Second should be create menu
-        expect(createCalls[1][0]).toEqual({
+        expect(createCalls[1]![0]).toEqual({
             id: 'runCreateRecipe',
             parentId: 'miniMealieParent',
             title: 'Create Recipe from URL',
@@ -217,7 +217,7 @@ describe('updateContextMenu', () => {
         });
 
         // Third should be duplicate name menu (plural, sibling of create)
-        expect(createCalls[2][0]).toEqual({
+        expect(createCalls[2]![0]).toEqual({
             id: 'viewDuplicatesByName',
             parentId: 'miniMealieParent',
             title: '🔍 Found 2 similar recipes',
@@ -244,7 +244,7 @@ describe('updateContextMenu', () => {
         expect(createCalls.length).toBe(4);
 
         // Duplicate name menu should use singular form
-        expect(createCalls[2][0]).toEqual({
+        expect(createCalls[2]![0]).toEqual({
             id: 'viewDuplicatesByName',
             parentId: 'miniMealieParent',
             title: '🔍 Found 1 similar recipe',
@@ -273,16 +273,16 @@ describe('updateContextMenu', () => {
         expect(createCalls.length).toBe(6); // Parent + create + URL + name parent + 2 children
 
         // First should be parent menu
-        expect(createCalls[0][0].id).toBe('miniMealieParent');
+        expect(createCalls[0]![0].id).toBe('miniMealieParent');
 
         // Second should be create menu
-        expect(createCalls[1][0].id).toBe('runCreateRecipe');
+        expect(createCalls[1]![0].id).toBe('runCreateRecipe');
 
         // Third should be URL duplicate
-        expect(createCalls[2][0].id).toBe('viewDuplicateUrl');
+        expect(createCalls[2]![0].id).toBe('viewDuplicateUrl');
 
         // Fourth should be name duplicate menu
-        expect(createCalls[3][0].id).toBe('viewDuplicatesByName');
+        expect(createCalls[3]![0].id).toBe('viewDuplicatesByName');
     });
 
     it('should create error suggestion menu when isErrorSuggestion is true', () => {
@@ -292,10 +292,10 @@ describe('updateContextMenu', () => {
         const createCalls = (chrome.contextMenus.create as ReturnType<typeof vi.fn>).mock.calls;
 
         // First should be parent
-        expect(createCalls[0][0].id).toBe('miniMealieParent');
+        expect(createCalls[0]![0].id).toBe('miniMealieParent');
 
         // Second should be switch mode menu (not create recipe menu)
-        expect(createCalls[1][0]).toEqual({
+        expect(createCalls[1]![0]).toEqual({
             id: 'switchToHtmlMode',
             parentId: 'miniMealieParent',
             title: 'No Recipe - Switch to HTML Mode',

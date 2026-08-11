@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { WxtVitest } from 'wxt/testing';
 
 import { clearBadge, showBadge } from '../badge';
 import { removeContextMenu, updateContextMenu } from '../contextMenu';
@@ -9,8 +8,6 @@ import {
     clearDetectionCache,
     resetBadgeMenuRefreshQueueForTests,
 } from '../storage';
-
-void WxtVitest();
 
 const mockActiveTab = {
     url: 'https://recipe.org/mock-recipe-url',
