@@ -9,21 +9,6 @@ allowBuilds:
     esbuild: true
     spawn-sync: true
 
-auditConfig:
-    ignoreGhsas:
-        # GHSA-mh99-v99m-4gvg: brace-expansion DoS, patched only at 5.0.8+.
-        # Remaining instance is brace-expansion@1.1.16 via minimatch@3.1.5
-        # (eslint-plugin-react, and multimatch → web-ext-run → wxt). minimatch@3.1.5
-        # calls brace-expansion as `require('brace-expansion')(str)`; 5.0.8 exports
-        # `{ expand }` instead, so forcing the upgrade breaks those callers (verified:
-        # eslint-plugin-react's minimatch-based rules call it the same way). No
-        # minimatch release backports the fix while keeping the old call shape.
-        # devDependency-only: both callers match our own lint/build-time glob
-        # patterns, never attacker-controlled input. The minimatch@10.2.5 instance
-        # (below) is fixed directly. Revisit if eslint-plugin-react or multimatch
-        # ship a minimatch@9+ upgrade.
-        - GHSA-mh99-v99m-4gvg
-
 minimumReleaseAgeExclude:
     - '@eslint/css@1.4.0'
     - '@types/chrome@0.2.1'
@@ -72,10 +57,23 @@ overrides:
     # version. Capped under 5.0.0: an open floor resolves to js-yaml@5, a major
     # cosmiconfig does not declare support for.
     js-yaml: '>=4.3.1 <5.0.0'
-    # GHSA-mh99-v99m-4gvg: brace-expansion DoS, patched at 5.0.8. minimatch@10.2.5
-    # already calls the modern `{ expand }` API, so bumping here is a safe, direct
-    # fix (see auditConfig.ignoreGhsas above for the other, incompatible instance).
-    'minimatch@10.2.5>brace-expansion': '>=5.0.8'
+    # GHSA-mh99-v99m-4gvg (unbounded expansion length OOM) and
+    # GHSA-rgw5-rvv9-x895 (unbounded intermediate arrays, bypassing the
+    # CVE-2026-14257 mitigation): two brace-expansion DoS advisories. The tree
+    # holds exactly two instances, split by which minimatch pulls them, so each
+    # gets a parent-scoped floor that clears both advisories.
+    #
+    # minimatch@10.2.5 already calls the modern `{ expand }` API. Both advisories
+    # are patched on the 5.x line at 5.0.8 and 5.0.9 respectively.
+    'minimatch@10.2.5>brace-expansion': '>=5.0.9'
+    # minimatch@3.1.5 (via eslint-plugin-react, and multimatch → web-ext-run →
+    # wxt) calls brace-expansion as `require('brace-expansion')(str)`, which the
+    # 5.x `{ expand }` export breaks — this instance was previously written off
+    # in auditConfig.ignoreGhsas as unfixable for that reason. It isn't: both
+    # advisories were backported to the 1.x line (1.1.17 and 1.1.18), and 1.1.18
+    # still ships `module.exports = expandTop`, so the old callable shape
+    # survives. Capped under 2.0.0 to keep it on that line.
+    'minimatch@3.1.5>brace-expansion': '>=1.1.18 <2.0.0'
 
 packageExtensions:
     'minimatch@10.2.5':
