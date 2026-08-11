@@ -80,7 +80,7 @@ describe('background', () => {
         it('refreshes on install and opens the logs page in dev mode', async () => {
             const createTab = vi.spyOn(chrome.tabs, 'create');
 
-            await fakeBrowser.runtime.onInstalled.trigger({ reason: 'install', temporary: false });
+            await fakeBrowser.runtime.onInstalled.trigger({ reason: 'install' });
             expect(initDevEnvironment).toHaveBeenCalled();
 
             await vi.waitFor(() => expect(checkStorageAndUpdateBadge).toHaveBeenCalled(), {

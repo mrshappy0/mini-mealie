@@ -1,6 +1,6 @@
 import './App.css';
 
-import { ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 
 import miniMealieLogo from '/mini-mealie.svg';
 import {

@@ -132,11 +132,11 @@ describe('logging', () => {
                 },
             });
 
-            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
+            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0]!;
             const events = (setCall[0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                 data?: Record<string, unknown>;
             }>;
-            const event = events[0];
+            const event = events[0]!;
 
             expect(event.data).toBeDefined();
             expect(event.data?.validField).toBe('visible');
@@ -164,11 +164,11 @@ describe('logging', () => {
                 },
             });
 
-            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
+            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0]!;
             const events = (setCall[0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                 data?: Record<string, unknown>;
             }>;
-            const event = events[0];
+            const event = events[0]!;
 
             expect(event.data?.html).toBe('[string, 1000 chars]');
         });
@@ -194,7 +194,7 @@ describe('logging', () => {
                 message: 'New event',
             });
 
-            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
+            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0]!;
             const events = (setCall[0] as Record<string, unknown>)[
                 EVENT_LOG_STORAGE_KEY
             ] as Array<unknown>;
@@ -307,7 +307,7 @@ describe('logging', () => {
             const events = await getRecentEvents(10);
             expect(events.length).toBe(10);
             // Should return the last 10
-            expect(events[0].message).toBe('Event 90');
+            expect(events[0]!.message).toBe('Event 90');
         });
 
         it('should return empty array when no events exist', async () => {
@@ -372,17 +372,17 @@ describe('logging', () => {
             expect(setCalls.length).toBe(2); // start + success
 
             const startEvent = (
-                (setCalls[0][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
+                (setCalls[0]![0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                     phase?: string;
                 }>
-            )[0];
+            )[0]!;
             expect(startEvent.phase).toBe('start');
 
             const successEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
+                (setCalls[1]![0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                     phase?: string;
                 }>
-            )[0];
+            )[0]!;
             expect(successEvent.phase).toBe('success');
         });
 
@@ -407,11 +407,11 @@ describe('logging', () => {
             const setCalls = vi.mocked(chrome.storage.local.set).mock.calls;
 
             const failureEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
+                (setCalls[1]![0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                     phase?: string;
                     level?: string;
                 }>
-            )[0];
+            )[0]!;
             expect(failureEvent.phase).toBe('failure');
             expect(failureEvent.level).toBe('error');
         });
@@ -434,11 +434,11 @@ describe('logging', () => {
             const setCalls = vi.mocked(chrome.storage.local.set).mock.calls;
 
             const resultEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
+                (setCalls[1]![0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                     phase?: string;
                     level?: string;
                 }>
-            )[0];
+            )[0]!;
             expect(resultEvent.phase).toBe('failure');
             expect(resultEvent.level).toBe('warn');
         });
@@ -463,10 +463,10 @@ describe('logging', () => {
             const setCalls = vi.mocked(chrome.storage.local.set).mock.calls;
 
             const successEvent = (
-                (setCalls[1][0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
+                (setCalls[1]![0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                     durationMs?: number;
                 }>
-            )[0];
+            )[0]!;
             expect(successEvent.durationMs).toBeGreaterThanOrEqual(0);
         });
     });
@@ -484,11 +484,11 @@ describe('logging', () => {
                 message: 'Test',
             });
 
-            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
+            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0]!;
             const events = (setCall[0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                 id: string;
             }>;
-            expect(events[0].id).toBe('12345678-1234-1234-1234-123456789abc');
+            expect(events[0]!.id).toBe('12345678-1234-1234-1234-123456789abc');
         });
 
         it('should fallback to Date+random when crypto unavailable', async () => {
@@ -507,12 +507,12 @@ describe('logging', () => {
                 message: 'Test',
             });
 
-            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0];
+            const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0]!;
             const events = (setCall[0] as Record<string, unknown>)[EVENT_LOG_STORAGE_KEY] as Array<{
                 id: string;
             }>;
             // Should match timestamp-random pattern
-            expect(events[0].id).toMatch(/^\d+-[a-z0-9]+$/);
+            expect(events[0]!.id).toMatch(/^\d+-[a-z0-9]+$/);
 
             global.crypto = originalCrypto;
         });
