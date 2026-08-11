@@ -57,10 +57,21 @@ overrides:
     # jsdom gets its own >=7.28.0 floor below, capped under 8.0.0.
     '@actions/http-client>undici': '>=7.28.0'
     'jsdom>undici': '>=7.28.0 <8.0.0'
-    # GHSA-v2hh-gcrm-f6hx: fast-uri host confusion via literal backslash
-    # authority delimiter in versions <=3.1.3. Transitive via
-    # @commitlint → ajv (no newer commitlint pin yet).
-    fast-uri: '>=3.1.4'
+    # GHSA-v2hh-gcrm-f6hx (<=3.1.3) and GHSA-7p8r-x3mc-p8w7 (>=4.0.0 <4.1.2):
+    # fast-uri host confusion via literal backslash authority delimiter — the
+    # 3.x fix regressed in the 4.0 rewrite and was re-fixed in 4.1.2. Transitive
+    # via @commitlint → ajv@8 (which still declares `^3.0.1`; the override has
+    # been carrying it on 4.x already, so this only raises the patch floor).
+    fast-uri: '>=4.1.2'
+    # GHSA-5p4m-2wfm-xmqj: quadratic CPU consumption resolving `!!omap`
+    # (CVE-2026-59870), patched at 4.3.1 with no 3.x backport. Transitive via
+    # cosmiconfig@9 (commitlint + semantic-release config loading), which asks
+    # for `^4.1.0`, so the bump stays in-range. Blanket rather than scoped: no
+    # 3.x consumer exists in the tree, and 3.x has no fix to upgrade to, so a
+    # future one should fail loudly here instead of resolving to a vulnerable
+    # version. Capped under 5.0.0: an open floor resolves to js-yaml@5, a major
+    # cosmiconfig does not declare support for.
+    js-yaml: '>=4.3.1 <5.0.0'
     # GHSA-mh99-v99m-4gvg: brace-expansion DoS, patched at 5.0.8. minimatch@10.2.5
     # already calls the modern `{ expand }` API, so bumping here is a safe, direct
     # fix (see auditConfig.ignoreGhsas above for the other, incompatible instance).
