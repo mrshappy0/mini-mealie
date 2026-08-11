@@ -34,16 +34,16 @@ jobs:
             # has to live at the job level for the checks below to see it.
             FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
         steps:
-            - name: Checkout Code
-              uses: actions/checkout@v7
-              with:
-                  # Full history so the catch-up path can check out the release tag.
-                  fetch-depth: 0
-
+            # Resolving the target and asking each store what it already has is pure HTTP —
+            # no working tree required — so the checkout is deferred until something
+            # actually needs uploading. Most scheduled catch-up runs are no-ops and would
+            # otherwise clone the full history six times a day just to skip every step.
             - name: Resolve target release
               id: target
               env:
                   GH_TOKEN: ${{ github.token }}
+                  # Nothing is checked out yet, so `gh` can't infer the repo from a remote.
+                  GH_REPO: ${{ github.repository }}
               run: |
                   if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
                       TAG="${GITHUB_REF#refs/tags/}"
@@ -121,6 +121,13 @@ jobs:
                       fi
                   fi
                   echo "needed=$NEEDED" >> "$GITHUB_OUTPUT"
+
+            - name: Checkout Code
+              if: steps.chrome.outputs.needed == 'true' || steps.firefox.outputs.needed == 'true'
+              uses: actions/checkout@v7
+              with:
+                  # Full history so the catch-up path can check out the release tag.
+                  fetch-depth: 0
 
             - name: Check out release tag
               if: steps.chrome.outputs.needed == 'true' || steps.firefox.outputs.needed == 'true'
