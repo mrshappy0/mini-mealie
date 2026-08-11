@@ -35,6 +35,18 @@ export default defineConfig({
         define: {
             'import.meta.env.WXT_E2E': JSON.stringify(process.env.WXT_E2E === 'true'),
         },
+        build: {
+            /**
+             * Drop the `<link rel="modulepreload">` Vite injects into popup.html/logs.html for
+             * the shared `chunks/jsx-runtime-*.js` chunk. On a `chrome-extension://` page Chrome
+             * will not match a parser-initiated preload against the module loader's own fetch —
+             * it logs "cross-world extension resource mismatch" plus "preloaded ... but not used
+             * within a few seconds" and then fetches the chunk a second time. The preload buys
+             * nothing here anyway: the chunk is a static import of the entry, so it is discovered
+             * one parse later and read off local disk, not the network.
+             */
+            modulePreload: false,
+        },
     }),
     manifest: ({ browser }) => ({
         permissions: ['storage', 'activeTab', 'contextMenus', 'scripting'],
