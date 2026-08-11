@@ -147,14 +147,22 @@ jobs:
               run: |
                   pnpm zip:firefox
 
+            # continue-on-error so a Firefox-side failure doesn't abort the job before
+            # Chrome is even attempted — the two stores fail independently, and the
+            # gate step at the end still fails the run if either one did.
             - name: Submit to Firefox Add-ons
+              id: firefox_submit
               if: steps.firefox.outputs.needed == 'true'
+              continue-on-error: true
               env:
                   FIREFOX_EXTENSION_ID: 'mini-mealie@shaplabs.net'
                   FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
                   VERSION: ${{ steps.target.outputs.VERSION }}
               run: |
                   set -o pipefail
+                  # Fail with a clear message if wxt's artifact naming drifted from the
+                  # globs below, rather than passing an unmatched glob to `wxt submit`.
+                  node scripts/check-store-artifacts.js firefox
                   if pnpm wxt submit \
                         --firefox-zip .output/*-firefox.zip \
                         --firefox-sources-zip .output/*-sources.zip \
@@ -173,7 +181,9 @@ jobs:
                   pnpm zip
 
             - name: Submit to Chrome Store
+              id: chrome_submit
               if: steps.chrome.outputs.needed == 'true'
+              continue-on-error: true
               env:
                   CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
                   CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
@@ -183,6 +193,8 @@ jobs:
                   VERSION: ${{ steps.target.outputs.VERSION }}
               run: |
                   set -o pipefail
+                  # See the Firefox step: catch artifact-naming drift up front.
+                  node scripts/check-store-artifacts.js chrome
                   if pnpm wxt submit \
                         --chrome-zip .output/*-chrome.zip 2>&1 | tee chrome-submit.log; then
                       echo "Chrome: submitted $VERSION for review." >> "$GITHUB_STEP_SUMMARY"
@@ -192,3 +204,22 @@ jobs:
                   else
                       exit 1
                   fi
+
+            # Both submit steps are continue-on-error so neither store can abort the
+            # other, which means the job would otherwise report success even when a
+            # submission failed. Re-fail here on either outcome.
+            - name: Fail if any store submission failed
+              if: steps.firefox_submit.outcome == 'failure' || steps.chrome_submit.outcome == 'failure'
+              env:
+                  FIREFOX_OUTCOME: ${{ steps.firefox_submit.outcome }}
+                  CHROME_OUTCOME: ${{ steps.chrome_submit.outcome }}
+              run: |
+                  if [[ "$FIREFOX_OUTCOME" == "failure" ]]; then
+                      echo "::error::Firefox Add-ons submission failed — see the 'Submit to Firefox Add-ons' step."
+                      echo "Firefox: submission FAILED." >> "$GITHUB_STEP_SUMMARY"
+                  fi
+                  if [[ "$CHROME_OUTCOME" == "failure" ]]; then
+                      echo "::error::Chrome Web Store submission failed — see the 'Submit to Chrome Store' step."
+                      echo "Chrome: submission FAILED." >> "$GITHUB_STEP_SUMMARY"
+                  fi
+                  exit 1
