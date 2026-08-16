@@ -49,7 +49,7 @@ export default defineConfig({
         },
     }),
     manifest: ({ browser }) => ({
-        permissions: ['storage', 'activeTab', 'contextMenus', 'scripting'],
+        permissions: ['storage', 'activeTab', 'contextMenus', 'scripting', 'webNavigation'],
         host_permissions: ['<all_urls>'],
         description: 'Scrape recipes and save them to a Mealie instance.',
         name: 'Mini Mealie',

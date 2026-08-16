@@ -250,6 +250,42 @@ describe('App', () => {
             expect(checkStorageAndUpdateBadge).toHaveBeenCalled();
         });
 
+        it('defaults to automatic scraping mode', async () => {
+            render(<App />);
+
+            const automaticRadio = await screen.findByRole('radio', { name: /Automatic/i });
+            const manualRadio = screen.getByRole('radio', { name: /Manual/i });
+            expect(automaticRadio).toBeChecked();
+            expect(manualRadio).not.toBeChecked();
+        });
+
+        it('switches to manual scraping mode and triggers a badge/menu refresh', async () => {
+            const user = userEvent.setup();
+            render(<App />);
+
+            const manualRadio = await screen.findByRole('radio', { name: /Manual/i });
+            await user.click(manualRadio);
+
+            expect(manualRadio).toBeChecked();
+            await waitFor(async () => {
+                const stored = await chrome.storage.sync.get('autoScrapeMode');
+                expect(stored.autoScrapeMode).toBe('manual');
+            });
+            expect(checkStorageAndUpdateBadge).toHaveBeenCalled();
+        });
+
+        it('reacts to external autoScrapeMode storage changes', async () => {
+            render(<App />);
+
+            const automaticRadio = await screen.findByRole('radio', { name: /Automatic/i });
+            await waitFor(() => expect(automaticRadio).toBeChecked());
+
+            await chrome.storage.sync.set({ autoScrapeMode: 'manual' });
+
+            const manualRadio = screen.getByRole('radio', { name: /Manual/i });
+            await waitFor(() => expect(manualRadio).toBeChecked());
+        });
+
         it('disconnects and resets local state back to the connect form', async () => {
             const user = userEvent.setup();
             render(<App />);

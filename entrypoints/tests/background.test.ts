@@ -46,6 +46,25 @@ const mockUser = {
     household: 'household',
 };
 
+function makeCommitDetails(
+    overrides: Partial<chrome.webNavigation.WebNavigationTransitionCallbackDetails> = {},
+): chrome.webNavigation.WebNavigationTransitionCallbackDetails {
+    return {
+        tabId: 1,
+        frameId: 0,
+        parentFrameId: -1,
+        processId: 1,
+        url: 'https://example.com/recipe',
+        timeStamp: Date.now(),
+        documentId: 'doc-1',
+        documentLifecycle: 'active',
+        frameType: 'outermost_frame',
+        transitionType: 'link',
+        transitionQualifiers: [],
+        ...overrides,
+    };
+}
+
 function getContextMenuClickListener() {
     const spy = vi.mocked(fakeBrowser.contextMenus.onClicked.addListener);
     const call = spy.mock.calls.at(-1);
@@ -102,10 +121,10 @@ describe('background', () => {
             });
         });
 
-        it('refreshes when a tab navigates to a non-restricted URL', async () => {
-            await fakeBrowser.tabs.onUpdated.trigger(1, { url: 'https://example.com/recipe' }, {
-                id: 1,
-            } as chrome.tabs.Tab);
+        it('refreshes when a tab commits a real navigation to a non-restricted URL', async () => {
+            await fakeBrowser.webNavigation.onCommitted.trigger(
+                makeCommitDetails({ url: 'https://example.com/recipe' }),
+            );
 
             await vi.waitFor(() => expect(checkStorageAndUpdateBadge).toHaveBeenCalled(), {
                 timeout: 1000,
@@ -114,9 +133,39 @@ describe('background', () => {
         });
 
         it('does not refresh when a tab navigates to a restricted URL', async () => {
-            await fakeBrowser.tabs.onUpdated.trigger(1, { url: 'chrome://extensions' }, {
-                id: 1,
-            } as chrome.tabs.Tab);
+            await fakeBrowser.webNavigation.onCommitted.trigger(
+                makeCommitDetails({ url: 'chrome://extensions' }),
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            expect(checkStorageAndUpdateBadge).not.toHaveBeenCalled();
+        });
+
+        it('does not refresh when a tab navigates to a private-network URL', async () => {
+            await fakeBrowser.webNavigation.onCommitted.trigger(
+                makeCommitDetails({ url: 'http://192.168.1.156:8123/' }),
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            expect(checkStorageAndUpdateBadge).not.toHaveBeenCalled();
+        });
+
+        it('does not refresh for a non-top-level (iframe) navigation commit', async () => {
+            await fakeBrowser.webNavigation.onCommitted.trigger(
+                makeCommitDetails({ frameId: 7, url: 'https://example.com/recipe' }),
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            expect(checkStorageAndUpdateBadge).not.toHaveBeenCalled();
+        });
+
+        it('does not refresh on a pushState/replaceState soft-navigation (onHistoryStateUpdated)', async () => {
+            // This is the exact bug we're fixing: a page rewriting its own URL via the History
+            // API (e.g. a Home Assistant dashboard redirecting through several internal routes
+            // on load) is not a new page the user navigated to, and must not trigger a rescan.
+            await fakeBrowser.webNavigation.onHistoryStateUpdated.trigger(
+                makeCommitDetails({ url: 'http://192.168.1.156:8123/dashboard-welcome/0' }),
+            );
 
             await new Promise((resolve) => setTimeout(resolve, 300));
             expect(checkStorageAndUpdateBadge).not.toHaveBeenCalled();
