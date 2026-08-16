@@ -6,6 +6,7 @@ import { findRecipeByURL, searchRecipesByName, testScrapeUrlDetailed } from '../
 import {
     checkStorageAndUpdateBadge,
     clearDetectionCache,
+    isPrivateNetworkUrl,
     resetBadgeMenuRefreshQueueForTests,
 } from '../storage';
 
@@ -114,6 +115,65 @@ describe('checkStorageAndUpdateBadge', () => {
             true,
             {},
             true,
+        );
+    });
+
+    it('should skip scraping and show the default title for a private-network tab URL, without calling Mealie', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({ mealieServer: 'https://mealie.tld', mealieApiToken: 'mock-token' });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () =>
+                Promise.resolve([
+                    { ...mockActiveTab, url: 'http://192.168.1.156:8123/dashboard-welcome/0' },
+                ]) as unknown as void,
+        );
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
+
+        await checkStorageAndUpdateBadge();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        expect(mockTestScrapeUrlDetailed).not.toHaveBeenCalled();
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
+            'No Recipe - Switch to HTML Mode',
+            true,
+            {},
+            true,
+        );
+    });
+
+    it('should skip automatic scraping and show a static enabled title in manual scrape mode', async () => {
+        vi.spyOn(chrome.storage.sync, 'get').mockImplementation(
+            (_keys, callback: (items: Record<string, string>) => void) => {
+                callback({
+                    mealieServer: 'https://mealie.tld',
+                    mealieApiToken: 'mock-token',
+                    autoScrapeMode: 'manual',
+                });
+            },
+        );
+
+        vi.spyOn(chrome.tabs, 'query').mockImplementation(
+            () => Promise.resolve([mockActiveTab]) as unknown as void,
+        );
+
+        const mockTestScrapeUrlDetailed = vi.mocked(testScrapeUrlDetailed);
+        const mockUpdateContextMenu = vi.mocked(updateContextMenu);
+
+        await checkStorageAndUpdateBadge();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        expect(mockTestScrapeUrlDetailed).not.toHaveBeenCalled();
+        expect(mockUpdateContextMenu).toHaveBeenCalledWith(
+            'Create Recipe from URL',
+            true,
+            {},
+            false,
         );
     });
 
@@ -775,5 +835,28 @@ describe('checkStorageAndUpdateBadge', () => {
             // Should fall back to empty result on error
             expect(cached?.duplicateDetection).toEqual({});
         });
+    });
+});
+
+describe('isPrivateNetworkUrl', () => {
+    it.each([
+        ['http://192.168.1.156:8123/', true],
+        ['http://192.168.1.156:8123/dashboard-welcome/0', true],
+        ['http://10.0.0.5/', true],
+        ['http://172.16.0.1/', true],
+        ['http://172.31.255.255/', true],
+        ['http://127.0.0.1:8080/', true],
+        ['http://169.254.1.1/', true],
+        ['http://localhost:3000/', true],
+        ['http://homeassistant.local:8123/', true],
+        ['http://[::1]/', true],
+        ['http://[fe80::1]/', true],
+        ['http://[fc00::1]/', true],
+        ['https://recipe.org/mock-recipe-url', false],
+        ['https://172.32.0.1/', false], // just outside the 172.16.0.0/12 range
+        ['https://192.169.0.1/', false], // just outside the 192.168.0.0/16 range
+        ['not a valid url', false],
+    ])('isPrivateNetworkUrl(%s) === %s', (url, expected) => {
+        expect(isPrivateNetworkUrl(url)).toBe(expected);
     });
 });

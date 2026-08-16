@@ -8,7 +8,12 @@ import {
     mergeMealieCredentialsFromLocalIfNeeded,
     mirrorMealieCredentialsToLocal,
 } from '@/utils/storage';
-import { isRecipeCreateMode, RecipeCreateMode } from '@/utils/types/storageTypes';
+import {
+    AutoScrapeMode,
+    isAutoScrapeMode,
+    isRecipeCreateMode,
+    RecipeCreateMode,
+} from '@/utils/types/storageTypes';
 
 /**
  * Returns the URL only when it uses a safe http/https protocol,
@@ -46,6 +51,7 @@ function App() {
     const [recipeCreateMode, setRecipeCreateMode] = useState<RecipeCreateMode>(
         RecipeCreateMode.URL,
     );
+    const [autoScrapeMode, setAutoScrapeMode] = useState<AutoScrapeMode>(AutoScrapeMode.AUTOMATIC);
     const [error, setError] = useState(false);
     const [connectErrorDetail, setConnectErrorDetail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -63,6 +69,7 @@ function App() {
                     mealieApiToken: storedToken,
                     mealieUsername,
                     recipeCreateMode: storedRecipeCreateMode,
+                    autoScrapeMode: storedAutoScrapeMode,
                     importTags: storedImportTags,
                     importCategories: storedImportCategories,
                     openAfterImport: storedOpenAfterImport,
@@ -88,6 +95,9 @@ function App() {
                 if (mealieUsername) setUsername(mealieUsername);
                 if (isRecipeCreateMode(storedRecipeCreateMode)) {
                     setRecipeCreateMode(storedRecipeCreateMode);
+                }
+                if (isAutoScrapeMode(storedAutoScrapeMode)) {
+                    setAutoScrapeMode(storedAutoScrapeMode);
                 }
                 setImportTags(storedImportTags ?? true);
                 setImportCategories(storedImportCategories ?? true);
@@ -131,6 +141,13 @@ function App() {
                 const newMode = changes.recipeCreateMode.newValue;
                 if (isRecipeCreateMode(newMode)) {
                     setRecipeCreateMode(newMode);
+                }
+            }
+
+            if (areaName === 'sync' && changes.autoScrapeMode?.newValue) {
+                const newScrapeMode = changes.autoScrapeMode.newValue;
+                if (isAutoScrapeMode(newScrapeMode)) {
+                    setAutoScrapeMode(newScrapeMode);
                 }
             }
         };
@@ -241,6 +258,7 @@ function App() {
             setInputServer(Protocol.HTTPS);
             setProtocol(Protocol.HTTPS);
             setRecipeCreateMode(RecipeCreateMode.URL);
+            setAutoScrapeMode(AutoScrapeMode.AUTOMATIC);
             setImportTags(true);
             setImportCategories(true);
             setOpenAfterImport(false);
@@ -252,6 +270,14 @@ function App() {
     const updateRecipeCreateMode = (next: RecipeCreateMode) => {
         chrome.storage.sync.set({ recipeCreateMode: next }, async () => {
             setRecipeCreateMode(next);
+            // Trigger context menu update with new mode
+            void checkStorageAndUpdateBadge();
+        });
+    };
+
+    const updateAutoScrapeMode = (next: AutoScrapeMode) => {
+        chrome.storage.sync.set({ autoScrapeMode: next }, async () => {
+            setAutoScrapeMode(next);
             // Trigger context menu update with new mode
             void checkStorageAndUpdateBadge();
         });
@@ -409,6 +435,52 @@ function App() {
                                     />
                                     <span className="segmented-label">HTML</span>
                                     <span className="segmented-subtitle">Send page content</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="recipe-mode-card">
+                            <div
+                                className="segmented"
+                                role="radiogroup"
+                                aria-label="Automatic scraping mode"
+                            >
+                                <label
+                                    className={
+                                        autoScrapeMode === AutoScrapeMode.AUTOMATIC
+                                            ? 'segmented-option is-active'
+                                            : 'segmented-option'
+                                    }
+                                >
+                                    <input
+                                        type="radio"
+                                        name="autoScrapeMode"
+                                        value={AutoScrapeMode.AUTOMATIC}
+                                        checked={autoScrapeMode === AutoScrapeMode.AUTOMATIC}
+                                        onChange={() =>
+                                            updateAutoScrapeMode(AutoScrapeMode.AUTOMATIC)
+                                        }
+                                    />
+                                    <span className="segmented-label">Automatic</span>
+                                    <span className="segmented-subtitle">Scan pages as opened</span>
+                                </label>
+
+                                <label
+                                    className={
+                                        autoScrapeMode === AutoScrapeMode.MANUAL
+                                            ? 'segmented-option is-active'
+                                            : 'segmented-option'
+                                    }
+                                >
+                                    <input
+                                        type="radio"
+                                        name="autoScrapeMode"
+                                        value={AutoScrapeMode.MANUAL}
+                                        checked={autoScrapeMode === AutoScrapeMode.MANUAL}
+                                        onChange={() => updateAutoScrapeMode(AutoScrapeMode.MANUAL)}
+                                    />
+                                    <span className="segmented-label">Manual</span>
+                                    <span className="segmented-subtitle">Scan only when I ask</span>
                                 </label>
                             </div>
                         </div>

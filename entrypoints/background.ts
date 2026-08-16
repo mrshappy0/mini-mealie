@@ -52,15 +52,22 @@ export default defineBackground(() => {
         scheduleUpdate();
     });
 
-    // Detect when a tab URL is updated
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-        if (changeInfo.url) {
-            // Skip internal browser and extension pages
-            if (isRestrictedUrl(changeInfo.url)) {
-                return;
-            }
-            scheduleUpdate();
+    // Detect when a tab commits a real navigation (typed URL, link click, reload, redirect,
+    // back/forward, etc). We deliberately do NOT use tabs.onUpdated's `changeInfo.url` for this:
+    // it also fires for pushState/replaceState-driven SPA soft-navigations, which aren't a new
+    // page the user navigated to. Treating those as one caused repeated wasted test-scrape-url
+    // calls — e.g. a single load of a Home Assistant dashboard rewrites its own URL through
+    // several internal routes in under a second, each one firing its own scrape and, since it's
+    // a local-network host, its own unhandled 500 from Mealie's SSRF guard.
+    chrome.webNavigation.onCommitted.addListener((details) => {
+        // Only top-level frame navigations; ignore iframes.
+        if (details.frameId !== 0) {
+            return;
         }
+        if (isRestrictedUrl(details.url) || isPrivateNetworkUrl(details.url)) {
+            return;
+        }
+        scheduleUpdate();
     });
 
     // E2E hook: lets the test harness trigger the exact same code path as the

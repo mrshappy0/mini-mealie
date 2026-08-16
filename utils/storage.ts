@@ -4,6 +4,8 @@ import { logEvent, sanitizeUrl } from './logging';
 import { findRecipeByURL, searchRecipesByName, testScrapeUrlDetailed } from './network';
 import type { RecipeSummary } from './types/apiTypes';
 import {
+    AutoScrapeMode,
+    isAutoScrapeMode,
     isRecipeCreateMode,
     RecipeCreateMode,
     type StorageData,
@@ -77,6 +79,57 @@ export function isRestrictedUrl(url: string): boolean {
         // Invalid URL - treat as restricted
         return true;
     }
+}
+
+/** [start, end] inclusive ranges of 32-bit unsigned ints covering private/loopback/link-local IPv4 space. */
+const PRIVATE_IPV4_RANGES: ReadonlyArray<readonly [number, number]> = [
+    [0x0a000000, 0x0affffff], // 10.0.0.0/8
+    [0xac100000, 0xac1fffff], // 172.16.0.0/12
+    [0xc0a80000, 0xc0a8ffff], // 192.168.0.0/16
+    [0x7f000000, 0x7fffffff], // 127.0.0.0/8 (loopback)
+    [0xa9fe0000, 0xa9feffff], // 169.254.0.0/16 (link-local)
+];
+
+/**
+ * Check if a URL points at a private-network host (RFC1918, loopback, link-local, or
+ * mDNS `.local`) — the kind of address a self-hosted Mealie server's SSRF guard rejects
+ * outright. Scraping these is always wasted work: it can never yield a recipe, and on the
+ * server it surfaces as an unhandled 500 rather than a clean rejection.
+ */
+export function isPrivateNetworkUrl(url: string): boolean {
+    let hostname: string;
+    try {
+        hostname = new URL(url).hostname.toLowerCase();
+    } catch {
+        return false;
+    }
+
+    if (hostname === 'localhost' || hostname.endsWith('.local')) {
+        return true;
+    }
+
+    const ipv4Match = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (ipv4Match) {
+        const octets = ipv4Match.slice(1).map(Number);
+        if (octets.some((octet) => octet > 255)) return false;
+        const [a, b, c, d] = octets as [number, number, number, number];
+        const value = ((a << 24) | (b << 16) | (c << 8) | d) >>> 0;
+        return PRIVATE_IPV4_RANGES.some(([start, end]) => value >= start && value <= end);
+    }
+
+    if (hostname.includes(':')) {
+        // URL.hostname keeps the brackets for IPv6 literals (e.g. "[::1]") — strip them.
+        const ipv6 = hostname.replace(/^\[|\]$/g, '');
+        // Loopback (::1), link-local (fe80::/10), unique-local (fc00::/7)
+        return (
+            ipv6 === '::1' ||
+            ipv6.startsWith('fe80:') ||
+            ipv6.startsWith('fc') ||
+            ipv6.startsWith('fd')
+        );
+    }
+
+    return false;
 }
 
 /**
@@ -468,7 +521,7 @@ function recordBadgeMenuRefresh(summary: Record<string, unknown>): void {
 }
 
 async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Promise<void> {
-    const { mealieServer, mealieApiToken, recipeCreateMode } = data;
+    const { mealieServer, mealieApiToken, recipeCreateMode, autoScrapeMode } = data;
     if (checkId !== lastCheckId) return;
 
     const record = (summary: Record<string, unknown>) =>
@@ -477,6 +530,7 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
             srv: Boolean(mealieServer),
             tok: Boolean(mealieApiToken),
             mode: recipeCreateMode ?? null,
+            scrapeMode: autoScrapeMode ?? null,
             ...summary,
         });
 
@@ -535,13 +589,29 @@ async function runStorageCheckAfterMerge(checkId: number, data: StorageData): Pr
         return;
     }
 
-    // From here on, we're in URL mode only
+    // In manual scrape mode, never contact Mealie automatically — only an explicit click
+    // (via the context menu, which always shows a static enabled title here) triggers a
+    // scrape. No pre-detection means no duplicate warnings either; that's the tradeoff for
+    // not sending every opened page to the user's Mealie server.
+    const scrapeMode = isAutoScrapeMode(autoScrapeMode) ? autoScrapeMode : AutoScrapeMode.AUTOMATIC;
+    if (scrapeMode === AutoScrapeMode.MANUAL) {
+        updateContextMenu('Create Recipe from URL', true, {}, false);
+        record({
+            outcome: 'manual_mode_static_menu',
+            tabsReturned: tabsResult.length,
+            activeTabId: tab?.id,
+            hadTabUrl: Boolean(url),
+        });
+        return;
+    }
+
+    // From here on, we're in automatic URL mode only
     let title = 'No Recipe - Switch to HTML Mode';
     const enabled = true; // Always enabled
     let isErrorSuggestion = true; // Default to error state
     let duplicateInfo: DuplicateDetectionResult = {};
 
-    if (url) {
+    if (url && !isPrivateNetworkUrl(url)) {
         pruneDetectionCache();
 
         const cached = detectionCache.get(url);

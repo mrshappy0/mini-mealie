@@ -8,11 +8,22 @@ export type RecipeCreateMode = (typeof RecipeCreateMode)[keyof typeof RecipeCrea
 export const isRecipeCreateMode = (value: unknown): value is RecipeCreateMode =>
     value === RecipeCreateMode.URL || value === RecipeCreateMode.HTML;
 
+export const AutoScrapeMode = {
+    AUTOMATIC: 'automatic',
+    MANUAL: 'manual',
+} as const;
+
+export type AutoScrapeMode = (typeof AutoScrapeMode)[keyof typeof AutoScrapeMode];
+
+export const isAutoScrapeMode = (value: unknown): value is AutoScrapeMode =>
+    value === AutoScrapeMode.AUTOMATIC || value === AutoScrapeMode.MANUAL;
+
 export const storageKeys = [
     'mealieServer',
     'mealieApiToken',
     'mealieUsername',
     'recipeCreateMode',
+    'autoScrapeMode',
     'suggestHtmlMode',
     'importTags',
     'importCategories',
@@ -24,6 +35,7 @@ export type StorageData = {
     mealieApiToken?: string;
     mealieUsername?: string;
     recipeCreateMode?: RecipeCreateMode;
+    autoScrapeMode?: AutoScrapeMode;
     suggestHtmlMode?: boolean;
     importTags?: boolean;
     importCategories?: boolean;
