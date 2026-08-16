@@ -95,6 +95,13 @@ const PRIVATE_IPV4_RANGES: ReadonlyArray<readonly [number, number]> = [
  * mDNS `.local`) — the kind of address a self-hosted Mealie server's SSRF guard rejects
  * outright. Scraping these is always wasted work: it can never yield a recipe, and on the
  * server it surfaces as an unhandled 500 rather than a clean rejection.
+ *
+ * Known gap: this is a syntactic check only. A custom internal hostname that isn't a
+ * literal IP or `.local` (e.g. a LAN device published under someone's own domain, like
+ * `nas.example-home.net`) still resolves to a private address but won't be caught here —
+ * detecting that would require an actual DNS lookup from the background script, which is
+ * too heavyweight for this check. Mealie's own SSRF guard still rejects those requests
+ * safely server-side; the cost is one wasted request, not a security gap.
  */
 export function isPrivateNetworkUrl(url: string): boolean {
     let hostname: string;
