@@ -391,6 +391,11 @@ function App() {
                             </p>
                         </div>
 
+                        <TodaysMealPlan
+                            mealieServer={mealieServer}
+                            mealieApiToken={mealieApiToken}
+                        />
+
                         <div className="recipe-mode-card">
                             <div
                                 className="segmented"
@@ -528,6 +533,117 @@ function App() {
                 <BuyMeACoffeeButton />
             </div>
         </>
+    );
+}
+
+const MEAL_PLAN_ENTRY_TYPE_ORDER: PlanEntryType[] = [
+    'breakfast',
+    'lunch',
+    'dinner',
+    'side',
+    'snack',
+    'drink',
+    'dessert',
+];
+
+const MEAL_PLAN_ENTRY_TYPE_LABEL: Record<PlanEntryType, string> = {
+    breakfast: '🍳 Breakfast',
+    lunch: '🥪 Lunch',
+    dinner: '🍽️ Dinner',
+    side: '🥗 Side',
+    snack: '🍿 Snack',
+    drink: '🥤 Drink',
+    dessert: '🍰 Dessert',
+};
+
+type MealPlanState =
+    | { status: 'loading' }
+    | { status: 'error'; message: string }
+    | { status: 'loaded'; entries: MealPlanEntry[]; groupSlug?: string };
+
+function TodaysMealPlan({
+    mealieServer,
+    mealieApiToken,
+}: {
+    mealieServer: string;
+    mealieApiToken: string;
+}) {
+    const [state, setState] = useState<MealPlanState>({ status: 'loading' });
+
+    useEffect(() => {
+        let cancelled = false;
+        setState({ status: 'loading' });
+
+        void (async () => {
+            const [entriesResult, user] = await Promise.all([
+                getTodaysMealPlan(mealieServer, mealieApiToken),
+                getUser(mealieServer, mealieApiToken),
+            ]);
+
+            if (cancelled) return;
+
+            if (entriesResult === 'failure') {
+                setState({ status: 'error', message: "Couldn't load today's meal plan." });
+                return;
+            }
+
+            const groupSlug = 'groupSlug' in user ? user.groupSlug : undefined;
+            const sorted = [...entriesResult].sort(
+                (a, b) =>
+                    MEAL_PLAN_ENTRY_TYPE_ORDER.indexOf(a.entryType) -
+                    MEAL_PLAN_ENTRY_TYPE_ORDER.indexOf(b.entryType),
+            );
+            setState({ status: 'loaded', entries: sorted, groupSlug });
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [mealieServer, mealieApiToken]);
+
+    const openRecipe = (recipe: RecipeSummary, groupSlug: string | undefined) => {
+        if (!groupSlug) return;
+        const url = `${normalizeMealieServerBaseUrl(mealieServer)}/g/${encodeURIComponent(groupSlug)}/r/${encodeURIComponent(recipe.slug)}`;
+        void chrome.tabs.create({ url });
+    };
+
+    return (
+        <div className="meal-plan-card">
+            <h3 className="meal-plan-title">🗓️ Today&apos;s Meal Plan</h3>
+            {state.status === 'loading' && <p className="meal-plan-empty">Loading…</p>}
+            {state.status === 'error' && <p className="connect-error-detail">{state.message}</p>}
+            {state.status === 'loaded' && state.entries.length === 0 && (
+                <p className="meal-plan-empty">Nothing planned for today.</p>
+            )}
+            {state.status === 'loaded' && state.entries.length > 0 && (
+                <ul className="meal-plan-list">
+                    {state.entries.map((entry) => {
+                        const recipe = entry.recipe;
+                        return (
+                            <li key={entry.id} className="meal-plan-entry">
+                                <span className="meal-plan-type">
+                                    {MEAL_PLAN_ENTRY_TYPE_LABEL[entry.entryType]}
+                                </span>
+                                {recipe ? (
+                                    <button
+                                        type="button"
+                                        className="meal-plan-recipe-link"
+                                        onClick={() => openRecipe(recipe, state.groupSlug)}
+                                        disabled={!state.groupSlug}
+                                    >
+                                        {recipe.name}
+                                    </button>
+                                ) : (
+                                    <span className="meal-plan-freeform">
+                                        {entry.title || entry.text || 'Untitled'}
+                                    </span>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </div>
     );
 }
 
