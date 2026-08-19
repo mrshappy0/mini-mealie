@@ -355,6 +355,103 @@ input:checked + .slider::before {
     color: var(--mealie-hover);
 }
 
+.collapsible-section {
+    margin: 0.5em 0;
+    text-align: left;
+}
+
+.collapsible-toggle {
+    width: 100%;
+    text-align: left;
+    background-color: #222;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.collapsible-toggle:hover {
+    background-color: #2c2c2c;
+}
+
+.collapsible-body {
+    padding: 0.6em 0.5em 0.2em;
+    background-color: #222;
+    border-radius: 0 0 6px 6px;
+    margin-top: -2px;
+}
+
+.shopping-search-row {
+    display: flex;
+    gap: 0.4em;
+    align-items: stretch;
+}
+
+.shopping-search-row input[type='text'] {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.shopping-search-row button {
+    width: auto;
+    white-space: nowrap;
+    padding: 0.6em 0.8em;
+}
+
+.shopping-results {
+    list-style: none;
+    margin: 0.5em 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+.shopping-results button {
+    text-align: left;
+    font-size: 0.9em;
+    padding: 0.45em 0.6em;
+}
+
+.shopping-selected {
+    margin-top: 0.5em;
+}
+
+.shopping-selected select {
+    width: 100%;
+    padding: 0.5em;
+    margin-bottom: 0.4em;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #2c2c2c;
+    color: var(--mealie-white);
+}
+
+.shopping-back {
+    background-color: transparent;
+    color: var(--mealie-orange);
+    font-size: 0.85em;
+    padding: 0.3em 0;
+    margin-top: 0.2em;
+}
+
+.shopping-back:hover {
+    background-color: transparent;
+    text-decoration: underline;
+}
+
+.shopping-empty {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0.5em 0 0;
+}
+
+.shopping-success {
+    font-size: 0.85em;
+    color: #8fd694;
+    margin: 0.5em 0 0;
+}
+
 .activity-log {
     margin-top: 0.35em;
     margin-bottom: 0.35em;

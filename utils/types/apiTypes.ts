@@ -15,6 +15,11 @@ export interface RecipeSummary {
     orgURL?: string | null;
 }
 
+export interface ShoppingListSummary {
+    id: string;
+    name: string | null;
+}
+
 export enum Protocol {
     HTTP = 'http://',
     HTTPS = 'https://',
