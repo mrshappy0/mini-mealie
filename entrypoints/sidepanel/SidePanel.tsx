@@ -23,7 +23,7 @@ export function SidePanel() {
     return (
         <div className="sidepanel">
             <header className="sidepanel-header">
-                <h1>🛒 Shopping List</h1>
+                <h1>Shopping List</h1>
             </header>
             {!loaded ? (
                 <p className="sidepanel-empty">Loading…</p>
