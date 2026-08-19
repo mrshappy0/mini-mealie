@@ -11,7 +11,8 @@ export type LogFeature =
     | 'html-capture'
     | 'network'
     | 'storage'
-    | 'duplicate-detect';
+    | 'duplicate-detect'
+    | 'meal-plan';
 
 export type LogEvent = {
     id: string;

@@ -2,13 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getUser } from '@/utils/network';
+import { getTodaysMealPlan, getUser } from '@/utils/network';
 import { checkStorageAndUpdateBadge } from '@/utils/storage';
 
 import App from '../App';
 
 vi.mock('@/utils/network', () => ({
     getUser: vi.fn(),
+    getTodaysMealPlan: vi.fn(),
 }));
 
 vi.mock('@/utils/storage', async (importOriginal) => {
@@ -33,6 +34,10 @@ describe('App', () => {
     beforeEach(() => {
         fakeBrowser.reset();
         vi.clearAllMocks();
+        // TodaysMealPlan fetches on every mount of the connected view; default to a quiet,
+        // empty plan so tests unrelated to it don't have to know about these calls.
+        vi.mocked(getUser).mockResolvedValue(mockUser);
+        vi.mocked(getTodaysMealPlan).mockResolvedValue([]);
     });
 
     afterEach(() => {
@@ -307,6 +312,70 @@ describe('App', () => {
             expect(stored.mealieServer).toBeUndefined();
             expect(stored.mealieApiToken).toBeUndefined();
             expect(stored.mealieUsername).toBeUndefined();
+        });
+    });
+
+    describe('TodaysMealPlan', () => {
+        beforeEach(async () => {
+            await chrome.storage.sync.set({
+                mealieServer: 'https://mealie.example.com',
+                mealieApiToken: 'token123',
+                mealieUsername: 'chef',
+            });
+        });
+
+        it('shows an empty state when nothing is planned for today', async () => {
+            vi.mocked(getTodaysMealPlan).mockResolvedValue([]);
+            render(<App />);
+
+            expect(await screen.findByText(/nothing planned for today/i)).toBeInTheDocument();
+        });
+
+        it('lists entries grouped by meal type, linking recipes and showing freeform text plainly', async () => {
+            vi.mocked(getTodaysMealPlan).mockResolvedValue([
+                {
+                    id: 1,
+                    date: '2026-08-19',
+                    entryType: 'dinner',
+                    title: '',
+                    text: '',
+                    recipeId: 'recipe-1',
+                    recipe: { id: 'recipe-1', name: 'Chicken Soup', slug: 'chicken-soup' },
+                },
+                {
+                    id: 2,
+                    date: '2026-08-19',
+                    entryType: 'breakfast',
+                    title: 'Leftover pancakes',
+                    text: '',
+                    recipeId: null,
+                },
+            ]);
+            const createTab = vi.spyOn(chrome.tabs, 'create');
+            const user = userEvent.setup();
+            render(<App />);
+
+            const recipeLink = await screen.findByRole('button', { name: 'Chicken Soup' });
+            expect(screen.getByText('Leftover pancakes')).toBeInTheDocument();
+
+            // Breakfast should render before dinner despite dinner being fetched first.
+            const entries = screen.getAllByText(/Breakfast|Dinner/);
+            expect(entries[0]).toHaveTextContent('Breakfast');
+
+            await user.click(recipeLink);
+
+            expect(createTab).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    url: 'https://mealie.example.com/g/group-slug/r/chicken-soup',
+                }),
+            );
+        });
+
+        it('shows an error message when the meal plan fails to load', async () => {
+            vi.mocked(getTodaysMealPlan).mockResolvedValue('failure');
+            render(<App />);
+
+            expect(await screen.findByText(/couldn.t load today.s meal plan/i)).toBeInTheDocument();
         });
     });
 
