@@ -71,7 +71,7 @@
         "jsdom": "^30.0.1",
         "playwright": "^1.62.1",
         "prettier": "^3.9.6",
-        "resend": "^6.18.1",
+        "resend": "^6.20.0",
         "selenium-webdriver": "^4.30.0",
         "semantic-release": "^25.0.8",
         "tsx": "^4.23.11",
