@@ -23,7 +23,7 @@ export function SidePanel() {
     return (
         <div className="sidepanel">
             <header className="sidepanel-header">
-                <h1>Shopping List</h1>
+                <h1>Add to Shopping List</h1>
             </header>
             {!loaded ? (
                 <p className="sidepanel-empty">Loading…</p>
@@ -128,7 +128,7 @@ function ShoppingListFinder({
             <div className="shopping-search-row">
                 <input
                     type="text"
-                    placeholder="Search your recipes…"
+                    placeholder="Search recipes to add…"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => {

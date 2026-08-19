@@ -558,7 +558,7 @@ function ShoppingListPanelButton() {
     return (
         <div className="activity-log">
             <button className="activity-log-link" onClick={openShoppingListPanel}>
-                Open Shopping List ↗
+                Add to Shopping List ↗
             </button>
         </div>
     );

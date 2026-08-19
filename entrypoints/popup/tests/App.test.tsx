@@ -337,7 +337,7 @@ describe('App', () => {
             const user = userEvent.setup();
             render(<App />);
 
-            await user.click(await screen.findByRole('button', { name: /open shopping list/i }));
+            await user.click(await screen.findByRole('button', { name: /add to shopping list/i }));
 
             expect(open).toHaveBeenCalledWith({ windowId: -2 });
         });
@@ -351,7 +351,7 @@ describe('App', () => {
             const user = userEvent.setup();
             render(<App />);
 
-            await user.click(await screen.findByRole('button', { name: /open shopping list/i }));
+            await user.click(await screen.findByRole('button', { name: /add to shopping list/i }));
 
             expect(open).toHaveBeenCalled();
         });

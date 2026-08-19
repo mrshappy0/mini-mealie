@@ -47,7 +47,7 @@ describe('SidePanel', () => {
         const user = userEvent.setup();
         render(<SidePanel />);
 
-        const searchInput = await screen.findByPlaceholderText('Search your recipes…');
+        const searchInput = await screen.findByPlaceholderText('Search recipes to add…');
         await user.type(searchInput, 'Chicken');
         await user.click(screen.getByRole('button', { name: /^search$/i }));
 
@@ -88,7 +88,7 @@ describe('SidePanel', () => {
         const user = userEvent.setup();
         render(<SidePanel />);
 
-        const searchInput = await screen.findByPlaceholderText('Search your recipes…');
+        const searchInput = await screen.findByPlaceholderText('Search recipes to add…');
         await user.type(searchInput, 'Nonexistent');
         await user.click(screen.getByRole('button', { name: /^search$/i }));
 
@@ -109,7 +109,7 @@ describe('SidePanel', () => {
         const user = userEvent.setup();
         render(<SidePanel />);
 
-        const searchInput = await screen.findByPlaceholderText('Search your recipes…');
+        const searchInput = await screen.findByPlaceholderText('Search recipes to add…');
         await user.type(searchInput, 'Chicken');
         await user.click(screen.getByRole('button', { name: /^search$/i }));
         await user.click(await screen.findByRole('button', { name: 'Chicken Soup' }));
@@ -131,7 +131,7 @@ describe('SidePanel', () => {
         const user = userEvent.setup();
         render(<SidePanel />);
 
-        const searchInput = await screen.findByPlaceholderText('Search your recipes…');
+        const searchInput = await screen.findByPlaceholderText('Search recipes to add…');
         await user.type(searchInput, 'Chicken');
         await user.click(screen.getByRole('button', { name: /^search$/i }));
         await user.click(await screen.findByRole('button', { name: 'Chicken Soup' }));
@@ -153,7 +153,7 @@ describe('SidePanel', () => {
         const user = userEvent.setup();
         render(<SidePanel />);
 
-        const searchInput = await screen.findByPlaceholderText('Search your recipes…');
+        const searchInput = await screen.findByPlaceholderText('Search recipes to add…');
         await user.type(searchInput, 'Chicken');
         await user.click(screen.getByRole('button', { name: /^search$/i }));
         await user.click(await screen.findByRole('button', { name: 'Chicken Soup' }));
