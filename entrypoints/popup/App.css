@@ -360,7 +360,10 @@ input:checked + .slider::before {
     text-align: left;
 }
 
-.collapsible-toggle {
+/* `.card button` (element+class) otherwise beats a bare `.collapsible-toggle`
+   (class-only) on specificity and wins with its orange fill — qualify with
+   `.card` so this rule's two classes outrank it. */
+.card .collapsible-toggle {
     width: 100%;
     text-align: left;
     background-color: #222;
@@ -368,7 +371,7 @@ input:checked + .slider::before {
     font-weight: 600;
 }
 
-.collapsible-toggle:hover {
+.card .collapsible-toggle:hover {
     background-color: #2c2c2c;
 }
 
@@ -402,15 +405,32 @@ input:checked + .slider::before {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.3em;
-    max-height: 140px;
+    max-height: 150px;
     overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+.shopping-results li:not(:first-child) {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .shopping-results button {
+    width: 100%;
     text-align: left;
-    font-size: 0.9em;
-    padding: 0.45em 0.6em;
+    font-size: 0.88em;
+    padding: 0.5em 0.65em;
+    background-color: #2a2a2a;
+    color: var(--mealie-white);
+    border-radius: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shopping-results button:hover {
+    background-color: rgba(236, 126, 25, 0.18);
 }
 
 .shopping-selected {
