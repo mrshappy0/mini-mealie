@@ -2,21 +2,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-    addRecipeToShoppingList,
-    getShoppingLists,
-    getUser,
-    searchRecipesByName,
-} from '@/utils/network';
+import { getUser } from '@/utils/network';
 import { checkStorageAndUpdateBadge } from '@/utils/storage';
 
 import App from '../App';
 
 vi.mock('@/utils/network', () => ({
     getUser: vi.fn(),
-    searchRecipesByName: vi.fn(),
-    getShoppingLists: vi.fn(),
-    addRecipeToShoppingList: vi.fn(),
 }));
 
 vi.mock('@/utils/storage', async (importOriginal) => {
@@ -318,7 +310,7 @@ describe('App', () => {
         });
     });
 
-    describe('ShoppingListQuickAdd', () => {
+    describe('ShoppingListPanelButton', () => {
         beforeEach(async () => {
             await chrome.storage.sync.set({
                 mealieServer: 'https://mealie.example.com',
@@ -327,102 +319,41 @@ describe('App', () => {
             });
         });
 
-        it('is collapsed by default and expands on click', async () => {
-            const user = userEvent.setup();
-            render(<App />);
-
-            const toggle = await screen.findByRole('button', {
-                name: /add recipe to shopping list/i,
-            });
-            expect(screen.queryByPlaceholderText('Search your recipes…')).not.toBeInTheDocument();
-
-            await user.click(toggle);
-
-            expect(screen.getByPlaceholderText('Search your recipes…')).toBeInTheDocument();
+        afterEach(() => {
+            // These aren't part of fakeBrowser's stub surface — clean up so they don't
+            // leak into other tests sharing the same global `chrome` object.
+            delete (chrome as { sidePanel?: unknown }).sidePanel;
+            delete (chrome as { windows?: unknown }).windows;
+            delete (chrome as { sidebarAction?: unknown }).sidebarAction;
         });
 
-        it('searches, selects a recipe, and adds it to the chosen shopping list', async () => {
-            vi.mocked(searchRecipesByName).mockResolvedValue([
-                { id: 'recipe-1', name: 'Chicken Soup', slug: 'chicken-soup' },
-            ]);
-            vi.mocked(getShoppingLists).mockResolvedValue([
-                { id: 'list-1', name: 'Groceries' },
-                { id: 'list-2', name: 'Costco' },
-            ]);
-            vi.mocked(addRecipeToShoppingList).mockResolvedValue(true);
+        it('opens the Chrome side panel for the current window', async () => {
+            const open = vi.fn().mockResolvedValue(undefined);
+            (chrome as unknown as { sidePanel: { open: typeof open } }).sidePanel = { open };
+            (chrome as unknown as { windows: { WINDOW_ID_CURRENT: number } }).windows = {
+                WINDOW_ID_CURRENT: -2,
+            };
 
             const user = userEvent.setup();
             render(<App />);
 
-            await user.click(
-                await screen.findByRole('button', { name: /add recipe to shopping list/i }),
-            );
-            await user.type(screen.getByPlaceholderText('Search your recipes…'), 'Chicken');
-            await user.click(screen.getByRole('button', { name: /^search$/i }));
+            await user.click(await screen.findByRole('button', { name: /open shopping list/i }));
 
-            expect(searchRecipesByName).toHaveBeenCalledWith(
-                'Chicken',
-                'https://mealie.example.com',
-                'token123',
-            );
-
-            const resultButton = await screen.findByRole('button', { name: 'Chicken Soup' });
-            await user.click(resultButton);
-
-            expect(getShoppingLists).toHaveBeenCalledWith('https://mealie.example.com', 'token123');
-
-            const listSelect = await screen.findByRole('combobox');
-            expect(screen.getByRole('option', { name: 'Groceries' })).toBeInTheDocument();
-            expect(screen.getByRole('option', { name: 'Costco' })).toBeInTheDocument();
-            await user.selectOptions(listSelect, 'list-2');
-
-            await user.click(screen.getByRole('button', { name: /add to list/i }));
-
-            expect(addRecipeToShoppingList).toHaveBeenCalledWith(
-                'list-2',
-                'recipe-1',
-                'https://mealie.example.com',
-                'token123',
-            );
-            expect(await screen.findByText(/added "chicken soup" to costco/i)).toBeInTheDocument();
+            expect(open).toHaveBeenCalledWith({ windowId: -2 });
         });
 
-        it('shows an empty state when no recipes match the search', async () => {
-            vi.mocked(searchRecipesByName).mockResolvedValue([]);
+        it('falls back to Firefox sidebarAction.open when sidePanel is unavailable', async () => {
+            const open = vi.fn().mockResolvedValue(undefined);
+            (chrome as unknown as { sidebarAction: { open: typeof open } }).sidebarAction = {
+                open,
+            };
 
             const user = userEvent.setup();
             render(<App />);
 
-            await user.click(
-                await screen.findByRole('button', { name: /add recipe to shopping list/i }),
-            );
-            await user.type(screen.getByPlaceholderText('Search your recipes…'), 'Nonexistent');
-            await user.click(screen.getByRole('button', { name: /^search$/i }));
+            await user.click(await screen.findByRole('button', { name: /open shopping list/i }));
 
-            expect(
-                await screen.findByText(/no recipes found for "nonexistent"/i),
-            ).toBeInTheDocument();
-        });
-
-        it('shows an error message when adding to the list fails', async () => {
-            vi.mocked(searchRecipesByName).mockResolvedValue([
-                { id: 'recipe-1', name: 'Chicken Soup', slug: 'chicken-soup' },
-            ]);
-            vi.mocked(getShoppingLists).mockResolvedValue([{ id: 'list-1', name: 'Groceries' }]);
-            vi.mocked(addRecipeToShoppingList).mockResolvedValue(false);
-
-            const user = userEvent.setup();
-            render(<App />);
-
-            await user.click(
-                await screen.findByRole('button', { name: /add recipe to shopping list/i }),
-            );
-            await user.type(screen.getByPlaceholderText('Search your recipes…'), 'Chicken');
-            await user.click(screen.getByRole('button', { name: /^search$/i }));
-            await user.click(await screen.findByRole('button', { name: 'Chicken Soup' }));
-            await user.click(await screen.findByRole('button', { name: /add to list/i }));
-
-            expect(await screen.findByText(/failed to add ingredients/i)).toBeInTheDocument();
+            expect(open).toHaveBeenCalled();
         });
     });
 
