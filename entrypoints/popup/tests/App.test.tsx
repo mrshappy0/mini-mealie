@@ -10,6 +10,7 @@ import App from '../App';
 vi.mock('@/utils/network', () => ({
     getUser: vi.fn(),
     getTodaysMealPlan: vi.fn(),
+    normalizeMealieServerBaseUrl: (url: string) => url.trim().replace(/\/+$/, ''),
 }));
 
 vi.mock('@/utils/storage', async (importOriginal) => {
