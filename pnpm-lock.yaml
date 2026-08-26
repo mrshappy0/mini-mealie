@@ -136,8 +136,8 @@ importers:
         specifier: ^3.9.6
         version: 3.9.6
       resend:
-        specifier: ^6.20.0
-        version: 6.20.0
+        specifier: ^6.22.0
+        version: 6.22.0
       selenium-webdriver:
         specifier: ^4.30.0
         version: 4.46.0
@@ -3752,8 +3752,8 @@ packages:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
 
-  resend@6.20.0:
-    resolution: {integrity: sha512-fXDFt7jVMuka6ruS79DzaQFKPyxOAUtoYUGSl3dTUyOnFK9klmUULxADQRzFFtHfHRipYyy62jYcm4cMKqvtjw==}
+  resend@6.22.0:
+    resolution: {integrity: sha512-dP1jyl0n1Dx7GYDb0bcsbv9Yx0oBRLhUtSyNFRIOsSzV9MvCVbua/3WP6YUP2JptAU5BciEWGInV+hFjUuYLUw==}
     engines: {node: '>=20'}
     peerDependencies:
       '@react-email/render': '*'
@@ -8371,7 +8371,7 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
-  resend@6.20.0:
+  resend@6.22.0:
     dependencies:
       postal-mime: 2.7.5
       standardwebhooks: 1.0.0
