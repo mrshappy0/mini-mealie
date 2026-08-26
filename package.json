@@ -76,7 +76,7 @@
         "semantic-release": "^25.0.8",
         "tsx": "^4.23.11",
         "typescript": "npm:@typescript/typescript6@^6.0.2",
-        "typescript-eslint": "^8.65.0",
+        "typescript-eslint": "^8.67.0",
         "vitest": "^4.1.10",
         "web-ext": "^10.6.0",
         "wxt": "^0.21.4"
