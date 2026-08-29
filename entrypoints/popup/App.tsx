@@ -517,6 +517,8 @@ function App() {
                             </label>
                         </div>
 
+                        <ShoppingListPanelButton />
+
                         <ActivityLog />
 
                         <button onClick={clearSettings}>Disconnect Server</button>
@@ -643,6 +645,37 @@ function TodaysMealPlan({
                     })}
                 </ul>
             )}
+        </div>
+    );
+}
+
+/**
+ * Opens the shopping-list side panel. Must run synchronously inside the click handler
+ * (no `await` before it) — both Chrome's `sidePanel.open()` and Firefox's
+ * `sidebarAction.open()` require an unbroken user-gesture call stack, and lose that
+ * association across a microtask boundary. `WINDOW_ID_CURRENT` lets Chrome open the
+ * panel for "this" window without an async `chrome.windows`/`chrome.tabs` lookup first.
+ */
+function openShoppingListPanel() {
+    if (chrome.sidePanel?.open) {
+        void chrome.sidePanel.open({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+        return;
+    }
+
+    // Firefox's sidebar_action equivalent — not declared in @types/chrome.
+    const sidebarAction = (chrome as unknown as { sidebarAction?: { open: () => Promise<void> } })
+        .sidebarAction;
+    if (sidebarAction?.open) {
+        void sidebarAction.open();
+    }
+}
+
+function ShoppingListPanelButton() {
+    return (
+        <div className="activity-log">
+            <button className="activity-log-link" onClick={openShoppingListPanel}>
+                Add to Shopping List ↗
+            </button>
         </div>
     );
 }

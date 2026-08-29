@@ -488,6 +488,119 @@ export async function findRecipeByURL(
 }
 
 /**
+ * Fetch the household's shopping lists.
+ * Returns 'failure' on network/HTTP errors rather than throwing.
+ */
+export async function getShoppingLists(
+    server: string,
+    token: string,
+): Promise<ShoppingListSummary[] | 'failure'> {
+    const { logEvent } = await import('./logging');
+
+    try {
+        const apiUrl = new URL(
+            `${normalizeMealieServerBaseUrl(server)}/api/households/shopping/lists`,
+        );
+        apiUrl.searchParams.set('perPage', '50');
+
+        const res = (await fetch(apiUrl.href, {
+            headers: {
+                Authorization: `Bearer ${token.trim()}`,
+                'Content-Type': 'application/json',
+            },
+        })) as FetchLikeResponse;
+
+        if (!res.ok) {
+            await logEvent({
+                level: 'warn',
+                feature: 'shopping-list',
+                action: 'getShoppingLists',
+                phase: 'failure',
+                message: `Failed to fetch shopping lists (HTTP ${res.status})`,
+            });
+            return 'failure';
+        }
+
+        const responseText = await safeReadResponseText(res);
+        const data = JSON.parse(responseText) as { items?: ShoppingListSummary[] };
+        return data.items ?? [];
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await logEvent({
+            level: 'error',
+            feature: 'shopping-list',
+            action: 'getShoppingLists',
+            phase: 'failure',
+            message: `Error fetching shopping lists: ${errorMessage}`,
+        });
+        return 'failure';
+    }
+}
+
+/**
+ * Add a recipe's ingredients to a shopping list. Mealie parses/merges the ingredients
+ * server-side (POST /api/households/shopping/lists/{id}/recipe expects the recipe's `id`,
+ * not its `slug`).
+ */
+export async function addRecipeToShoppingList(
+    listId: string,
+    recipeId: string,
+    server: string,
+    token: string,
+): Promise<boolean> {
+    const { logEvent } = await import('./logging');
+
+    try {
+        const fetchUrl = `${normalizeMealieServerBaseUrl(server)}/api/households/shopping/lists/${encodeURIComponent(listId)}/recipe`;
+        const response = (await fetch(fetchUrl, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token.trim()}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify([{ recipeId }]),
+        })) as FetchLikeResponse;
+
+        if (!response.ok) {
+            const responseText = await safeReadResponseText(response);
+            const contentType = getContentType(response);
+            const details = formatErrorDetails(responseText, contentType);
+
+            await logEvent({
+                level: 'warn',
+                feature: 'shopping-list',
+                action: 'addRecipe',
+                phase: 'failure',
+                message: `Failed to add recipe to shopping list (HTTP ${response.status})`,
+                data: { listId, recipeId, details: details || undefined },
+            });
+            return false;
+        }
+
+        await logEvent({
+            level: 'info',
+            feature: 'shopping-list',
+            action: 'addRecipe',
+            phase: 'success',
+            message: 'Added recipe ingredients to shopping list',
+            data: { listId, recipeId },
+        });
+        return true;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await logEvent({
+            level: 'error',
+            feature: 'shopping-list',
+            action: 'addRecipe',
+            phase: 'failure',
+            message: `Error adding recipe to shopping list: ${errorMessage}`,
+            data: { listId, recipeId },
+        });
+        return false;
+    }
+}
+
+/**
  * Search for recipes by name (fuzzy match).
  * Returns top 5 matches sorted by relevance.
  * Returns empty array on error.

@@ -1603,3 +1603,136 @@ describe('getTodaysMealPlan', () => {
         expect(result).toBe('failure');
     });
 });
+
+describe('getShoppingLists', () => {
+    const mockServer = 'https://mealie.example.com';
+    const mockToken = 'test-token';
+
+    it('should return shopping lists on success', async () => {
+        const mockLists = [
+            { id: 'list-1', name: 'Groceries' },
+            { id: 'list-2', name: 'Costco' },
+        ];
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({ items: mockLists }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getShoppingLists(mockServer, mockToken);
+
+        expect(result).toEqual(mockLists);
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining('/api/households/shopping/lists'),
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    Authorization: 'Bearer test-token',
+                }),
+            }),
+        );
+    });
+
+    it('should return empty array when response has no items', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({}),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getShoppingLists(mockServer, mockToken);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should return failure on HTTP error', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 500,
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getShoppingLists(mockServer, mockToken);
+
+        expect(result).toBe('failure');
+    });
+
+    it('should return failure on network error', async () => {
+        global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'));
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getShoppingLists(mockServer, mockToken);
+
+        expect(result).toBe('failure');
+    });
+});
+
+describe('addRecipeToShoppingList', () => {
+    const mockServer = 'https://mealie.example.com';
+    const mockToken = 'test-token';
+    const mockListId = 'list-123';
+    const mockRecipeId = 'recipe-456';
+
+    it('should return true on success and send recipeId in the body', async () => {
+        const fetchMock = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({ id: mockListId }),
+        });
+        global.fetch = fetchMock;
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.addRecipeToShoppingList(
+            mockListId,
+            mockRecipeId,
+            mockServer,
+            mockToken,
+        );
+
+        expect(result).toBe(true);
+        const callArgs = vi.mocked(fetchMock).mock.calls[0]!;
+        expect(callArgs[0]).toContain(`/api/households/shopping/lists/${mockListId}/recipe`);
+        expect(callArgs[1]).toMatchObject({
+            method: 'POST',
+            headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
+        });
+        expect(JSON.parse((callArgs[1] as RequestInit).body as string)).toEqual([
+            { recipeId: mockRecipeId },
+        ]);
+    });
+
+    it('should return false on HTTP error', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 404,
+            statusText: 'Not Found',
+            headers: { get: () => null },
+            text: async () => '',
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.addRecipeToShoppingList(
+            mockListId,
+            mockRecipeId,
+            mockServer,
+            mockToken,
+        );
+
+        expect(result).toBe(false);
+    });
+
+    it('should return false on network error', async () => {
+        global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'));
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.addRecipeToShoppingList(
+            mockListId,
+            mockRecipeId,
+            mockServer,
+            mockToken,
+        );
+
+        expect(result).toBe(false);
+    });
+});

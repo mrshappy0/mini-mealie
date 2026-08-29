@@ -12,7 +12,8 @@ export type LogFeature =
     | 'network'
     | 'storage'
     | 'duplicate-detect'
-    | 'meal-plan';
+    | 'meal-plan'
+    | 'shopping-list';
 
 export type LogEvent = {
     id: string;

@@ -380,6 +380,53 @@ describe('App', () => {
         });
     });
 
+    describe('ShoppingListPanelButton', () => {
+        beforeEach(async () => {
+            await chrome.storage.sync.set({
+                mealieServer: 'https://mealie.example.com',
+                mealieApiToken: 'token123',
+                mealieUsername: 'chef',
+            });
+        });
+
+        afterEach(() => {
+            // These aren't part of fakeBrowser's stub surface — clean up so they don't
+            // leak into other tests sharing the same global `chrome` object.
+            delete (chrome as { sidePanel?: unknown }).sidePanel;
+            delete (chrome as { windows?: unknown }).windows;
+            delete (chrome as { sidebarAction?: unknown }).sidebarAction;
+        });
+
+        it('opens the Chrome side panel for the current window', async () => {
+            const open = vi.fn().mockResolvedValue(undefined);
+            (chrome as unknown as { sidePanel: { open: typeof open } }).sidePanel = { open };
+            (chrome as unknown as { windows: { WINDOW_ID_CURRENT: number } }).windows = {
+                WINDOW_ID_CURRENT: -2,
+            };
+
+            const user = userEvent.setup();
+            render(<App />);
+
+            await user.click(await screen.findByRole('button', { name: /add to shopping list/i }));
+
+            expect(open).toHaveBeenCalledWith({ windowId: -2 });
+        });
+
+        it('falls back to Firefox sidebarAction.open when sidePanel is unavailable', async () => {
+            const open = vi.fn().mockResolvedValue(undefined);
+            (chrome as unknown as { sidebarAction: { open: typeof open } }).sidebarAction = {
+                open,
+            };
+
+            const user = userEvent.setup();
+            render(<App />);
+
+            await user.click(await screen.findByRole('button', { name: /add to shopping list/i }));
+
+            expect(open).toHaveBeenCalled();
+        });
+    });
+
     describe('ActivityLog', () => {
         it('opens the logs page in a new tab', async () => {
             const createTab = vi.spyOn(chrome.tabs, 'create');
