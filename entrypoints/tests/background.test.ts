@@ -216,6 +216,21 @@ describe('background', () => {
             await new Promise((resolve) => setTimeout(resolve, 300));
             expect(checkStorageAndUpdateBadge).not.toHaveBeenCalled();
         });
+
+        // Guard for a real flake: fakeBrowser.reset() doesn't reset webNavigation (it has no
+        // resetState()), so every beforeEach's main() used to stack another live onCommitted
+        // listener. Each duplicate scheduled its own debounced refresh, and the ones that
+        // hadn't fired when a test ended landed in the next test, making the "does not
+        // refresh" assertions above fail at random. vitest.setup.ts clears them; this asserts
+        // it still works. Deliberately last in this block, and on a restricted URL so the
+        // handler returns early instead of leaving a timer behind.
+        it('registers exactly one navigation listener per test', async () => {
+            const results = await fakeBrowser.webNavigation.onCommitted.trigger(
+                makeCommitDetails({ url: 'chrome://extensions' }),
+            );
+
+            expect(results).toHaveLength(1);
+        });
     });
 
     describe('contextMenus.onClicked dispatch', () => {
