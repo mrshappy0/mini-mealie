@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, vi } from 'vitest';
+import { fakeBrowser } from 'wxt/testing/fake-browser';
 
 // `test.globals` isn't enabled, so @testing-library/react can't auto-detect a
 // global `afterEach` to clean up between tests. Without this, every render()
@@ -67,6 +68,28 @@ function withCallbackSupport(area: unknown) {
         });
     }
 }
+
+/**
+ * `fakeBrowser.reset()` only resets namespaces that implement `resetState()`, and
+ * `webNavigation` is the one namespace that doesn't (see @webext-core/fake-browser) — it is
+ * events-only, so its listeners survive every reset.
+ *
+ * That silently breaks any suite that re-runs a background entrypoint per test: each
+ * `main()` adds another live `webNavigation.onCommitted` listener on top of the previous
+ * test's, so a single navigation trigger runs N copies of the handler, each scheduling its
+ * own debounced badge refresh from its own closure. `vi.waitFor` returns after the first one
+ * fires and the rest land in the *next* test — after `vi.clearAllMocks()` — where a
+ * "should not refresh" assertion then sees phantom calls. Clear them explicitly.
+ */
+beforeEach(() => {
+    const webNavigation = fakeBrowser.webNavigation as unknown as Record<
+        string,
+        { removeAllListeners?: () => void } | undefined
+    >;
+    for (const event of Object.values(webNavigation)) {
+        event?.removeAllListeners?.();
+    }
+});
 
 beforeEach(() => {
     if (typeof chrome === 'undefined') return;
