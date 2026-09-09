@@ -77,6 +77,12 @@ export default [
             'coverage',
             'html',
             'coverage-report',
+            // vitest 5 moved the html reporter + attachments output out of html/
+            // and into .vitest/. Without this, a local `pnpm lint` after any test
+            // run type-aware-lints .vitest/ui/assets/*.js — a ~1.5MB minified
+            // bundle — and goes from ~9s to >11min. CI never sees it: ESLint runs
+            // on a fresh checkout there, before anything generates .vitest/.
+            '.vitest',
             // Local-only E2E harnesses: mixed browser/node contexts the extension's
             // eslint config isn't set up for. They have their own tsconfig for type-checking.
             'e2e-playwright',
