@@ -4,6 +4,27 @@ updates:
       directory: '/'
       schedule:
           interval: 'weekly'
+      # These families pin each other with *exact* version constraints, so a
+      # per-package PR always leaves the pair split across two versions and CI
+      # fails on the mismatch rather than on anything the bump actually changed.
+      # Grouping keeps each family in a single PR that moves in lockstep.
+      groups:
+          # @playwright/test@X depends on playwright@X exactly. Splitting them
+          # puts two runner copies in the tree, and the spec's `@playwright/test`
+          # import resolves to a different registry than the `playwright test`
+          # CLI reads — every Chrome MV3 job dies with "Playwright Test did not
+          # expect test.describe() to be called here" / "No tests found".
+          playwright:
+              patterns:
+                  - 'playwright'
+                  - '@playwright/test'
+          # @vitest/ui and @vitest/coverage-istanbul declare `peerDependencies:
+          # { vitest: "<exact version>" }`, so they are only ever installable
+          # against the exact vitest release they shipped with.
+          vitest:
+              patterns:
+                  - 'vitest'
+                  - '@vitest/*'
 
     - package-ecosystem: 'github-actions'
       directory: '/'
