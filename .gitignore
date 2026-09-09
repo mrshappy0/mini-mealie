@@ -20,6 +20,9 @@ coverage
 html
 coverage-report
 
+# vitest 5 moved the html reporter + attachments output here (was html/)
+.vitest
+
 
 # Editor directories and files
 .vscode/*
