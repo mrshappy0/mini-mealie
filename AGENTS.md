@@ -49,6 +49,9 @@ Windows note: if PowerShell blocks `pnpm.ps1`, prefer `pnpm.cmd` or adjust execu
     - Local helper: `pnpm commitlint` validates a message; the `.githooks/commit-msg` hook runs commitlint automatically on every commit.
     - CI enforces this on all PRs via `.github/workflows/commitlint.yml` — PRs with non-conventional commits cannot merge.
     - Keep commit message body lines ≤ 100 characters. Agent-generated commits (those containing `Agent-Logs-Url:`) are automatically skipped by commitlint, so long trailers in agent commit bodies won't fail CI.
+- **Every commit must be signed.** `commit.gpgsign` is enabled globally and `.githooks/pre-push` refuses to push any commit that carries no signature.
+    - Never reach for `--no-gpg-sign`, `-c commit.gpgsign=false`, or `--no-verify` to get past a signing or hook failure. If signing breaks, stop and report it — a bypassed commit lands on the PR as **Unverified** and nobody notices until review.
+    - To re-sign a branch that already has unsigned commits: `git rebase -S origin/main && git push --force-with-lease`.
 - Releases are driven by commit history and semantic versioning via **semantic-release**.
     - On merges to `main`, GitHub Actions runs `npx semantic-release` (see `.github/workflows/release.yml` and `.releaserc`).
     - When a GitHub Release is published, CI zips the extension (`pnpm zip`) and submits it to the Chrome Web Store and Firefox Add-ons (see `.github/workflows/submit.yml`).

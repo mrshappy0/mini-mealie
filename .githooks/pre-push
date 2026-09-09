@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# Refuse to push commits that carry no signature.
+#
+# Signing is configured globally (commit.gpgsign=true), but a failed sign is easy to
+# "work around" with --no-gpg-sign, which silently lands Unverified commits on a PR.
+# This turns that into a loud failure at push time, while the branch is still cheap to fix.
+#
+# Signature status comes from `git log --format=%G?`:
+#   N       no signature                                  -> rejected
+#   B       bad signature                                  -> rejected
+#   E       signed, but the key isn't available locally     -> allowed (e.g. GitHub's
+#           web-flow key on merge/squash commits pulled in from main)
+#   G U X Y R  signed                                       -> allowed
+#
+# Only commits that exist on no remote-tracking branch are checked, so history merged
+# in from main is never re-litigated. Set ALLOW_UNSIGNED_PUSH=1 to bypass.
+
+[ "$ALLOW_UNSIGNED_PUSH" = "1" ] && exit 0
+
+status=0
+
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+    # All-zero sha means the ref is being deleted; nothing to check.
+    case "$local_sha" in
+        *[!0]*) ;;
+        *) continue ;;
+    esac
+
+    unsigned=$(git rev-list "$local_sha" --not --remotes | while read -r sha; do
+        case "$(git log -1 --format='%G?' "$sha")" in
+            N | B) git log -1 --format='    %h  %s' "$sha" ;;
+        esac
+    done)
+
+    if [ -n "$unsigned" ]; then
+        echo "" >&2
+        echo "pre-push: these commits are unsigned (or badly signed):" >&2
+        echo "$unsigned" >&2
+        echo "" >&2
+        echo "  They would show as Unverified on GitHub. Re-sign the branch with:" >&2
+        echo "    git rebase -S origin/main && git push --force-with-lease" >&2
+        echo "" >&2
+        echo "  Never commit with --no-gpg-sign; if signing fails, fix gpg instead." >&2
+        echo "  To bypass anyway: ALLOW_UNSIGNED_PUSH=1 git push ..." >&2
+        echo "" >&2
+        status=1
+    fi
+done
+
+exit $status
