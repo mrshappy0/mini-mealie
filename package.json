@@ -53,7 +53,7 @@
         "@types/har-format": "^1.2.16",
         "@types/node": "^26.4.1",
         "@types/react": "^19.2.18",
-        "@types/react-dom": "^19.2.4",
+        "@types/react-dom": "^19.2.7",
         "@types/selenium-webdriver": "^4.1.28",
         "@typescript/native": "npm:typescript@^7.0.2",
         "@vitest/coverage-istanbul": "^5.0.0",
