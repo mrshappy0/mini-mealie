@@ -25,6 +25,20 @@ updates:
               patterns:
                   - 'vitest'
                   - '@vitest/*'
+          # react-dom's peer floor tracks its own version exactly (react-dom@19.2.8
+          # peers react@^19.2.8, 19.2.4 peers ^19.2.4, and so on), so a solo
+          # react-dom minor bump asks for a react its sibling PR hasn't landed yet.
+          # This has already cost a manual follow-up here once — see 7e2fbdf,
+          # "fix(deps): align react-dom version to match react 19.2.6", after #78
+          # bumped react on its own. @types/react-dom tracks @types/react the same
+          # way at minor granularity, and @testing-library/react peers all four, so
+          # they belong in one group rather than two.
+          react:
+              patterns:
+                  - 'react'
+                  - 'react-dom'
+                  - '@types/react'
+                  - '@types/react-dom'
 
     - package-ecosystem: 'github-actions'
       directory: '/'
