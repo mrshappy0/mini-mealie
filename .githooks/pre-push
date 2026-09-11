@@ -15,15 +15,26 @@
 #
 # Only commits that exist on no remote-tracking branch are checked, so history merged
 # in from main is never re-litigated. Set ALLOW_UNSIGNED_PUSH=1 to bypass.
+#
+# Only branch pushes are checked. Tags and notes refs are written by tooling (e.g.
+# semantic-release's `git notes add` for refs/notes/semantic-release-*), which can't
+# sign. The hook is also skipped in CI (postinstall installs it there too), where no
+# signing key exists and nothing pushed is a hand-written commit.
 
 [ "$ALLOW_UNSIGNED_PUSH" = "1" ] && exit 0
+[ "$CI" = "true" ] && exit 0
 
 status=0
 
-while read -r _local_ref local_sha _remote_ref _remote_sha; do
+while read -r _local_ref local_sha remote_ref _remote_sha; do
     # All-zero sha means the ref is being deleted; nothing to check.
     case "$local_sha" in
         *[!0]*) ;;
+        *) continue ;;
+    esac
+
+    case "$remote_ref" in
+        refs/heads/*) ;;
         *) continue ;;
     esac
 
