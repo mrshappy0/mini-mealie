@@ -74,7 +74,7 @@
         "resend": "^6.25.0",
         "selenium-webdriver": "^4.48.0",
         "semantic-release": "^25.0.9",
-        "tsx": "^4.23.11",
+        "tsx": "^4.23.13",
         "typescript": "npm:@typescript/typescript6@^6.0.2",
         "typescript-eslint": "^8.67.0",
         "vitest": "^5.0.0",
