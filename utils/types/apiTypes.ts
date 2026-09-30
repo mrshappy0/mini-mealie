@@ -15,6 +15,19 @@ export interface RecipeSummary {
     orgURL?: string | null;
 }
 
+export type PlanEntryType =
+    'breakfast' | 'lunch' | 'dinner' | 'side' | 'snack' | 'drink' | 'dessert';
+
+export interface MealPlanEntry {
+    id: number;
+    date: string;
+    entryType: PlanEntryType;
+    title: string;
+    text: string;
+    recipeId: string | null;
+    recipe?: RecipeSummary | null;
+}
+
 export interface ShoppingListSummary {
     id: string;
     name: string | null;

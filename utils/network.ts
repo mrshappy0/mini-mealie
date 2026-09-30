@@ -249,6 +249,67 @@ export const getUser = async (
     }
 };
 
+/**
+ * Fetch today's meal plan entries for the household.
+ * Mealie's `/mealplans/today` response has no declared schema (returns a bare list), so
+ * this also tolerates a paginated `{ items: [...] }` shape defensively.
+ * Returns 'failure' on network/HTTP errors rather than throwing.
+ */
+export async function getTodaysMealPlan(
+    server: string,
+    token: string,
+): Promise<MealPlanEntry[] | 'failure'> {
+    const { logEvent } = await import('./logging');
+
+    try {
+        const fetchUrl = `${normalizeMealieServerBaseUrl(server)}/api/households/mealplans/today`;
+        const res = (await fetch(fetchUrl, {
+            headers: {
+                Authorization: `Bearer ${token.trim()}`,
+                'Content-Type': 'application/json',
+            },
+        })) as FetchLikeResponse;
+
+        if (!res.ok) {
+            await logEvent({
+                level: 'warn',
+                feature: 'meal-plan',
+                action: 'getToday',
+                phase: 'failure',
+                message: `Failed to fetch today's meal plan (HTTP ${res.status})`,
+            });
+            return 'failure';
+        }
+
+        const responseText = await safeReadResponseText(res);
+        const data = responseText
+            ? (JSON.parse(responseText) as MealPlanEntry[] | { items?: MealPlanEntry[] })
+            : [];
+        const entries = Array.isArray(data) ? data : (data.items ?? []);
+
+        await logEvent({
+            level: 'info',
+            feature: 'meal-plan',
+            action: 'getToday',
+            phase: 'success',
+            message: `Fetched ${entries.length} meal plan entries for today`,
+            data: { count: entries.length },
+        });
+
+        return entries;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await logEvent({
+            level: 'error',
+            feature: 'meal-plan',
+            action: 'getToday',
+            phase: 'failure',
+            message: `Error fetching today's meal plan: ${errorMessage}`,
+        });
+        return 'failure';
+    }
+}
+
 export const testScrapeUrl = async (
     url: string,
     server: string,

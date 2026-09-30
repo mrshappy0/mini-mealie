@@ -1512,6 +1512,98 @@ describe('Mealie server hosted under a subpath', () => {
     });
 });
 
+describe('getTodaysMealPlan', () => {
+    const mockServer = 'https://mealie.example.com';
+    const mockToken = 'test-token';
+
+    it('should return entries when the response is a bare array', async () => {
+        const mockEntries = [
+            {
+                id: 1,
+                date: '2026-08-19',
+                entryType: 'dinner',
+                title: '',
+                text: '',
+                recipeId: 'recipe-1',
+                recipe: { id: 'recipe-1', name: 'Chicken Soup', slug: 'chicken-soup' },
+            },
+        ];
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify(mockEntries),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getTodaysMealPlan(mockServer, mockToken);
+
+        expect(result).toEqual(mockEntries);
+        expect(global.fetch).toHaveBeenCalledWith(
+            `${mockServer}/api/households/mealplans/today`,
+            expect.objectContaining({
+                headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
+            }),
+        );
+    });
+
+    it('should fall back to a paginated { items } shape', async () => {
+        const mockEntries = [
+            {
+                id: 2,
+                date: '2026-08-19',
+                entryType: 'breakfast',
+                title: 'Leftover pancakes',
+                text: '',
+                recipeId: null,
+            },
+        ];
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({ items: mockEntries }),
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getTodaysMealPlan(mockServer, mockToken);
+
+        expect(result).toEqual(mockEntries);
+    });
+
+    it('should return an empty array when the response body is empty', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            text: async () => '',
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getTodaysMealPlan(mockServer, mockToken);
+
+        expect(result).toEqual([]);
+    });
+
+    it('should return failure on HTTP error', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: false,
+            status: 500,
+        });
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getTodaysMealPlan(mockServer, mockToken);
+
+        expect(result).toBe('failure');
+    });
+
+    it('should return failure on network error', async () => {
+        global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'));
+
+        const actual = await vi.importActual<typeof import('../network')>('../network');
+        const result = await actual.getTodaysMealPlan(mockServer, mockToken);
+
+        expect(result).toBe('failure');
+    });
+});
+
 describe('getShoppingLists', () => {
     const mockServer = 'https://mealie.example.com';
     const mockToken = 'test-token';
