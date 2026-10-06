@@ -22,7 +22,15 @@ overrides:
     # GHSA-w7jw-789q-3m8p: shell-quote quote() newline escaping in .op values.
     # fx-runner@1.4.0 pins shell-quote@1.7.3; fx-runner@1.5.0 already uses 1.8.4
     # but web-ext-run@0.2.4 (no newer release) still depends on fx-runner@1.4.0.
-    fx-runner>shell-quote: '>=1.8.4'
+    # Floor raised to 1.11.0 for GHSA-pqg4-j6r4-53mv (critical).
+    fx-runner>shell-quote: '>=1.11.0'
+    # GHSA-5p2g-fcmc-qvqq / GHSA-w3rx-r6r6-pgpr: image-size DoS on crafted
+    # images, patched in 2.0.3. addons-linter@10.10.0 (via web-ext) pins 2.0.2
+    # exactly; 2.0.x is a patch-level bump of the same API.
+    addons-linter>image-size: '>=2.0.3 <3.0.0'
+    # GHSA-68fv-2mgg-jv7q: source-map-js, patched in 1.2.2. Consumers (vite,
+    # postcss, @eslint/css-tree) declare ^1.2.x, so the bump stays in range.
+    source-map-js: '>=1.2.2 <2.0.0'
     # GHSA-ph9p-34f9-6g65: tmp path traversal via unsanitized prefix/postfix.
     # web-ext-run@0.2.4 pins tmp@0.2.5; no newer web-ext-run release available.
     web-ext-run>tmp: '>=0.2.6'
