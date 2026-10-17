@@ -109,6 +109,12 @@ overrides:
     # still ships `module.exports = expandTop`, so the old callable shape
     # survives. Capped under 2.0.0 to keep it on that line.
     'minimatch@3.1.5>brace-expansion': '>=1.1.21 <2.0.0'
+    # GHSA-8r5x-fm3f-whwj, GHSA-p8wg-vrv2-v86f (CRITICAL) and GHSA-xw65-4hp5-5hc7
+    # (MEDIUM): handlebars JavaScript injection via compile/precompile, patched in
+    # 4.7.10. Dev-only, via semantic-release -> conventional-changelog-writer, which
+    # declares `^4.7.7`, so the bump stays in range. Scoped to that parent and
+    # capped under 5.0.0 to stay on the 4.x line it supports.
+    'conventional-changelog-writer>handlebars': '>=4.7.10 <5.0.0'
 
 packageExtensions:
     'minimatch@10.2.5':
