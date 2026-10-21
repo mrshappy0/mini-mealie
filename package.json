@@ -32,7 +32,7 @@
         "test:e2e": "pnpm test:e2e:up && cross-env WXT_E2E=true pnpm build && (pnpm test:e2e:chromium; ec=$?; pnpm test:e2e:down; exit $ec)"
     },
     "dependencies": {
-        "normalize-url": "^9.0.1",
+        "normalize-url": "^10.0.0",
         "react": "^19.3.0",
         "react-dom": "^19.3.0"
     },
