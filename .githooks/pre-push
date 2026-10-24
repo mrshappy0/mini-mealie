@@ -40,7 +40,9 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
 
     unsigned=$(git rev-list "$local_sha" --not --remotes | while read -r sha; do
         case "$(git log -1 --format='%G?' "$sha")" in
-            N | B) git log -1 --format='    %h  %s' "$sha" ;;
+            # Leading `(` keeps bash 3.2 (macOS /bin/sh) from reading the `)` as the
+            # end of the enclosing $(...) and failing with a syntax error.
+            (N | B) git log -1 --format='    %h  %s' "$sha" ;;
         esac
     done)
 
