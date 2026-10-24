@@ -12,6 +12,7 @@ export type LogFeature =
     | 'network'
     | 'storage'
     | 'duplicate-detect'
+    | 'meal-plan'
     | 'shopping-list';
 
 export type LogEvent = {
