@@ -1,9 +1,23 @@
+import { fileURLToPath } from 'node:url';
+
 import { configDefaults, defineConfig } from 'vitest/config';
 import { WxtVitest } from 'wxt/testing/vitest-plugin';
 
 export default defineConfig({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plugins: [WxtVitest() as any],
+    resolve: {
+        alias: [
+            // Root-relative public assets (e.g. `import logo from '/mini-mealie.svg'`) otherwise
+            // resolve to `file:///mini-mealie.svg`, which has no drive letter and fails to load
+            // on Windows. Point them at the real file in public/ instead. Tests only; the WXT
+            // build resolves public assets on its own.
+            {
+                find: /^\/([^/]+\.svg)$/,
+                replacement: fileURLToPath(new URL('./public/$1', import.meta.url)),
+            },
+        ],
+    },
     test: {
         reporters: ['default', 'html'],
         // E2E harnesses (Playwright/Selenium) are not unit tests — keep them out of vitest.
