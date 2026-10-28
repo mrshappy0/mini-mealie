@@ -320,6 +320,74 @@ input:checked + .slider::before {
     font-weight: 600;
 }
 
+.meal-plan-card {
+    text-align: left;
+    margin: 0.5em 0;
+    padding: 0.5em 0.75em;
+    background-color: #222;
+    border-radius: 6px;
+}
+
+.meal-plan-title {
+    margin: 0 0 0.4em;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.meal-plan-empty {
+    margin: 0;
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.meal-plan-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+}
+
+.meal-plan-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    font-size: 0.88em;
+}
+
+.meal-plan-type {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.meal-plan-recipe-link {
+    width: auto;
+    padding: 0;
+    background: transparent;
+    color: var(--mealie-orange);
+    text-align: left;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.meal-plan-recipe-link:hover {
+    background: transparent;
+    color: var(--mealie-hover);
+}
+
+.meal-plan-recipe-link:disabled {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    cursor: default;
+}
+
+.meal-plan-freeform {
+    color: var(--mealie-white);
+}
+
 .import-options {
     display: flex;
     flex-direction: column;
