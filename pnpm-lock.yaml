@@ -22,6 +22,7 @@ overrides:
   minimatch@>=10.0.0>brace-expansion: '>=5.0.12'
   minimatch@3.1.5>brace-expansion: '>=1.1.21 <2.0.0'
   conventional-changelog-writer>handlebars: '>=4.7.10 <5.0.0'
+  '@devicefarmer/adbkit>node-forge': '>=1.4.2 <2.0.0'
 
 packageExtensionsChecksum: sha256-xx97ir72Z/Od9tONlIEsbEVKGUrhc6tGfUeweqcsMOk=
 
@@ -3302,8 +3303,8 @@ packages:
     resolution: {integrity: sha512-kXs9Go0cah0qHVV2v389IXQLdLCeE1xfFtjOAF+iobu0OIoG1pje8At2vMHyaPMiPMnG/LWP50twML21eMcAag==}
     engines: {node: '>= 0.4'}
 
-  node-forge@1.4.0:
-    resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
+  node-forge@1.4.2:
+    resolution: {integrity: sha512-rRtAR5XLJ8gCKd9du4qrKAsgCG1ObGP4gLeNJMa4vYSeq4bmBMOJk5IHkrviBV0q7uoAJlVd8HEQYQSVUb4FGQ==}
     engines: {node: '>= 6.13.0'}
 
   node-releases@2.0.57:
@@ -5093,7 +5094,7 @@ snapshots:
       bluebird: 3.7.2
       commander: 9.5.0
       debug: 4.3.7
-      node-forge: 1.4.0
+      node-forge: 1.4.2
       split: 1.0.1
     transitivePeerDependencies:
       - supports-color
@@ -8004,7 +8005,7 @@ snapshots:
       object.entries: 1.1.9
       semver: 6.3.1
 
-  node-forge@1.4.0: {}
+  node-forge@1.4.2: {}
 
   node-releases@2.0.57: {}
 
