@@ -39,6 +39,15 @@ updates:
                   - 'react-dom'
                   - '@types/react'
                   - '@types/react-dom'
+          # Everything else in dev gets one weekly PR instead of one PR per package.
+          # Dependabot assigns a package to the first group it matches, so this must
+          # stay below the families above. Majors are left out so each breaking
+          # upgrade keeps its own PR.
+          dev-dependencies:
+              dependency-type: 'development'
+              update-types:
+                  - 'minor'
+                  - 'patch'
 
     - package-ecosystem: 'github-actions'
       directory: '/'
