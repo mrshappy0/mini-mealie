@@ -129,6 +129,14 @@ overrides:
     # declares `^4.7.7`, so the bump stays in range. Scoped to that parent and
     # capped under 5.0.0 to stay on the 4.x line it supports.
     'conventional-changelog-writer>handlebars': '>=4.7.10 <5.0.0'
+    # GHSA-86w9-cpqp-85rv, GHSA-7wch-p9px-956x, GHSA-jc66-7q78-782g,
+    # GHSA-8hrf-8g6f-7xwp, GHSA-hqq3-7jhf-c5jx, GHSA-5x38-2vff-x55p (HIGH),
+    # GHSA-6wvx-3r32-xmcg, GHSA-525v-9gp9-w22h, GHSA-5cwg-6vw7-rj6p (MEDIUM),
+    # GHSA-4642-5mcj-2rqw, GHSA-h6cr-wjv9-3cpp, GHSA-4487-j8r4-4g2f (LOW):
+    # node-forge issues patched in 1.4.1; 1.4.2 is the current release. Dev-only,
+    # via web-ext -> @devicefarmer/adbkit, which declares `^1.3.1`, so the bump
+    # stays in range. Scoped to that parent and capped under 2.0.0.
+    '@devicefarmer/adbkit>node-forge': '>=1.4.2 <2.0.0'
 
 packageExtensions:
     'minimatch@10.2.5':
