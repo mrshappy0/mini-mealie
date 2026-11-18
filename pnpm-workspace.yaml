@@ -136,7 +136,9 @@ overrides:
     # node-forge issues patched in 1.4.1; 1.4.2 is the current release. Dev-only,
     # via web-ext -> @devicefarmer/adbkit, which declares `^1.3.1`, so the bump
     # stays in range. Scoped to that parent and capped under 2.0.0.
-    '@devicefarmer/adbkit>node-forge': '>=1.4.2 <2.0.0'
+    # Floor raised to 1.4.3 for GHSA-w4xr-hqv8-ch44, GHSA-j8rw-jp99-435v (MEDIUM)
+    # and GHSA-6889-vf6x-f3g5 (LOW), all affecting <=1.4.2; still a 1.x patch bump.
+    '@devicefarmer/adbkit>node-forge': '>=1.4.3 <2.0.0'
 
 packageExtensions:
     'minimatch@10.2.5':
